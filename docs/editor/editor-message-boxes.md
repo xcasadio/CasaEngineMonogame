@@ -48,9 +48,10 @@ A native box answered on the next line; an MGUI box answers later. Each flow the
 and redoes the action by code once the answer lets it go. The decision itself is `ModifiedScreenCloseDecision.ApplyAnswer`:
 Save saves then proceeds (or stops if the save failed), Don't Save proceeds without saving, Cancel stops.
 
-Documents that ask: Screen, Cutscene, Material, Sprite, Particle, Animation2D, Entity, Audio Mixer and Sound. A document
-is "modified" when its tab shows ` *`; the question, the list and the save all read that same condition. The kind names
-above are the `<Kind>` labels of the texts below. Tile map and animation clip are not modifiable and never ask.
+Documents that ask (eleven kinds): Screen, Cutscene, Material, Sprite, Particle, Animation2D, Entity, Audio Mixer, Sound,
+Texture and Static Model. A document is "modified" when its tab shows ` *`; the question, the list and the save all read
+that same condition. The kind names above are the `<Kind>` labels of the texts below. The read-only asset preview, the
+tile map and the animation clip are not modifiable and never ask.
 
 | Flow | Title and message | Where | Once the answer lets it go |
 |---|---|---|---|

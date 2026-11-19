@@ -30,6 +30,7 @@ Any file whose extension has no document and is not an engine asset format (`Con
 - the sampler is edited: `texture_filter`, `address_u`, `address_v`, `address_w`, `max_anisotropy` (1 to 16). Every change builds a new `SamplerState`; the other sampler fields are kept;
 - the fields the panel does not edit are kept on save, including the optional `generate_mipmaps` (ADR-0124, `docs/engine/texture-mipmaps.md`), which is set in the file;
 - Save writes the file through `EditorAssetWriterService`; File > Save saves every modified texture document; Reload reads the file again. A modified document shows `*` in its tab title.
+- A modified texture document asks "save before losing changes?" when its tab is closed, when the editor quits and when another project is opened (`docs/editor/editor-message-boxes.md`).
 
 The logic without UI is `CasaEngine.EditorServices/Textures/TextureAssetDocument.cs`.
 
@@ -39,7 +40,7 @@ The logic without UI is `CasaEngine.EditorServices/Textures/TextureAssetDocument
 
 - one row per mesh and per sub-mesh, with its material name and id, a picker restricted to `material` assets, and None to clear it;
 - saving changes the material ids and writes vertices, indices, nodes and the other fields back unchanged. A mesh without slot metadata gets the values the loader fills in (`slot_name`, `material_slot_index`, `StaticModelMaterialSlots.EnsureMetadata`);
-- Save, Reload, the save with File > Save and the `*` follow the texture document.
+- Save, Reload, the save with File > Save and the `*` follow the texture document, and so does the question asked before the changes are lost.
 
 The logic without UI is `CasaEngine.EditorServices/StaticModels/StaticModelAssetDocument.cs`.
 

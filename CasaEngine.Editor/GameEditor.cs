@@ -3061,7 +3061,7 @@ public partial class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>The documents whose user close asks "save before closing?" when they are modified: every open document of a
-    /// modifiable kind (the tile map and the animation clip have nothing to modify).</summary>
+    /// modifiable kind (the tile map, the animation clip and the read-only asset preview have nothing to modify).</summary>
     private bool IsDocumentAskedBeforeClose(string panelId)
         => TryGetSavableDocument(panelId, out _);
 
@@ -3211,7 +3211,7 @@ public partial class GameEditor : Game, IObservableUpdate
         }
     }
 
-    /// <summary>The ids held by the eleven document tables: the nine modifiable kinds, the tile map and the animation clip.</summary>
+    /// <summary>The ids held by the document tables: the eleven modifiable kinds, the tile map, the animation clip and the read-only asset preview.</summary>
     private void CollectOpenDocumentPanelIds(List<string> panelIds)
     {
         panelIds.AddRange(_screenPreviewPanels.Keys);
@@ -3223,8 +3223,11 @@ public partial class GameEditor : Game, IObservableUpdate
         panelIds.AddRange(_cutsceneInspectorPanels.Keys);
         panelIds.AddRange(_animation2dInspectorPanels.Keys);
         panelIds.AddRange(_entityAssetEditorPanels.Keys);
+        panelIds.AddRange(_textureDocumentPanels.Keys);
+        panelIds.AddRange(_staticModelDocumentPanels.Keys);
         panelIds.AddRange(_animationClipPreviewPanels.Keys);
         panelIds.AddRange(_tileMapEditorPanels.Keys);
+        panelIds.AddRange(_assetPreviewPanels.Keys);
     }
 
     /// <summary>The node of the panel <paramref name="panelId"/> wherever <see cref="MGDockHost.ClosePanel"/> looks for it, in
@@ -3863,6 +3866,30 @@ public partial class GameEditor : Game, IObservableUpdate
         }
 
         return _soundInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+    }
+
+    private bool TryGetTextureDocumentPanel(string panelId, out TextureAssetDocumentPanel texturePanel)
+    {
+        texturePanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.TextureAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _textureDocumentPanels.TryGetValue(panelId, out texturePanel);
+    }
+
+    private bool TryGetStaticModelDocumentPanel(string panelId, out StaticModelAssetDocumentPanel staticModelPanel)
+    {
+        staticModelPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.StaticModelAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _staticModelDocumentPanels.TryGetValue(panelId, out staticModelPanel);
     }
 
     private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
@@ -5435,35 +5462,15 @@ public partial class GameEditor : Game, IObservableUpdate
     private string GetTextureDocumentTitle(string panelId)
     {
         var title = _textureDocumentPanelTitles.TryGetValue(panelId, out var value) ? value : "Texture";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
-        if (_textureDocumentPanels.TryGetValue(panelId, out var texturePanel))
-        {
-            isDirty |= texturePanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetTextureDocumentPanel(panelId, out var texturePanel);
+        return IsTextureDocumentModified(panelId, texturePanel) ? $"{title} *" : title;
     }
 
     private void SaveDirtyTextureDocuments()
     {
         foreach (var pair in _textureDocumentPanels)
         {
-            var texturePanel = pair.Value;
-            if (!texturePanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (texturePanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetTextureDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Texture asset saved: {texturePanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveTextureDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5556,35 +5563,15 @@ public partial class GameEditor : Game, IObservableUpdate
     private string GetStaticModelDocumentTitle(string panelId)
     {
         var title = _staticModelDocumentPanelTitles.TryGetValue(panelId, out var value) ? value : "Static model";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId));
-        if (_staticModelDocumentPanels.TryGetValue(panelId, out var staticModelPanel))
-        {
-            isDirty |= staticModelPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetStaticModelDocumentPanel(panelId, out var staticModelPanel);
+        return IsStaticModelDocumentModified(panelId, staticModelPanel) ? $"{title} *" : title;
     }
 
     private void SaveDirtyStaticModelDocuments()
     {
         foreach (var pair in _staticModelDocumentPanels)
         {
-            var staticModelPanel = pair.Value;
-            if (!staticModelPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (staticModelPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetStaticModelDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Static model asset saved: {staticModelPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveStaticModelDocument(pair.Key, pair.Value);
         }
     }
 
@@ -6541,8 +6528,48 @@ public partial class GameEditor : Game, IObservableUpdate
         return !IsEntityDocumentModified(panelId, entityAssetEditorPanel);
     }
 
+    private bool TrySaveTextureDocument(string panelId, TextureAssetDocumentPanel texturePanel)
+    {
+        // The texture panel writes the file at every call: the modified test must come first.
+        if (!IsTextureDocumentModified(panelId, texturePanel))
+        {
+            return true;
+        }
+
+        if (!texturePanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+        UpdateDockPanelTitle(panelId, GetTextureDocumentTitle(panelId));
+        Logs.WriteInfo($"Texture asset saved: {texturePanel.LoadedRelativePath}");
+        return !IsTextureDocumentModified(panelId, texturePanel);
+    }
+
+    private bool TrySaveStaticModelDocument(string panelId, StaticModelAssetDocumentPanel staticModelPanel)
+    {
+        // The static model panel writes the file at every call: the modified test must come first.
+        if (!IsStaticModelDocumentModified(panelId, staticModelPanel))
+        {
+            return true;
+        }
+
+        if (!staticModelPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId));
+        UpdateDockPanelTitle(panelId, GetStaticModelDocumentTitle(panelId));
+        Logs.WriteInfo($"Static model asset saved: {staticModelPanel.LoadedRelativePath}");
+        return !IsStaticModelDocumentModified(panelId, staticModelPanel);
+    }
+
     /// <summary>The open document of a panel, seen the way the save questions see it. False when the panel is not an
-    /// open document of a modifiable kind (the tile map and the animation clip have nothing to modify or save).</summary>
+    /// open document of a modifiable kind (the tile map, the animation clip and the read-only asset preview have nothing to modify or save).</summary>
     private bool TryGetSavableDocument(string panelId, out EditorSavableDocument document)
     {
         document = null!;
@@ -6583,12 +6610,20 @@ public partial class GameEditor : Game, IObservableUpdate
         {
             document = CreateSoundSavableDocument(panelId, soundInspectorPanel);
         }
+        else if (TryGetTextureDocumentPanel(panelId, out var texturePanel))
+        {
+            document = CreateTextureSavableDocument(panelId, texturePanel);
+        }
+        else if (TryGetStaticModelDocumentPanel(panelId, out var staticModelPanel))
+        {
+            document = CreateStaticModelSavableDocument(panelId, staticModelPanel);
+        }
 
         return document != null;
     }
 
     /// <summary>Fills <paramref name="documents"/> with every open document of a modifiable kind, in a fixed order (screens,
-    /// cutscenes, materials, sprites, particles, Animation2D, entities, audio mixers, sounds), then the world when
+    /// cutscenes, materials, sprites, particles, Animation2D, entities, audio mixers, sounds, textures, static models), then the world when
     /// <paramref name="includeWorld"/> is true. Modified or not: the callers filter.</summary>
     private void CollectSavableDocuments(List<EditorSavableDocument> documents, bool includeWorld)
     {
@@ -6637,6 +6672,16 @@ public partial class GameEditor : Game, IObservableUpdate
         foreach (var pair in _soundInspectorPanels)
         {
             documents.Add(CreateSoundSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _textureDocumentPanels)
+        {
+            documents.Add(CreateTextureSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _staticModelDocumentPanels)
+        {
+            documents.Add(CreateStaticModelSavableDocument(pair.Key, pair.Value));
         }
 
         if (includeWorld)
@@ -6701,6 +6746,16 @@ public partial class GameEditor : Game, IObservableUpdate
         => new(panelId, "Sound", GetTableTitle(_soundInspectorPanelTitles, panelId, "Sound"),
             () => IsSoundDocumentModified(inspectorPanel),
             () => TrySaveSoundDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateTextureSavableDocument(string panelId, TextureAssetDocumentPanel texturePanel)
+        => new(panelId, "Texture", GetTableTitle(_textureDocumentPanelTitles, panelId, "Texture"),
+            () => IsTextureDocumentModified(panelId, texturePanel),
+            () => TrySaveTextureDocument(panelId, texturePanel));
+
+    private EditorSavableDocument CreateStaticModelSavableDocument(string panelId, StaticModelAssetDocumentPanel staticModelPanel)
+        => new(panelId, "Static Model", GetTableTitle(_staticModelDocumentPanelTitles, panelId, "Static model"),
+            () => IsStaticModelDocumentModified(panelId, staticModelPanel),
+            () => TrySaveStaticModelDocument(panelId, staticModelPanel));
 
     /// <summary>The world, listed after the documents: its Save is the save of the project, which writes the documents
     /// that are still modified (none, when they were saved first) and the world.</summary>
@@ -6914,6 +6969,14 @@ public partial class GameEditor : Game, IObservableUpdate
     private bool IsEntityDocumentModified(string panelId, EntityAssetEditorPanel entityAssetEditorPanel)
         => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId))
            || (entityAssetEditorPanel != null && entityAssetEditorPanel.IsDirty);
+
+    private bool IsTextureDocumentModified(string panelId, TextureAssetDocumentPanel texturePanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId))
+           || (texturePanel != null && texturePanel.IsDirty);
+
+    private bool IsStaticModelDocumentModified(string panelId, StaticModelAssetDocumentPanel staticModelPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId))
+           || (staticModelPanel != null && staticModelPanel.IsDirty);
 
     private string GetMaterialDocumentTitle(string panelId)
     {
