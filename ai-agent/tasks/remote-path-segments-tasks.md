@@ -128,7 +128,7 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
 
 ## Phase 1 — La règle
 
-### ⏳ T1.1 — Le contrôle commun refuse un segment finissant par un point ou un blanc
+### ✅ T1.1 — Le contrôle commun refuse un segment finissant par un point ou un blanc
 
 - Objectif : P2, P3, P4, P5, P6.
 - Fichiers : `CasaEngine.Editor/Remote/EditorRemoteValidation.cs` ; tests sous `CasaEngine.Tests/Editor/Remote/` (`EditorRemotePathLinkTests.cs`, les fichiers de tests des commandes d'assets et de monde pour `Resolve` et `world.open`, et le commentaire de `EditorRemoteEntityAssetCreateTests.cs:303-305`) ; `docs/editor/editor-remote-control.md` ; `docs/decisions/0093-editor-remote-control-covers-assets-panels-and-automation.md` (une phrase dans la note A3).
@@ -139,6 +139,27 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
   4. La session principale relit le diff, lance les deux builds, tous les tests, puis la passe filtrée (`after-fix.trx`).
 - Validation : celle de P5, avec dans la note la liste des tests ajoutés (ensemble, résultat avant, résultat après, marque des cas A4) ; les deux builds à 0 erreur, tous les tests verts ; `git diff --name-only` limité aux fichiers ci-dessus et à ce plan ; aucun contrôle retiré (lecture du diff).
 - Commit : `fix(editor): refuse project paths with a segment ending with a dot or a space`
+- Note de validation (2026-11-19) : écrit par `security-executor` en deux passes ; diff relu par la session principale, qui a produit elle-même les deux fichiers de résultats et rejoué builds et tests. Sorties dans `artifacts/remote-path-segments/t11/` du dépôt du jeu (`before-fix.trx`, `after-fix.trx`, leurs résumés `*-summary.json` par test, `build-*.txt`, `test-all.txt`) ; lecture des ensembles par `artifacts/remote-path-segments/scripts/trx_sets.py`.
+  - **Passe 1, tests seuls** (`EditorRemoteValidation.cs` non touché, `git diff --name-only` contrôlé) : 73 lignes de test ajoutées, l'ensemble écrit dans le nom de chaque méthode (`SetA1_`…`SetB2_`). Fichiers : `EditorRemotePathSegmentTests.cs` (nouveau), `PathSegmentJunctions.cs` (nouveau, jonctions des cas A4), et un test A4 ajouté à `EditorRemoteAssetCommandsTests.cs` (`Resolve` et `asset.open`) et à `EditorRemoteEditCommandsTests.cs` (`world.open`).
+  - **Avant la règle (`before-fix.trx`, 542 tests de `CasaEngine.Tests.Editor.Remote`)** : 55 échecs, tous de l'ensemble A, 487 succès.
+
+    | Ensemble | Lignes | Avant | Après |
+    |---|---|---|---|
+    | A1, `TryResolveInsideProject`, texte seul | 18 | 18 échecs | 18 succès |
+    | A2, `TryResolveAutomationPath`, texte et message | 19 | 19 échecs | 19 succès |
+    | A3, messages de `LinkRefusal` | 8 | 8 échecs | 8 succès |
+    | A4, jonction `Real ` (résolveurs, `Resolve` et `asset.open`, `world.open`) | 10 | 10 échecs, 10 marques `ran` | 10 succès, 10 marques `ran` |
+    | B, messages de lien inchangés | 1 | succès | succès |
+    | B1, acceptations inchangées | 12 | 12 succès | 12 succès |
+    | B2, déjà refusés (`Real<TAB>`, `NUL`, `nul`, `\\?\`, `\\.\`) | 5 | 5 succès | 5 succès |
+    | Tests existants du filtre (B3) | 469 | 469 succès | 469 succès |
+
+    Aucune marque `inconclusive`. Chaque test A4 échouait avant **après** sa marque `ran` et après avoir constaté le passage (résolveur rendant vrai, `Resolve` sans exception, `asset.open` et `BeginOpenWorld` reçus par l'hôte). Cas ajouté à A1 par l'exécuteur : `Real<U+3000>/a.world` (la sonde le montrait accepté).
+  - **Passe 2, la règle** : dans `IsFreeOfLinksBelowRoot`, une passe de texte sur tous les segments avant la boucle des attributs, inchangée ; `LinkRefusal` et l'erreur de `TryResolveAutomationPath` choisissent leur message au dernier caractère de `linkPath` (`DescribeNameEnding`, privée) ; commentaires mis à jour. Messages de nom : « `'<chemin>' goes through '<composant>', a name that ends with a dot | a space | a white-space character: Windows would read another entry than the one the path reaches, so such a name is refused (ADR-0093, A3).` » (avec « `inside the project folder '<racine>'` » et « `ADR-0093 P11, A3` » pour l'automatisation). Les messages de lien sont identiques octet pour octet (test B). Aucun contrôle retiré ni déplacé, aucune signature publique changée, aucun autre fichier de production touché.
+  - **Après la règle** : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8314 sur 8314** (8241 + 73), aucun ignoré ; `after-fix.trx` : 542 sur 542, tableau ci-dessus. **Aucune attente d'un test existant n'a changé** ; seul changement de structure : les deux classes de tests qui reçoivent un cas A4 prennent un `ITestOutputHelper` et suppriment leur dossier par `PathSegmentJunctions.DeleteTreeWithoutLinks` (liens retirés seuls d'abord, suppression récursive seulement si l'énumération n'en trouve plus).
+  - **Documents** : `docs/editor/editor-remote-control.md` (la règle dans « Assets », avec un exemple accepté et un refusé ; la limite et les résidus de P11 dans les limites) ; une phrase ajoutée à la note A3 de l'ADR-0093 ; commentaire du test de T1.4 corrigé (un tel nom se donne aussi avec un séparateur final).
+  - `git diff --name-only` : les sept fichiers attendus et ce plan, plus les deux fichiers de tests nouveaux. Aucun dossier de test ni lien resté sous `%TEMP%` (énumération).
+  - Relevés de l'exécuteur, sans suite : dans `world.create` et dans `Prepare`, la branche `LinkRefusal` ne peut plus rendre un message de nom (la règle des noms de monde et `HasOnlyPlainSegments` refusent avant) ; un dernier segment finissant par une espace sans séparateur (`<projet>\Real `) se normalise en `<projet>\Real` et reste accepté : contrôle et accès visent alors la même entrée.
 
 ## Phase 2 — Éditeur lancé
 

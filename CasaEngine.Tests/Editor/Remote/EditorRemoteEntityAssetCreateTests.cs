@@ -300,9 +300,10 @@ public sealed class EditorRemoteEntityAssetCreateTests : IDisposable
             : $"refused ({response.Error.Code}, {response.Error.Data?.Reason}): {response.Error.Message}";
 
     /// <summary>
-    /// Makes a junction named like <paramref name="realFolder"/> with a trailing space, next to it. Such a name can only be
-    /// given through a '\\?\' path, and mklink normalizes it to the real folder, so the junction is made under a plain name
-    /// and renamed through '\\?\' paths. The returned '\\?\' path is registered for removal: the link only, never its target.
+    /// Makes a junction named like <paramref name="realFolder"/> with a trailing space, next to it. Windows drops a trailing
+    /// space from the last segment of a plain path, so such a name is given either with a trailing separator
+    /// (<c>mkdir "X \"</c>, <c>mklink /J "X \" target</c>) or through a '\\?\' path; here the junction is made under a plain
+    /// name and renamed through '\\?\' paths. The returned '\\?\' path is registered for removal: the link only, never its target.
     /// </summary>
     private bool TryCreateJunctionEndingWithASpace(string realFolder, string target, out string junction)
     {

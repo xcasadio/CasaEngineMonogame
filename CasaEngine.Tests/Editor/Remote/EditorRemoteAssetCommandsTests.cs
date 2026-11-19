@@ -5,6 +5,7 @@ using CasaEngine.Editor.Remote.Protocol;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CasaEngine.Tests.Editor.Remote;
 
@@ -16,9 +17,12 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
     private readonly RemoteTestHost _host;
     private readonly EditorRemoteControl _control;
     private readonly List<Guid> _catalogEntries = new();
+    private readonly List<string> _links = new();
+    private readonly ITestOutputHelper _log;
 
-    public EditorRemoteAssetCommandsTests()
+    public EditorRemoteAssetCommandsTests(ITestOutputHelper log)
     {
+        _log = log;
         Directory.CreateDirectory(Path.Combine(_directory, "project", "Materials"));
         _host = new RemoteTestHost { ProjectDirectory = Path.Combine(_directory, "project") };
         _control = new EditorRemoteControl(_host, Path.Combine(_directory, "discovery"));
@@ -32,7 +36,8 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
             AssetCatalog.RemoveInternal(id, out _);
         }
 
-        Directory.Delete(_directory, recursive: true);
+        PathSegmentJunctions.RemoveLinks(_links);
+        PathSegmentJunctions.DeleteTreeWithoutLinks(_directory);
     }
 
     private Guid Catalog(string fileName, bool createFile = true, string name = null)
@@ -107,6 +112,60 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
 
         Assert.Equal("material", EditorRemoteAssets.Resolve(_host.ProjectDirectory, id.ToString(), "material").Type);
         Assert.Throws<EditorRemoteArgumentException>(() => EditorRemoteAssets.Resolve(_host.ProjectDirectory, id.ToString(), "sound"));
+    }
+
+    /// <summary>
+    /// Plan remote-path-segments P5, set A4: a catalog entry written 'Real /x.material' (or with a backslash), where 'Real '
+    /// is a junction to a folder outside the project that holds the only file of that name, is refused by its path and by
+    /// its id, and asset.open never reaches the host. Without the real 'Real' folder (realFolder false) too.
+    /// </summary>
+    [Theory]
+    [InlineData('/', true)]
+    [InlineData('\\', true)]
+    [InlineData('/', false)]
+    public void SetA4_Resolve_ACatalogEntryUnderAJunctionEndingWithASpace_IsRefused_ByPathAndById(char separator, bool realFolder)
+    {
+        string project = Path.GetFullPath(_host.ProjectDirectory!);
+        string outside = Path.Combine(_directory, "outside");
+        Directory.CreateDirectory(outside);
+        string onlyOutsideFile = "only-outside-" + Guid.NewGuid().ToString("N")[..8] + ".material";
+        File.WriteAllText(Path.Combine(outside, onlyOutsideFile), "{\"outside\":true}");
+        if (realFolder)
+        {
+            Directory.CreateDirectory(Path.Combine(project, "Real"));
+        }
+
+        if (!PathSegmentJunctions.TryCreate(project, "Real ", outside, _log, _links))
+        {
+            return;
+        }
+
+        Assert.Equal(realFolder, PathSegmentJunctions.IsRealFolderInEnumeration(project, "Real"));
+        Assert.False(File.Exists(Path.Combine(project, "Real", onlyOutsideFile)));
+        Assert.True(File.Exists(Path.Combine(project, "Real ", onlyOutsideFile)));
+        string[] target = PathSegmentJunctions.Snapshot(outside);
+        string fileName = "Real " + separator + onlyOutsideFile;
+        Guid id = Catalog(fileName, createFile: false);
+        string component = "'" + Path.Combine(project, "Real ") + "'";
+
+        Exception byPath = Record.Exception(() => EditorRemoteAssets.Resolve(project, fileName, null));
+        Exception byId = Record.Exception(() => EditorRemoteAssets.Resolve(project, id.ToString(), null));
+        RemoteResponse openByPath = Call("asset.open", new { asset = fileName });
+        RemoteResponse openById = Call("asset.open", new { asset = id.ToString() });
+        _log.WriteLine($"Resolve by path: {byPath?.GetType().Name ?? "resolved"}: {byPath?.Message}");
+        _log.WriteLine($"Resolve by id: {byId?.GetType().Name ?? "resolved"}: {byId?.Message}");
+        _log.WriteLine($"asset.open by path: {openByPath.Error?.Message ?? "opened"}; by id: {openById.Error?.Message ?? "opened"}; host opens: {_host.OpenedAssets.Count}");
+
+        Assert.IsType<EditorRemoteArgumentException>(byPath);
+        Assert.Contains(component, byPath!.Message);
+        Assert.Contains("ends with a space", byPath.Message);
+        Assert.IsType<EditorRemoteArgumentException>(byId);
+        Assert.Contains(component, byId!.Message);
+        Assert.Contains("ends with a space", byId.Message);
+        Assert.Equal(RemoteErrorCodes.InvalidParams, openByPath.Error?.Code);
+        Assert.Equal(RemoteErrorCodes.InvalidParams, openById.Error?.Code);
+        Assert.Empty(_host.OpenedAssets);
+        Assert.Equal(target, PathSegmentJunctions.Snapshot(outside));
     }
 
     [Fact]
