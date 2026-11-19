@@ -132,7 +132,7 @@ public sealed class Camera2dComponentTests
     // Camera3dIn2dAxisComponent, since removed): a camera pushed back to
     // z = (height / 2) / tan(fov / 2) frames the target plane exactly like an orthographic camera of
     // the viewport size. The reference is rebuilt here from that formula, with the field of view
-    // Camera3dComponent derived from the aspect ratio before ADR-0095 (pi/4 at 16:9, the value the 3d camera now keeps).
+    // the 3d camera derived from the aspect ratio before ADR-0095 (pi/4 at 16:9, the value the 3d camera now keeps).
     [Fact]
     public void TargetPlanePointsProjectLikeThePerspectiveTrickAtZoomOne()
     {

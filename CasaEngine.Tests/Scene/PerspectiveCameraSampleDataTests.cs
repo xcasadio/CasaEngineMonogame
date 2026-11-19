@@ -30,7 +30,7 @@ public class PerspectiveCameraSampleDataTests
     {
         var camera = LoadCamera();
 
-        Assert.Equal(Camera3dComponent.DefaultFieldOfView, camera.FieldOfView, 1e-6f);
+        Assert.Equal(PerspectiveCameraComponent.DefaultFieldOfView, camera.FieldOfView, 1e-6f);
         Assert.Equal(Vector2.Zero, camera.PictureOffset);
         Assert.Equal(Quaternion.Identity, camera.LocalOrientation);
         Assert.Equal(0f, camera.LocalPosition.X);

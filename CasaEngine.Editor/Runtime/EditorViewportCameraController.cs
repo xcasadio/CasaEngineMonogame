@@ -163,7 +163,7 @@ internal sealed class EditorViewportCameraController
     public ViewportNavigationResult? Update(
         GameTime gameTime,
         OrbitCameraComponent orbit,
-        Camera3dComponent camera,
+        PerspectiveCameraComponent camera,
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,

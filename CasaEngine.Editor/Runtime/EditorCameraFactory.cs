@@ -20,7 +20,7 @@ internal static class EditorCameraFactory
     public const float FarPlane = float.PositiveInfinity;
 
     /// <summary>Applies the editor settings to <paramref name="camera"/>: the infinite far plane.</summary>
-    public static void ApplySettings(Camera3dComponent camera)
+    public static void ApplySettings(PerspectiveCameraComponent camera)
     {
         ArgumentNullException.ThrowIfNull(camera);
         camera.FarPlane = FarPlane;
@@ -30,7 +30,7 @@ internal static class EditorCameraFactory
     /// Creates the hidden entity <paramref name="name"/> that holds <paramref name="camera"/>, initializes it in
     /// <paramref name="world"/> and applies the editor settings.
     /// </summary>
-    public static Entity CreateCameraEntity(string name, Camera3dComponent camera, World world)
+    public static Entity CreateCameraEntity(string name, PerspectiveCameraComponent camera, World world)
     {
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(world);
@@ -51,7 +51,7 @@ internal static class EditorCameraFactory
     /// Initializes the editor camera entity in <paramref name="world"/>, then applies the editor settings again, since
     /// the initialization resets the far plane.
     /// </summary>
-    public static void InitializeWithWorld(Entity cameraEntity, Camera3dComponent camera, World world)
+    public static void InitializeWithWorld(Entity cameraEntity, PerspectiveCameraComponent camera, World world)
     {
         ArgumentNullException.ThrowIfNull(cameraEntity);
         ArgumentNullException.ThrowIfNull(camera);

@@ -12,7 +12,7 @@ public sealed class CameraComponentEditor : TransformComponentEditor
     {
         nameof(CameraComponent.NearPlane),
         nameof(CameraComponent.FarPlane),
-        nameof(Camera3dComponent.FieldOfView),
+        nameof(PerspectiveCameraComponent.FieldOfView),
         nameof(CameraComponent.ViewDistance),
         nameof(CameraComponent.Viewport),
     };
@@ -41,16 +41,16 @@ public sealed class CameraComponentEditor : TransformComponentEditor
         var grid = CreatePropertyGrid();
         int rowIndex = 0;
 
-        if (CameraComponent is Camera3dComponent camera3dComponent)
+        if (CameraComponent is PerspectiveCameraComponent perspectiveCamera)
         {
             var fieldOfViewEditor = new NumericField(Window, step: 0.01f)
             {
-                Value = camera3dComponent.FieldOfView,
+                Value = perspectiveCamera.FieldOfView,
             };
             fieldOfViewEditor.ValueChanged += (_, value) => ApplyValueChange(
                 BuildComponentCommandDescription("Field Of View"),
-                () => camera3dComponent.FieldOfView,
-                nextValue => camera3dComponent.FieldOfView = nextValue,
+                () => perspectiveCamera.FieldOfView,
+                nextValue => perspectiveCamera.FieldOfView = nextValue,
                 value);
             rowIndex = AddPropertyRow(grid, rowIndex, "Field Of View", fieldOfViewEditor);
         }

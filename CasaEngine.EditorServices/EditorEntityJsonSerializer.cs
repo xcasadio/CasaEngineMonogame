@@ -239,11 +239,7 @@ internal static class EditorEntityJsonSerializer
                 return;
 
             case PerspectiveCameraComponent perspectiveCameraComponent:
-                SaveCamera3dComponent(perspectiveCameraComponent, node);
-                return;
-
-            case Camera3dComponent camera3dComponent:
-                SaveCamera3dComponent(camera3dComponent, node);
+                SavePerspectiveCameraComponent(perspectiveCameraComponent, node);
                 return;
 
             case CameraComponent cameraComponent:
@@ -397,7 +393,7 @@ internal static class EditorEntityJsonSerializer
         node.Add("pixel_snap", component.PixelSnap);
     }
 
-    private static void SaveCamera3dComponent(Camera3dComponent component, JObject node)
+    private static void SavePerspectiveCameraComponent(PerspectiveCameraComponent component, JObject node)
     {
         SaveCameraComponent(component, node);
         node.Add("fieldOfView", component.FieldOfView);

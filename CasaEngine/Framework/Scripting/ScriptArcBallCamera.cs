@@ -33,7 +33,7 @@ public class ScriptArcBallCamera : GameplayProxy
     private readonly ViewportCameraNavigation _navigation = new();
 
     private OrbitCameraComponent _orbitCameraComponent;
-    private Camera3dComponent _orbitedCamera;
+    private PerspectiveCameraComponent _orbitedCamera;
     private InputComponent _inputComponent;
     private CasaEngineGame _game;
     private ViewportMouseButtons _latchedButtons;
@@ -76,7 +76,7 @@ public class ScriptArcBallCamera : GameplayProxy
 
         //  The orbit component poses the camera of the entity, whose field of view the script also changes.
         _orbitCameraComponent = Owner.GetComponent<OrbitCameraComponent>();
-        _orbitedCamera = _orbitCameraComponent != null ? Owner.GetComponent<Camera3dComponent>() : null;
+        _orbitedCamera = _orbitCameraComponent != null ? Owner.GetComponent<PerspectiveCameraComponent>() : null;
     }
 
     public override void InitializeWithWorld(Scene.World.World world)

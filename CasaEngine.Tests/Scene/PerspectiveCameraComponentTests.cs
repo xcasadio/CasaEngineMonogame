@@ -191,6 +191,21 @@ public sealed class PerspectiveCameraComponentTests
         AssertMatrixEqual(camera.ViewMatrix, loadedCamera.ViewMatrix, ViewTolerance);
     }
 
+    [Fact]
+    public void TheEditorWriter_WritesTheKeysOfTheCamera_InTheSameOrderAsBeforeTheFusion()
+    {
+        // The 3d camera class merged its abstract base (ADR-0149): the keys written for it and their order must not move.
+        var node = new JObject();
+        EditorEntityJsonSerializer.SaveEntity(new Entity { RootComponent = CreateCamera() }, node);
+
+        string[] keys = ((JObject)node["root_component"]!).Properties().Select(property => property.Name).ToArray();
+
+        Assert.Equal(ExpectedCameraKeys, keys);
+    }
+
+    private static readonly string[] ExpectedCameraKeys =
+        ["id", "name", "type", "local_transform", "children_component", "view_distance", "viewport", "fieldOfView", "picture_offset"];
+
     [Theory]
     [InlineData(typeof(Camera2dComponent))]
     public void TheOtherCameras_DoNotOverrideTheViewRefreshHook(Type cameraType)
@@ -224,7 +239,7 @@ public sealed class PerspectiveCameraComponentTests
     }
 
     // The point of view space that a centred camera draws at the given pixel, at the given depth.
-    private static Vector3 ViewPointAtPixel(Camera3dComponent camera, float pixelX, float pixelY, float depth)
+    private static Vector3 ViewPointAtPixel(PerspectiveCameraComponent camera, float pixelX, float pixelY, float depth)
     {
         float halfHeight = depth * MathF.Tan(camera.FieldOfView * 0.5f);
         float halfWidth = halfHeight * camera.Viewport.AspectRatio;
@@ -233,7 +248,7 @@ public sealed class PerspectiveCameraComponentTests
         return new Vector3(ndcX * halfWidth, ndcY * halfHeight, -depth);
     }
 
-    private static Matrix ExpectedOffCentreProjection(Camera3dComponent camera, Vector2 offset)
+    private static Matrix ExpectedOffCentreProjection(PerspectiveCameraComponent camera, Vector2 offset)
     {
         float near = camera.NearPlane;
         float halfHeight = near * MathF.Tan(camera.FieldOfView * 0.5f);
