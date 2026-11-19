@@ -10,7 +10,7 @@ namespace CasaEngine.Demos.Demos;
 
 /// <summary>
 /// Shows a tile map used as a plain 3D object: the same map is placed twice, once rotated flat on the
-/// ground and once standing as a wall, and is viewed through the regular perspective arc ball camera.
+/// ground and once standing as a wall, and is viewed through the regular orbiting perspective camera.
 /// Both instances take the rotated draw path (full world matrix + per chunk frustum culling).
 /// </summary>
 public class TileMap3dDemo : Demo

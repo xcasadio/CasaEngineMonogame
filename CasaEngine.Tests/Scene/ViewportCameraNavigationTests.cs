@@ -54,22 +54,6 @@ public class ViewportCameraNavigationTests
     }
 
     [Fact]
-    public void Eye_MatchesTheArcBallComponentPosition()
-    {
-        var state = CreateState();
-        var camera = new ArcBallCameraComponent();
-        camera.OnScreenResized(1920, 1080);
-        camera.FarPlane = 1000f;
-        camera.NearPlane = 1f;
-
-        state.ApplyTo(camera);
-        _ = camera.ViewMatrix;
-
-        AssertVector(state.Eye, camera.Position);
-        AssertVector(state.Forward, camera.Direction);
-    }
-
-    [Fact]
     public void Eye_MatchesThePositionOfACameraPosedByAnOrbit()
     {
         var state = CreateState();
@@ -97,17 +81,6 @@ public class ViewportCameraNavigationTests
         entity.AddComponent(orbit);
 
         CreateState().ApplyTo(orbit);
-
-        Assert.Equal(1.1f, camera.FieldOfView, Tolerance);
-    }
-
-    [Fact]
-    public void ApplyTo_LeavesTheFieldOfViewUntouched()
-    {
-        var camera = new ArcBallCameraComponent();
-        camera.FieldOfView = 1.1f;
-
-        CreateState().ApplyTo(camera);
 
         Assert.Equal(1.1f, camera.FieldOfView, Tolerance);
     }

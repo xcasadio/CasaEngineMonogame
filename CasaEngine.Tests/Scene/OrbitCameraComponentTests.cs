@@ -9,8 +9,8 @@ using Xunit;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The orbit behaviour component (ADR-0148): a posed perspective camera it drives shows what an
-/// <see cref="ArcBallCameraComponent"/> of the same values shows.
+/// The orbit behaviour component (ADR-0148): a posed perspective camera it drives shows what the arc ball camera it
+/// replaced showed for the same values. That class is removed (ADR-0149); its formulas are written below.
 /// </summary>
 public sealed class OrbitCameraComponentTests
 {
@@ -28,15 +28,8 @@ public sealed class OrbitCameraComponentTests
         camera.OnScreenResized(1920, 1080);
     }
 
-    private static ArcBallCameraComponent CreateArcBall()
-    {
-        var camera = new ArcBallCameraComponent();
-        Size(camera);
-        return camera;
-    }
-
-    // The formulas of ArcBallCameraComponent, written here so that these proofs do not depend on that class (ADR-0149):
-    // it looked along FormulaDirection from Target - Direction * Distance, at Target, with Vector3.Up for up.
+    // The formulas of the removed arc ball camera (ADR-0149): it looked along FormulaDirection from
+    // Target - Direction * Distance, at Target, with Vector3.Up for up.
     private static Vector3 FormulaDirection(float yaw, float pitch)
     {
         return new Vector3(MathF.Sin(yaw) * MathF.Cos(pitch), MathF.Sin(pitch), -MathF.Cos(yaw) * MathF.Cos(pitch));
@@ -99,23 +92,13 @@ public sealed class OrbitCameraComponentTests
                         float pitch = MathHelper.ToRadians(pitchDegrees);
                         string context = $"(target {target}, distance {distance}, yaw {yaw}, pitch {pitch})";
 
-                        var arcBall = CreateArcBall();
-                        arcBall.Target = target;
-                        arcBall.Distance = distance;
-                        arcBall.Yaw = yaw;
-                        arcBall.Pitch = pitch;
-
                         var (_, camera, orbit) = CreateOrbitCamera();
                         orbit.Target = target;
                         orbit.Distance = distance;
                         orbit.Yaw = yaw;
                         orbit.Pitch = pitch;
 
-                        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance, context);
-                        AssertVectorEqual(arcBall.Direction, orbit.Direction, Tolerance, context);
-                        AssertVectorEqual(arcBall.Right, orbit.Right, Tolerance, context);
                         AssertVectorEqual(target - orbit.Direction * distance, camera.LocalPosition, Tolerance, context);
-                        AssertVectorEqual(arcBall.Position, camera.LocalPosition, Tolerance, context);
                         AssertMatrixEqual(FormulaView(target, distance, yaw, pitch), camera.ViewMatrix, Tolerance, context);
                         AssertVectorEqual(FormulaDirection(yaw, pitch), orbit.Direction, Tolerance, context);
                         AssertVectorEqual(FormulaRight(yaw, pitch), orbit.Right, Tolerance, context);
@@ -141,22 +124,12 @@ public sealed class OrbitCameraComponentTests
                         float pitch = MathHelper.ToRadians(pitchDegrees);
                         string context = $"(target {target}, distance {distance}, yaw {yaw}, pitch {pitch})";
 
-                        var arcBall = CreateArcBall();
-                        arcBall.Target = target;
-                        arcBall.Distance = distance;
-                        arcBall.Yaw = yaw;
-                        arcBall.Pitch = pitch;
-
                         var (_, camera, orbit) = CreateOrbitCamera();
                         orbit.Target = target;
                         orbit.Distance = distance;
                         orbit.Yaw = yaw;
                         orbit.Pitch = pitch;
 
-                        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance, context);
-                        AssertVectorEqual(arcBall.Direction, orbit.Direction, Tolerance, context);
-                        AssertVectorEqual(arcBall.Right, orbit.Right, Tolerance, context);
-                        AssertVectorEqual(arcBall.Position, camera.LocalPosition, Tolerance, context);
                         AssertMatrixEqual(FormulaView(target, distance, yaw, pitch), camera.ViewMatrix, Tolerance, context);
                         AssertVectorEqual(FormulaDirection(yaw, pitch), orbit.Direction, Tolerance, context);
                         AssertVectorEqual(FormulaRight(yaw, pitch), orbit.Right, Tolerance, context);
@@ -176,11 +149,6 @@ public sealed class OrbitCameraComponentTests
     {
         // The start values of the world-space UI demo: the camera stands in front of the screen, at (0, 7, 18).
         var target = new Vector3(0f, 4f, 0f);
-        var arcBall = CreateArcBall();
-        arcBall.Target = target;
-        arcBall.Distance = -18.25f;
-        arcBall.Yaw = MathHelper.Pi;
-        arcBall.Pitch = 0.165f;
         var (_, camera, orbit) = CreateOrbitCamera();
 
         orbit.Target = target;
@@ -188,7 +156,6 @@ public sealed class OrbitCameraComponentTests
         orbit.Yaw = MathHelper.Pi;
         orbit.Pitch = 0.165f;
 
-        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
         AssertMatrixEqual(FormulaView(target, -18.25f, MathHelper.Pi, 0.165f), camera.ViewMatrix, Tolerance);
         AssertVectorEqual(new Vector3(0f, 7f, 18f), camera.LocalPosition, 0.01f);
     }
@@ -200,11 +167,6 @@ public sealed class OrbitCameraComponentTests
         // ignores the sign of the distance, then ran mirrored and the first wheel notch turned the camera around.
         // It now starts from the same pose written with a positive distance.
         var target = new Vector3(0f, 4f, 0f);
-        var arcBall = CreateArcBall();
-        arcBall.Target = target;
-        arcBall.Distance = -18.25f;
-        arcBall.Yaw = MathHelper.Pi;
-        arcBall.Pitch = 0.165f;
         var (_, camera, orbit) = CreateOrbitCamera();
 
         orbit.Target = target;
@@ -212,7 +174,6 @@ public sealed class OrbitCameraComponentTests
         orbit.Yaw = 0f;
         orbit.Pitch = -0.165f;
 
-        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
         AssertMatrixEqual(FormulaView(target, -18.25f, MathHelper.Pi, 0.165f), camera.ViewMatrix, Tolerance);
         // The view direction of the navigation is now the one of the camera.
         AssertVectorEqual(Vector3.Normalize(target - camera.LocalPosition), orbit.Direction, Tolerance);
@@ -220,7 +181,7 @@ public sealed class OrbitCameraComponentTests
 
     public static TheoryData<float, float, float, float, float, float> CameraPlacements => new()
     {
-        // The placements of ArcBallCameraComponentTests.
+        // The placements of OrbitCameraPlacementTests.
         { 0f, 12f, 15f, 0f, 0f, 0f },
         { 0f, 4.5f, 15.5f, 0f, 1.2f, 0f },
         { 34.686f, 42.36f, 50.701f, 0f, 8.8f, 0f },
@@ -236,20 +197,13 @@ public sealed class OrbitCameraComponentTests
     {
         var position = new Vector3(positionX, positionY, positionZ);
         var target = new Vector3(targetX, targetY, targetZ);
-        var arcBall = CreateArcBall();
-        arcBall.SetCamera(position, target, Vector3.Up);
         var (_, camera, orbit) = CreateOrbitCamera();
 
         orbit.SetCamera(position, target);
 
-        Assert.Equal(arcBall.Target, orbit.Target);
-        Assert.Equal(arcBall.Distance, orbit.Distance, Tolerance);
-        Assert.Equal(arcBall.Yaw, orbit.Yaw, Tolerance);
-        Assert.Equal(arcBall.Pitch, orbit.Pitch, Tolerance);
         AssertMatrixEqual(Matrix.CreateLookAt(position, target, Vector3.Up), camera.ViewMatrix, Tolerance);
-        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
 
-        // What ArcBallCameraComponent.SetCamera deduced from the two points.
+        // What the arc ball camera deduced from the two points.
         float expectedDistance = (position - target).Length();
         Vector3 backward = (position - target) / expectedDistance;
         Assert.Equal(target, orbit.Target);
@@ -261,19 +215,12 @@ public sealed class OrbitCameraComponentTests
     [Fact]
     public void SetCamera_WithThePositionOnTheTarget_KeepsTheYawAndThePitch()
     {
-        var arcBall = CreateArcBall();
-        arcBall.Yaw = 1.1f;
-        arcBall.Pitch = -0.4f;
-        arcBall.SetCamera(new Vector3(2f, 3f, 4f), new Vector3(2f, 3f, 4f), Vector3.Up);
         var (_, _, orbit) = CreateOrbitCamera();
         orbit.Yaw = 1.1f;
         orbit.Pitch = -0.4f;
 
         orbit.SetCamera(new Vector3(2f, 3f, 4f), new Vector3(2f, 3f, 4f));
 
-        Assert.Equal(arcBall.Yaw, orbit.Yaw);
-        Assert.Equal(arcBall.Pitch, orbit.Pitch);
-        Assert.Equal(arcBall.Distance, orbit.Distance);
         Assert.Equal(1.1f, orbit.Yaw);
         Assert.Equal(-0.4f, orbit.Pitch);
         Assert.Equal(0f, orbit.Distance);
@@ -340,12 +287,6 @@ public sealed class OrbitCameraComponentTests
         cameraNode[transformKey]!["position"] = new JObject { ["x"] = 100f, ["y"] = 200f, ["z"] = 300f };
         cameraNode[transformKey]!["rotation"] = new JObject { ["x"] = 0f, ["y"] = 0f, ["z"] = 0f, ["w"] = 1f };
 
-        var arcBall = CreateArcBall();
-        arcBall.Target = new Vector3(4f, 1f, -3f);
-        arcBall.Distance = 12f;
-        arcBall.Yaw = 2.2f;
-        arcBall.Pitch = -0.6f;
-
         var loaded = new Entity();
         loaded.Load(node);
         var camera = loaded.GetComponent<PerspectiveCameraComponent>();
@@ -353,7 +294,6 @@ public sealed class OrbitCameraComponentTests
 
         loaded.Initialize();
 
-        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
         AssertMatrixEqual(FormulaView(new Vector3(4f, 1f, -3f), 12f, 2.2f, -0.6f), camera.ViewMatrix, Tolerance);
     }
 

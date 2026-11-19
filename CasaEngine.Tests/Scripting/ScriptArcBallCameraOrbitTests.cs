@@ -8,8 +8,8 @@ using Xunit;
 namespace CasaEngine.Tests.Scripting;
 
 /// <summary>
-/// The viewport navigation drives an orbit component as it drives an arc ball camera (ADR-0148): the same input gives
-/// the same state and the same view, and <see cref="ScriptArcBallCamera"/> picks the orbit of its entity when there is one.
+/// <see cref="ScriptArcBallCamera"/> drives the orbit component of its entity (ADR-0148): each gesture gives the state
+/// the viewport navigation gives, and the view the removed arc ball camera gave for that state (ADR-0149).
 /// </summary>
 public sealed class ScriptArcBallCameraOrbitTests
 {
@@ -20,23 +20,6 @@ public sealed class ScriptArcBallCameraOrbitTests
         camera.FarPlane = 1000f;
         camera.NearPlane = 1f;
         camera.OnScreenResized(1920, 1080);
-    }
-
-    private sealed class ArcBallRig
-    {
-        public ArcBallRig()
-        {
-            Camera = new ArcBallCameraComponent();
-            Size(Camera);
-            Camera.SetCamera(new Vector3(0f, 12f, 15f), new Vector3(0f, 1f, 0f), Vector3.Up);
-            var entity = new Entity { RootComponent = Camera };
-            entity.SetGameplayProxy(Script);
-            entity.Initialize();
-        }
-
-        public ArcBallCameraComponent Camera { get; }
-
-        public ScriptArcBallCamera Script { get; } = new();
     }
 
     private sealed class OrbitRig
@@ -119,23 +102,20 @@ public sealed class ScriptArcBallCameraOrbitTests
 
     [Theory]
     [MemberData(nameof(Gestures))]
-    public void TheScript_GivesAnOrbitedCameraThePoseItGivesAnArcBall(string gesture)
+    public void TheScript_GivesAnOrbitedCameraThePoseOfTheNavigation(string gesture)
     {
-        var arcBall = new ArcBallRig();
         var orbit = new OrbitRig();
-        AssertMatrixEqual(arcBall.Camera.ViewMatrix, orbit.Camera.ViewMatrix);
         Matrix start = orbit.Camera.ViewMatrix;
         float startFieldOfView = orbit.Camera.FieldOfView;
 
-        // A reference that does not depend on the arc ball camera (ADR-0149): the navigation run on the bare state,
-        // with the rule the script adds for F (the pivot goes to its focus point).
+        // The reference: the navigation run on the bare state, with the rule the script adds for F (the pivot goes to
+        // its focus point).
         var navigation = new ViewportCameraNavigation();
         ViewportCameraState expectedState = ViewportCameraState.From(orbit.Orbit);
         float expectedFieldOfView = startFieldOfView;
 
         foreach (ViewportNavigationInput input in Frames(gesture))
         {
-            arcBall.Script.ApplyNavigation(input);
             orbit.Script.ApplyNavigation(input);
 
             ViewportNavigationResult expectedResult = navigation.Update(ref expectedState, input);
@@ -154,45 +134,12 @@ public sealed class ScriptArcBallCameraOrbitTests
         Assert.Equal(expectedState.Yaw, orbit.Orbit.Yaw, Tolerance);
         Assert.Equal(expectedState.Pitch, orbit.Orbit.Pitch, Tolerance);
         Assert.Equal(expectedFieldOfView, orbit.Camera.FieldOfView, Tolerance);
-        //  The view of the arc ball camera for a state: it looked at the pivot from the eye, with Vector3.Up for up.
+        //  The view of the removed arc ball camera for a state: it looked at the pivot from the eye, with Vector3.Up for up.
         AssertMatrixEqual(Matrix.CreateLookAt(expectedState.Eye, expectedState.Pivot, Vector3.Up), orbit.Camera.ViewMatrix);
-
-        Assert.Equal(arcBall.Camera.Target.X, orbit.Orbit.Target.X, Tolerance);
-        Assert.Equal(arcBall.Camera.Target.Y, orbit.Orbit.Target.Y, Tolerance);
-        Assert.Equal(arcBall.Camera.Target.Z, orbit.Orbit.Target.Z, Tolerance);
-        Assert.Equal(arcBall.Camera.Distance, orbit.Orbit.Distance, Tolerance);
-        Assert.Equal(arcBall.Camera.Yaw, orbit.Orbit.Yaw, Tolerance);
-        Assert.Equal(arcBall.Camera.Pitch, orbit.Orbit.Pitch, Tolerance);
-        Assert.Equal(arcBall.Camera.FieldOfView, orbit.Camera.FieldOfView, Tolerance);
-        AssertMatrixEqual(arcBall.Camera.ViewMatrix, orbit.Camera.ViewMatrix);
 
         // The gesture did something: otherwise the equalities above prove nothing.
         bool moved = start != orbit.Camera.ViewMatrix || startFieldOfView != orbit.Camera.FieldOfView;
         Assert.True(moved, $"gesture {gesture} changed nothing");
-    }
-
-    [Fact]
-    public void TheScript_LeavesAnArcBallAloneWhenItsEntityHasAnOrbit()
-    {
-        // An entity that carries both: the orbit wins and poses the camera, the arc ball state is not navigated.
-        var camera = new ArcBallCameraComponent();
-        Size(camera);
-        var orbit = new OrbitCameraComponent();
-        var entity = new Entity { RootComponent = camera };
-        entity.AddComponent(orbit);
-        var script = new ScriptArcBallCamera();
-        entity.SetGameplayProxy(script);
-        entity.Initialize();
-        float arcBallYaw = camera.Yaw;
-        float orbitYaw = orbit.Yaw;
-
-        foreach (ViewportNavigationInput input in Frames("alt-left-orbit"))
-        {
-            script.ApplyNavigation(input);
-        }
-
-        Assert.Equal(arcBallYaw, camera.Yaw);
-        Assert.NotEqual(orbitYaw, orbit.Yaw);
     }
 
     [Fact]

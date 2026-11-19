@@ -230,10 +230,6 @@ internal static class EditorEntityJsonSerializer
                 SaveUnresolvedComponent(unresolvedComponent, node);
                 return;
 
-            case ArcBallCameraComponent arcBallCameraComponent:
-                SaveArcBallCameraComponent(arcBallCameraComponent, node);
-                return;
-
             case AnimatedSpriteComponent animatedSpriteComponent:
                 SaveAnimatedSpriteComponent(animatedSpriteComponent, node);
                 return;
@@ -405,18 +401,6 @@ internal static class EditorEntityJsonSerializer
     {
         SaveCameraComponent(component, node);
         node.Add("fieldOfView", component.FieldOfView);
-    }
-
-    private static void SaveArcBallCameraComponent(ArcBallCameraComponent component, JObject node)
-    {
-        SaveCamera3dComponent(component, node);
-
-        var targetNode = new JObject();
-        component.Target.Save(targetNode);
-        node.Add("target", targetNode);
-        node.Add("distance", component.Distance);
-        node.Add("yaw", component.Yaw);
-        node.Add("pitch", component.Pitch);
     }
 
     private static void SaveOrbitCameraComponent(OrbitCameraComponent component, JObject node)

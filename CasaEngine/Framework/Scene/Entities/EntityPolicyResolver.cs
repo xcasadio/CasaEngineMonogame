@@ -129,8 +129,6 @@ public static class EntityPolicyResolver
                 break;
 
             case PhysicsBaseComponent:
-            case CameraLookAtComponent:
-            case CameraTargeted2dComponent:
             case SteeringAgentComponent:
             case SteeringPhysicsBridgeComponent:
             case StaticSpriteComponent:

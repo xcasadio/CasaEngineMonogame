@@ -1943,7 +1943,7 @@ public class WorldViewportPanel : IDisposable
 
     /// <summary>
     /// Camera currently driving the view: the orthographic 2d camera in 2d mode,
-    /// the arcball camera otherwise.
+    /// the perspective camera posed by the orbit otherwise.
     /// </summary>
     private CameraComponent ActiveCamera => UsesCamera2d && _camera2d != null ? _camera2d : _camera;
 

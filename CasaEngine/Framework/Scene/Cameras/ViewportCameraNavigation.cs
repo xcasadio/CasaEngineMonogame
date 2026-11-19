@@ -35,8 +35,8 @@ public enum ViewportNavigationKeys
 
 /// <summary>
 /// Camera placement driven by <see cref="ViewportCameraNavigation"/>: the eye stands at
-/// <c>Pivot - Forward * Distance</c>, with the same yaw and pitch convention as
-/// <see cref="ArcBallCameraComponent"/>. The field of view is not part of it (ADR-0089).
+/// <c>Pivot - Forward * Distance</c>, with the yaw and pitch convention of
+/// <see cref="OrbitCameraComponent"/>. The field of view is not part of it (ADR-0089).
 /// </summary>
 public struct ViewportCameraState
 {
@@ -57,22 +57,6 @@ public struct ViewportCameraState
 
     public readonly Vector3 Eye => Pivot - Forward * Distance;
 
-    public static ViewportCameraState From(ArcBallCameraComponent camera)
-    {
-        ArgumentNullException.ThrowIfNull(camera);
-        return new ViewportCameraState(camera.Target, camera.Distance, camera.Yaw, camera.Pitch);
-    }
-
-    /// <summary>Writes the pivot, distance, yaw and pitch. The field of view is left untouched.</summary>
-    public readonly void ApplyTo(ArcBallCameraComponent camera)
-    {
-        ArgumentNullException.ThrowIfNull(camera);
-        camera.Target = Pivot;
-        camera.Distance = Distance;
-        camera.Yaw = Yaw;
-        camera.Pitch = Pitch;
-    }
-
     /// <summary>The state of an orbit component (ADR-0148).</summary>
     public static ViewportCameraState From(OrbitCameraComponent orbit)
     {
@@ -80,7 +64,10 @@ public struct ViewportCameraState
         return new ViewportCameraState(orbit.Target, orbit.Distance, orbit.Yaw, orbit.Pitch);
     }
 
-    /// <summary>Writes the pivot, distance, yaw and pitch to an orbit component, which poses the camera of its entity.</summary>
+    /// <summary>
+    /// Writes the pivot, distance, yaw and pitch to an orbit component, which poses the camera of its entity. The field
+    /// of view of that camera is left untouched.
+    /// </summary>
     public readonly void ApplyTo(OrbitCameraComponent orbit)
     {
         ArgumentNullException.ThrowIfNull(orbit);
@@ -285,7 +272,7 @@ public sealed class ViewportCameraNavigation
         return result;
     }
 
-    /// <summary>Unit view direction for a yaw and a pitch, with the <see cref="ArcBallCameraComponent"/> convention.</summary>
+    /// <summary>Unit view direction for a yaw and a pitch, with the <see cref="OrbitCameraComponent"/> convention.</summary>
     public static Vector3 ComputeForward(float yaw, float pitch)
     {
         float cosPitch = MathF.Cos(pitch);

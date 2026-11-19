@@ -11,8 +11,7 @@ using Microsoft.Xna.Framework.Input;
 namespace CasaEngine.Framework.Scripting;
 
 /// <summary>
-/// Camera script for an <see cref="OrbitCameraComponent"/> (ADR-0148), or for an <see cref="ArcBallCameraComponent"/>
-/// when its entity has no orbit component, with the controls of Unreal's perspective viewport,
+/// Camera script for an <see cref="OrbitCameraComponent"/> (ADR-0148), with the controls of Unreal's perspective viewport,
 /// shared with the editor viewport through <see cref="ViewportCameraNavigation"/> (ADR-0089): left drag moves
 /// forward/back and turns, right drag looks around, middle drag or left + right drag pans, the wheel moves toward the
 /// pivot without moving it (the pivot is pushed ahead once the minimum distance is reached), right button + W/A/S/D
@@ -20,9 +19,9 @@ namespace CasaEngine.Framework.Scripting;
 /// Alt + left/right/middle drag orbits, dollies and tracks around the pivot, and F puts the pivot on
 /// <see cref="FocusPoint"/>.
 /// <para/>
-/// The component owns the camera state: the script reads it at the start of each update and writes it back, so
-/// values set on the component (a demo's initial camera) are kept. Z/C change the component's field of view, which
-/// the component recomputes from the aspect ratio on resize.
+/// The orbit component owns the camera state: the script reads it at the start of each update and writes it back, so
+/// values set on the component (a demo's initial camera) are kept. Z/C change the field of view of the camera of the
+/// entity. On an entity with no orbit component the script does nothing (ADR-0149).
 /// <para/>
 /// Input is arbitrated with the UI like <see cref="PlayerInput"/> does: the keyboard is ignored while the UI owns it
 /// (<see cref="InputRouter.IsKeyboardCapturedByUI"/>) or the pointer is over the UI; a mouse button pressed over the
@@ -33,7 +32,6 @@ public class ScriptArcBallCamera : GameplayProxy
 {
     private readonly ViewportCameraNavigation _navigation = new();
 
-    private ArcBallCameraComponent _arcBallCameraComponent;
     private OrbitCameraComponent _orbitCameraComponent;
     private Camera3dComponent _orbitedCamera;
     private InputComponent _inputComponent;
@@ -76,10 +74,9 @@ public class ScriptArcBallCamera : GameplayProxy
     {
         base.InitializePrivate();
 
-        //  An orbit component wins: it poses the camera of the entity, whose field of view the script also changes.
+        //  The orbit component poses the camera of the entity, whose field of view the script also changes.
         _orbitCameraComponent = Owner.GetComponent<OrbitCameraComponent>();
         _orbitedCamera = _orbitCameraComponent != null ? Owner.GetComponent<Camera3dComponent>() : null;
-        _arcBallCameraComponent = _orbitCameraComponent == null ? Owner.GetComponent<ArcBallCameraComponent>() : null;
     }
 
     public override void InitializeWithWorld(Scene.World.World world)
@@ -90,7 +87,7 @@ public class ScriptArcBallCamera : GameplayProxy
 
     public override void Update(float elapsedTime)
     {
-        if ((_arcBallCameraComponent == null && _orbitCameraComponent == null) || _inputComponent == null)
+        if (_orbitCameraComponent == null || _inputComponent == null)
         {
             return;
         }
@@ -128,45 +125,27 @@ public class ScriptArcBallCamera : GameplayProxy
     }
 
     /// <summary>
-    /// Runs the navigation on the camera state for one frame of input and writes the result back: to the orbit
-    /// component and the camera it poses, or to the arc ball camera.
+    /// Runs the navigation on the camera state for one frame of input and writes the result back to the orbit
+    /// component and the camera it poses.
     /// </summary>
     internal void ApplyNavigation(in ViewportNavigationInput input)
     {
-        if (_orbitCameraComponent != null)
-        {
-            var orbitState = ViewportCameraState.From(_orbitCameraComponent);
-            ViewportNavigationResult orbitResult = Navigate(ref orbitState, input);
-
-            if (orbitResult.CameraChanged)
-            {
-                orbitState.ApplyTo(_orbitCameraComponent);
-            }
-
-            if (orbitResult.FieldOfViewDelta != 0f && _orbitedCamera != null)
-            {
-                _orbitedCamera.FieldOfView += orbitResult.FieldOfViewDelta;
-            }
-
-            return;
-        }
-
-        if (_arcBallCameraComponent == null)
+        if (_orbitCameraComponent == null)
         {
             return;
         }
 
-        var state = ViewportCameraState.From(_arcBallCameraComponent);
+        var state = ViewportCameraState.From(_orbitCameraComponent);
         ViewportNavigationResult result = Navigate(ref state, input);
 
         if (result.CameraChanged)
         {
-            state.ApplyTo(_arcBallCameraComponent);
+            state.ApplyTo(_orbitCameraComponent);
         }
 
-        if (result.FieldOfViewDelta != 0f)
+        if (result.FieldOfViewDelta != 0f && _orbitedCamera != null)
         {
-            _arcBallCameraComponent.FieldOfView += result.FieldOfViewDelta;
+            _orbitedCamera.FieldOfView += result.FieldOfViewDelta;
         }
     }
 
