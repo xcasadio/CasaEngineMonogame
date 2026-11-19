@@ -636,10 +636,18 @@ Un seul commit : le dépôt ne compile pas entre les deux.
 - Validation : relecture ; liens vérifiés.
 - **Fait (2026-11-19).** `rendering-2d-3d-spaces.md` (extrait de code sur `CentreOn`, migration d'un monde), `screen-effects.md` (centre et profondeur du quad), `camera-behaviour-components.md` (le suivi pilote aussi la caméra 2D), `docs/README.md`, `ai-agent/README.md`. `data-driven-screens.md` et `editor-2d-viewport.md` ne décrivaient pas la cible de la caméra 2D (leurs `target` sont ceux des actions d'écran et de l'état de vue de l'éditeur) : inchangés. Documentation seule.
 
-### ⏳ T4.6 — Vérification indépendante et recette
+### 🧪 T4.6 — Vérification indépendante et recette
 
 - Un `verifier` neuf, comme en T3.8, sur la « Validation globale » de la tranche 4.
 - Recette de l'auteur (🧪 jusque-là) : la vue 2D de l'éditeur (déplacement, zoom, enregistrement d'un monde, rechargement), `TileMapDemo` et `Layers2dDemo`, `RPGDemo`, un sample à sprites.
+- **Vérification indépendante (2026-11-19, `a6cb2af1`) : CONFIRMED**, aucun point P0 à P2. Les neuf affirmations confirmées : les 14 caméras d'origine relues une à une (cible nulle, zoom 1, pas d'arrondi, entité écrite dans le monde, rien qui remplace la position) ; nouvelle vue identique à l'ancienne formule bit à bit pour une caméra sans rotation ni parent, arrondi compris ; utilisateurs de l'ancienne `Target` convertis ; constructeur sans effet de bord ; données ; tests non affaiblis (assertions : `Camera2dComponentTests` 17 → 28) ; suivi 2D ; chemins chauds sans allocation ; builds à 0 erreur, 8158 tests verts. Correction de la note de T4.3 : deux égalités exactes de matrices sont passées à 1e-4, pas trois.
+- Remarques reportées sans changement du candidat (P3 et P4) :
+  - P4 : dans `ScreenEffectComponent.cs`, `ResolveOverlayCentre` a été insérée entre le commentaire `<summary>` de `TryGetCameraViewSize` et cette méthode ; le commentaire est à replacer à la prochaine modification du fichier.
+  - P4 : avec `PixelSnap`, `Position` de la caméra n'est plus la position arrondie (l'ancien calcul de la vue l'y écrivait) ; l'écart est de moins d'un pas de texel pour les lecteurs de `Position`, la vue n'est pas touchée.
+  - P4 : `ResolveOverlayCentre` n'a pas de test direct ; la tolérance de 1e-4 n'était pas nécessaire sans rotation.
+  - P3, hors de ce dépôt : un projet extérieur qui écrit des mondes à caméra 2D doit écrire la nouvelle forme avant de passer sur ce moteur (O12).
+- Voulu par l'ADR-0150 et sans donnée concernée dans le dépôt : une caméra 2D tournée, parentée, ou déposée dans l'éditeur depuis un `.entity` se place désormais par sa transformation.
+- **Reste 🧪 : la recette de l'auteur** (vue 2D de l'éditeur, `TileMapDemo` et `Layers2dDemo`, `RPGDemo`, un sample à sprites). Ni l'éditeur ni les démos n'ont été lancés ; seul `SpriteDrawOrderSample` l'a été, par le script de capture.
 
 ---
 
