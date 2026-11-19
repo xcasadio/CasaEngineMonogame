@@ -224,13 +224,158 @@ Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed
 
 ---
 
-## Tranche 2 — Comportements sortis (cadrage)
+## Tranche 2 — Comportements sortis
 
-- Chaque comportement devient un composant du moteur posé sur l'entité de la caméra : il lit ses réglages dans les données et écrit la transformation de la caméra. Liste de départ, d'après les classes actuelles : orbite autour d'une cible (cible, distance, lacet, tangage), visée d'une cible, suivi 2D d'une entité avec zone morte et limites.
-- `ViewportCameraNavigation` reste la classe utilitaire de la navigation de vue ; elle écrit dans une caméra simple au lieu d'une `ArcBallCameraComponent`.
-- Avant tout déplacement, des tests figent les poses actuelles pour des entrées données ; ils doivent rester verts après.
-- L'éditeur, `CasaEngine.Demos` et `Projects/` passent sur les nouveaux composants. Les anciennes classes restent, inutilisées par le dépôt.
-- Tâches détaillées à écrire au lancement de la tranche, après un recensement des 68 fichiers.
+Tâches écrites le 2026-11-19, au lancement de la tranche, après le recensement T2.0. **Soumises à l'auteur : aucun code avant son approbation.**
+
+Relues une fois par un relecteur neuf : REVISE, cinq points P2, tous repris dans cette version (époque 2) : la preuve de T2.5 portait sur un état que le changement ne peut pas modifier ; l'interface du contrôleur à deux composants n'était pas écrite ; un appel à `SetPositionAndTarget` sur une caméra pilotée par l'orbite était perdu sans le dire ; la comparaison d'images de T2.7 ne prouvait pas une pose ; l'entrée de l'orbite dans un monde n'avait pas de test.
+
+Relecture de clôture de l'époque 2 : REVISE, deux points P2, repris dans cette version (époque 3) : T2.5 demandait d'ajouter l'orbite à une entité que `EditorCameraFactory.CreateCameraEntity` crée lui-même, et son test recopiait la construction du panneau au lieu de l'exécuter ; le test de T2.7 ne pouvait pas appeler la méthode de cadrage, `CasaEngine.Tests` ne référençant pas `CasaEngine.Demos`.
+
+Relecture de clôture de l'époque 3 : **READY**.
+
+### Décisions de la tranche (réponses de l'auteur du 2026-11-19)
+
+| Réf | Décision |
+|---|---|
+| D10 | La tranche 1 est fusionnée dans le `main` local (`ae2a42be`, non poussé). La tranche 2 part de `main`, sur la branche `chantier/camera-behaviours`. |
+| D11 | **Pas de composant de visée.** Les usages de `CameraLookAtComponent` passent sur `PerspectiveCameraComponent.SetPositionAndTarget`. |
+| D12 | **Un composant de suivi 2D est écrit**, bien qu'aucun usage du dépôt n'existe pour `CameraTargeted2dComponent`. |
+| D13 | `ScriptArcBallCamera` garde son nom. Il pilote le composant d'orbite s'il est sur l'entité, sinon l'ancienne `ArcBallCameraComponent`. |
+
+### État vérifié pour la tranche 2 (T2.0, relevé le 2026-11-19 sur `ae2a42be`)
+
+Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis recoupé sur les points qui portent une décision.
+
+- **Orbite.** `ArcBallCameraComponent` garde `Target`, `Distance`, `Yaw`, `Pitch` ; son orientation est `AxisAngle(Up, −Yaw) × AxisAngle(Right, Pitch)` (`ArcBallCameraComponent.cs:272-277`) ; sa vue est `CreateLookAt(Target − Direction × Distance, Target, Up)` et écrit `Position` au passage (`:153-158`). `SetCamera(position, cible, up)` en déduit distance, lacet et tangage ; `up` n'est pas utilisé (`:245-270`). Elle lit `target`, `distance`, `yaw`, `pitch` (`:279-287`).
+- **Navigation de vue.** `ViewportCameraState` (pivot, distance, lacet, tangage) se lit et s'écrit dans une `ArcBallCameraComponent` par `From` et `ApplyTo` (`CasaEngine/Framework/Scene/Cameras/ViewportCameraNavigation.cs:60-74`). `ViewportCameraNavigation.Update` ne travaille que sur l'état. `ScriptArcBallCamera` et `EditorViewportCameraController` passent par ces deux méthodes et écrivent en plus `FieldOfView`.
+- **Visée.** `CameraLookAtComponent` ne fait que `CreateLookAt(Position, Target, Up)` ; elle n'a pas de clé propre.
+- **Suivi 2D.** `CameraTargeted2dComponent` ne suit rien : son `Update` ne déplace le décalage que si la cible est **dans** la zone morte, puis teste si elle en est sortie, ce qui est alors toujours faux (`CameraTargeted2dComponent.cs:52-70`). Ses réglages ne sont lus d'aucune donnée. Aucun fichier de l'éditeur, des démos, de `Projects/` ni des données ne la nomme. Il n'y a donc **aucun comportement existant à préserver** : le composant de D12 est spécifié à neuf (O9).
+- **Utilisateurs de `ArcBallCameraComponent`.** Runtime : `ViewportCameraNavigation.cs`, `ScriptArcBallCamera.cs`. Éditeur : `WorldViewportPanel.cs`, `EditorViewportCameraController.cs`, `EditorEntityJsonSerializer.cs`. Démos : `Demo.cs` et 20 démos, la plupart par `SetCamera`, quatre par un test de type. `Projects/SandBoxGame/SandBoxGame.cs`. Données : `CasaEngine.Demos/Content/EditorWorld/Entities/camera.entity`, `Projects/SampleProject/Entities/camera.entity`.
+- **Utilisateurs de `CameraLookAtComponent`.** Runtime : `World.CreateDefaultCamera` (`World.cs:509-511`), `EntityPolicyResolver.cs:132`. Éditeur : cinq aperçus (`SpritePreviewViewport`, `ParticlePreviewViewport`, `ModelPreviewViewport`, `MaterialPreviewViewport`, `AnimationClipPreviewPanel`) et deux rendus de vignettes (`SpriteSceneThumbnailRenderer`, `ParticleSceneThumbnailRenderer`). Démos : `DemosGame.cs` et sept démos. Aucune donnée.
+- **Politique d'entité.** `EntityPolicyResolver` range `CameraLookAtComponent` et `CameraTargeted2dComponent` sous `DynamicDefault` (`EntityPolicyResolver.cs:131-138`) ; `ArcBallCameraComponent` et `PerspectiveCameraComponent` n'y figurent pas (O10).
+- **Tests qui figent des poses.** `ArcBallCameraComponentTests` (5), `ViewportCameraNavigationTests` (25, sur l'état, plus une égalité avec la position de la caméra). Une vingtaine d'autres fichiers de test prennent une ancienne caméra comme simple support.
+- **Ordre de mise à jour d'une entité** : composant racine, autres composants, entités enfants, puis script (`Entity.cs:511-542`).
+
+### Conception
+
+- **`OrbitCameraComponent`**, un `EntityComponent` posé sur l'entité de la caméra. Propriétés `Target`, `Distance`, `Yaw`, `Pitch`, lectures `Direction` et `Right`, et `SetCamera(position, cible)`, avec les conventions, les formules et les clés de `ArcBallCameraComponent` (`target`, `distance`, `yaw`, `pitch`). Il écrit la transformation locale du composant caméra de son entité : position `Target − Direction × Distance`, orientation `AxisAngle(Up, −Yaw) × AxisAngle(Right, Pitch)`.
+  - Quand il écrit : à chaque écriture d'une propriété, à `Initialize` de l'entité et à `InitializeWithWorld`. Rien par image. Il ne touche ni au champ de vision ni à la projection.
+  - Il cherche la caméra par `Owner.GetComponent<CameraComponent>()` à chaque écriture et ne garde aucune référence : le constructeur de copie de `EntityComponent` recopie `Owner` de la source (`EntityComponent.cs:31-34`), une référence gardée viserait la caméra de l'entité d'origine après un clonage.
+  - **Il est le propriétaire de la pose.** Un `SetPositionAndTarget` appelé directement sur une caméra qu'il pilote est écrasé à sa prochaine écriture : c'est à lui qu'on demande un cadrage, par `SetCamera`. L'ADR de T2.1 le dit. `ArcBallCameraComponent.SetPositionAndTarget` nourrissait l'orbite (`ArcBallCameraComponent.cs:160-163`) : les appelants concernés sont recensés en T2.7.
+- **`ViewportCameraState`** reçoit `From(OrbitCameraComponent)` et `ApplyTo(OrbitCameraComponent)`, à côté des deux méthodes existantes, qui restent.
+- **`ScriptArcBallCamera`** cherche un `OrbitCameraComponent` et une `Camera3dComponent` sur son entité ; s'il n'y a pas d'orbite, il garde le chemin actuel (D13).
+- **`Follow2dCameraComponent`**, spécifié en O9.
+- Les anciennes classes restent en place, lues par les données existantes et par les tests qui s'en servent de support. Leur retrait est la tranche 3.
+
+### Validation globale de la tranche
+
+- Les deux solutions à 0 erreur ; `CasaEngine.Tests` vert ; aucun test existant modifié, sauf `EditorViewportCameraControllerTests`, dans les limites écrites en T2.5.
+- Pour une grille de cibles, distances, lacets et tangages, la vue d'une `PerspectiveCameraComponent` pilotée par `OrbitCameraComponent` égale celle d'une `ArcBallCameraComponent` de mêmes valeurs. Ce test est écrit avant tout déplacement d'usage.
+- La pose des démos se prouve par construction, pas par image : mêmes arguments de cadrage qu'avant (constaté dans le diff), et égalité des vues pour des arguments égaux (tests de T2.2 pour l'orbite, de T1.2 pour la visée).
+- Recette de l'auteur : la navigation de la vue 3D de l'éditeur, les aperçus, et les démos.
+
+### ✅ T2.0 — Recenser les usages
+
+- Fait le 2026-11-19 : section « État vérifié pour la tranche 2 ».
+
+### ⏳ T2.1 — ADR
+
+- Objectif : enregistrer D11, D12, D13, la forme du composant d'orbite, la spécification du suivi (O9) et la réponse à O10.
+- Fichiers : `docs/decisions/0145-<titre>.md`, `docs/decisions/README.md`.
+- Commit : `docs(decisions): record the camera behaviour components`
+
+### ⏳ T2.2 — Composant d'orbite
+
+- Fichiers : `CasaEngine/Framework/Scene/Entities/Components/OrbitCameraComponent.cs` ; `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs` (écriture des quatre clés) ; tests dans `CasaEngine.Tests/Scene/`.
+- Étapes :
+  1. Tests d'abord :
+     - égalité des vues avec `ArcBallCameraComponent` sur une grille : 3 cibles, 3 distances, 8 lacets sur le tour complet, 5 tangages de −89 à 89 degrés, à 1e-4 près par terme ; sur la même grille, `Direction` et `Right` égalent ceux de `ArcBallCameraComponent`, et la position du composant caméra égale `Target − Direction × Distance` ;
+     - `SetCamera(position, cible)` donne les mêmes distance, lacet et tangage que `ArcBallCameraComponent.SetCamera`, et une vue égale à `Matrix.CreateLookAt(position, cible, Vector3.Up)` à 1e-4 près, sur les cas de `ArcBallCameraComponentTests` ;
+     - `SetCamera` avec une position égale à la cible garde le lacet et le tangage, comme l'ancienne classe ;
+     - une écriture de `Target`, `Distance`, `Yaw` ou `Pitch` est vue à la lecture suivante de `ViewMatrix`, sans `Update` ;
+     - **entrée sans écriture de propriété** : une entité chargée d'un JSON qui porte une caméra simple dont `local_transform` est volontairement autre, et une orbite, puis `Initialize` de l'entité, sans écrire aucune propriété : la vue égale celle d'une `ArcBallCameraComponent` de mêmes valeurs. Deux cas : la caméra est le composant racine ; la caméra est enfant d'un `TransformComponent` racine. Ces tests échouent si l'orbite n'écrit pas à l'initialisation ;
+     - une orbite ajoutée par `AddComponent` à une entité déjà initialisée pose la caméra ;
+     - une entité clonée : l'orbite du clone pose la caméra du clone ; la caméra de l'entité d'origine ne bouge pas quand on écrit dans l'orbite du clone ;
+     - un `SetPositionAndTarget` direct sur la caméra est écrasé par l'écriture suivante de l'orbite (le contrat écrit en « Conception ») ;
+     - un composant d'orbite sur une entité sans caméra ne lève rien et n'écrit rien ;
+     - écriture par l'éditeur puis relecture : mêmes valeurs ; `Clone` : mêmes valeurs ;
+     - aucune allocation dans les écritures de propriétés (mesure par `GC.GetAllocatedBytesForCurrentThread`, comme les tests du dépôt qui le font déjà).
+  2. Écrire le composant, puis son écriture par l'éditeur.
+- Validation : build des deux solutions ; tests verts.
+- Commit : `feat(camera): add an orbit behaviour component for the posed camera`
+
+### ⏳ T2.3 — Navigation de vue et script
+
+- Fichiers : `ViewportCameraNavigation.cs` (deux méthodes ajoutées à `ViewportCameraState`) ; `ScriptArcBallCamera.cs` ; tests.
+- Étapes :
+  1. Tests d'abord : `From` puis `ApplyTo` sur un composant d'orbite rendent le même état ; le script, sur une entité à caméra simple et orbite, écrit le même état que sur une `ArcBallCameraComponent` pour les mêmes entrées ; sur une entité à `ArcBallCameraComponent` seule, il se comporte comme avant (`EngineOwnedScriptObjectsTests` et `EditorWorldPlaySnapshotTests` verts sans modification).
+  2. Écrire les deux méthodes, puis le choix du chemin dans le script.
+- Commit : `feat(camera): drive the orbit component from the viewport navigation`
+
+### ⏳ T2.4 — Composant de suivi 2D
+
+- Prérequis : O9 tranché.
+- Fichiers : `Follow2dCameraComponent.cs` ; `EditorEntityJsonSerializer.cs` ou `[SerializedProperty]` selon les types de ses réglages ; tests.
+- Étapes : tests d'abord, un par règle de O9 (cible dans la zone, sortie par chaque bord, limites, cible absente ou retirée du monde, écriture et relecture, aucune allocation dans `Update`) ; puis le composant.
+- Commit : `feat(camera): add a 2d follow behaviour component`
+
+### ⏳ T2.5 — Vue 3D de l'éditeur
+
+- Fichiers : `EditorViewportCameraController.cs`, `WorldViewportPanel.cs`, leurs tests.
+- Objectif : la vue 3D crée une `PerspectiveCameraComponent` et un `OrbitCameraComponent` ; le contrôleur écrit dans l'orbite. `EditorCameraFactory` prend déjà une `Camera3dComponent` et ne change pas.
+- Interface du contrôleur après la tâche (classe `internal`) :
+  - `PerspectiveCameraComponent CreateCameraComponent()` : la caméra, sans réglage d'orbite ;
+  - `OrbitCameraComponent CreateOrbitComponent()` : l'orbite, avec la cible, la distance, le lacet et le tangage du contrôleur ;
+  - `void ApplyTo(OrbitCameraComponent orbit)` ;
+  - `Update(GameTime gameTime, OrbitCameraComponent orbit, Camera3dComponent camera, …)`, la suite des paramètres inchangée : l'état va à l'orbite, le changement de champ de vision à la caméra.
+  - `Entity CreateCameraEntity(string name, World world, out PerspectiveCameraComponent camera, out OrbitCameraComponent orbit)` : **la seule construction de la caméra de vue**. Elle appelle `CreateCameraComponent`, puis `EditorCameraFactory.CreateCameraEntity`, qui crée l'entité, l'initialise et la met dans le monde (`EditorCameraFactory.cs:33-48`), puis ajoute l'orbite par `AddComponent` à cette entité déjà initialisée : le chemin que couvre le test « orbite ajoutée par `AddComponent` » de T2.2.
+- `WorldViewportPanel` appelle cette méthode (à la place de `:1371-1372`) et garde `_camera` (la caméra simple) et un nouveau champ pour l'orbite. Ses trois lectures changent ainsi : `_camera.Target` (`:1323`) et `_camera.Right` (`:1324`) deviennent celles de l'orbite ; `_camera.FieldOfView` (`:886`) reste sur la caméra.
+- Modifications permises dans `EditorViewportCameraControllerTests`, et elles seules : la création des objets (une caméra et une orbite au lieu d'une `ArcBallCameraComponent`), la liste d'arguments des appels à `Update`, et l'objet lu pour `Distance`, `Target`, `Yaw`, `Pitch` (l'orbite). Aucune valeur attendue ne change. La note de la tâche liste les lignes touchées.
+- Étapes :
+  1. Vérifier que la profondeur lointaine infinie de `EditorCameraFactory` passe par la projection de `Camera3dComponent` (décalage nul) ; les cas de `InfiniteFarPlaneTests` sont rejoués sur la nouvelle classe dans un nouveau fichier de test.
+  2. **Référence avant tout changement.** La méthode de construction ci-dessus est d'abord écrite sur l'existant : elle rend une `ArcBallCameraComponent`, sans orbite, et le panneau l'appelle. Un nouveau test l'appelle lui aussi, puis rejoue `EditorCameraFactory.InitializeWithWorld` comme le panneau le fait au changement de monde (`WorldViewportPanel.cs:1804-1806`), applique une suite fixée d'états par `SetState` et `ApplyTo`, et note pour chacun `ViewMatrix` et la position de la caméra. Les valeurs relevées avec `ArcBallCameraComponent` sont écrites en dur dans le test, qui est committé vert avec cette tâche.
+  3. Changer le contrôleur, puis le panneau. Le test de l'étape 2 doit rester vert, à 1e-4 près par terme, en appelant la même méthode de construction, qui rend maintenant la caméra simple et l'orbite : il échoue si cette méthode ne pose pas l'orbite sur l'entité ou si la réinitialisation perd la pose. Ce que le test ne couvre pas : un panneau qui n'appellerait pas la méthode ; c'est l'essai dans l'éditeur qui le montre.
+- Si le banc de test ne permet pas de rejouer `EditorCameraFactory.InitializeWithWorld` sans carte graphique, ⚠️ Blocked : la question va aux points ouverts.
+- Validation : build ; tests ; essai dans l'éditeur par l'auteur (🧪 tant qu'il n'est pas fait).
+- Commit : `refactor(editor): drive the 3d viewport through the orbit component`
+
+### ⏳ T2.6 — Aperçus, vignettes et caméra par défaut
+
+- Fichiers : les sept fichiers de l'éditeur listés plus haut ; `World.cs` (`CreateDefaultCamera`) ; `EntityPolicyResolver.cs` selon O10.
+- Étapes :
+  1. Pour chacun des huit appels à `SetPositionAndTarget`, lire la direction visée. `PerspectiveCameraComponent` refuse une visée à la verticale : **si un appel peut viser à la verticale, ⚠️ Blocked**, la question va aux points ouverts.
+  2. Remplacer le type construit ; rien d'autre ne change dans ces fichiers.
+- Délégation : éditions de même forme sur huit fichiers, à un `mech-executor`, après l'étape 1 faite en session principale.
+- Validation : build ; tests ; essai des aperçus par l'auteur.
+- Commit : `refactor(editor): pose the preview cameras by their transform`
+
+### ⏳ T2.7 — Démos et bac à sable
+
+- Fichiers : `CasaEngine.Demos/Demo.cs`, `DemosGame.cs`, les 27 démos recensées, `Projects/SandBoxGame/SandBoxGame.cs`.
+- Objectif : `Demo.CreateCamera` crée une caméra simple, un composant d'orbite et le script ; les démos cadrent par l'orbite ; celles qui créaient une `CameraLookAtComponent` créent une caméra simple, sans orbite.
+- Règle de cadrage : une méthode statique `DemoCameraFraming.Frame(CameraComponent camera, Vector3 position, Vector3 target)`, dans son propre fichier `CasaEngine.Demos/DemoCameraFraming.cs`, sans autre dépendance que le runtime. Elle cadre par `SetCamera` de l'orbite de l'entité de la caméra s'il y en a une, sinon par `SetPositionAndTarget`. Le fichier est lié dans `CasaEngine.Tests` comme `DemoControl.cs` l'est déjà (`CasaEngine.Tests.csproj:35-42`). Toute démo qui cadre une caméra venue de `Demo.CreateCamera` passe par elle.
+- Appelants recensés au-delà des 27 fichiers qui nomment une ancienne classe, relevés par `rg "SetPositionAndTarget\(|\.Direction\b"` sur `CasaEngine.Demos` et `Projects` :
+  - `TileMapSurfaceScreenDemo.cs:119` et `WorldSpaceUIDemo.cs:113` appellent `SetPositionAndTarget` sur la caméra de `Demo.CreateCamera` : ils passent par la méthode de cadrage ;
+  - `Collision3dBasicDemo.cs:205` et `:229` lisent `Direction` : ils la lisent sur l'orbite ;
+  - les huit démos à `CameraLookAtComponent` créent leur propre caméra, sans orbite : leur `SetPositionAndTarget` reste un appel direct.
+- Étapes :
+  1. `Demo.cs` et `DemosGame.cs` en session principale : ils fixent la forme que les démos suivent. Un test de `CasaEngine.Tests` construit une entité à caméra simple et orbite, appelle `DemoCameraFraming.Frame`, le même symbole que les démos, écrit une valeur dans l'orbite sans la changer, et constate que la vue n'a pas bougé. Il échoue si `Frame` cadre par `SetPositionAndTarget` une caméra pilotée par une orbite. Ce qu'il ne couvre pas : que `Demo.CreateCamera` pose bien l'orbite et qu'une démo appelle bien `Frame` ; le premier point se lit dans `Demo.cs`, le second se constate par la recherche de l'étape 4.
+  2. Même contrôle de visée verticale qu'en T2.6 pour les huit démos à `CameraLookAtComponent`.
+  3. Les démos, par un `executor` : quatre d'entre elles testent le type de la caméra et demandent un jugement. Consigne : les arguments de position et de cible de chaque cadrage restent ceux d'avant, au caractère près.
+  4. Rejouer la recherche ci-dessus : aucun `SetPositionAndTarget` ne reste sur une caméra pilotée par une orbite.
+- Validation : build ; tests ; le diff montre des arguments de cadrage inchangés, ce que la note de la tâche atteste démo par démo. Ce que la tâche ne prouve pas : le premier geste de souris après le cadrage dans une démo lancée. La règle de cadrage est couverte par le test de l'étape 1 ; la démo lancée l'est par la recette de l'auteur seule (T2.9), 🧪 jusque-là.
+- Commit : `refactor(demos): build the demo cameras from the posed camera and the orbit component`
+
+### ⏳ T2.8 — Documentation
+
+- Fichiers : `docs/engine/` (les deux composants), `docs/editor/viewport-camera-controls.md`, `docs/editor/editor-2d-viewport.md`, `docs/engine/demos-main-menu.md`, `docs/README.md`.
+- Commit : `docs(engine): describe the camera behaviour components`
+
+### ⏳ T2.9 — Vérification indépendante et recette
+
+- Un vérificateur neuf cherche à réfuter l'égalité des poses, l'absence de changement pour les données existantes et l'état des builds et des tests.
+- Recette de l'auteur : navigation de la vue 3D de l'éditeur, aperçus, démos.
 
 ## Tranche 3 — Retrait et migration (cadrage)
 
@@ -252,6 +397,8 @@ Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed
 | O4 | Le sample pilote le décalage au clavier (D6) sans action de cutscene (D5). Si un sample sans DLL ne peut pas lire le clavier pour agir sur un composant, il reçoit une DLL de jeu minimale | T1.4 |
 | O5 | Les sprites restent dans un plan parallèle à XY : une image fixe ne fait face à la caméra que si la caméra regarde le long de z. Le sample s'en tient à ce cas ; un sprite orientable est hors de ce chantier | T1.4 |
 | O6 | Tranche 3 : les données qui nomment une ancienne classe se lisent-elles encore (le chargeur les traduit en caméra simple plus composant de comportement), ou sont-elles migrées une fois pour toutes ? La règle du dépôt est la sérialisation additive. Proposition : le chargeur les traduit, et l'éditeur écrit la nouvelle forme | Tranche 3 |
+| O9 | Spécification du suivi 2D (D12), à neuf puisque l'ancienne classe ne suit rien. Proposition : `Follow2dCameraComponent`, posé sur l'entité d'une caméra simple. Réglages lus dans les données : `target_entity_name` (nom d'une entité du monde), `dead_zone` (largeur et hauteur en unités du monde, centrée sur la caméra), `limits` (rectangle du monde x, y, largeur, hauteur ; largeur ou hauteur nulle : pas de limite). À chaque `Update` : sur chaque axe, si la cible dépasse le bord de la zone morte, la caméra avance du dépassement ; puis sa position x, y est ramenée dans les limites ; son z ne change pas. Il écrit la position locale du composant caméra. Cible absente ou introuvable : il ne fait rien et le signale une fois. Il ne pilote pas `Camera2dComponent`, qui se place par sa propre cible (O7) | T2.1, T2.4 |
+| O10 | Politique d'entité. `EntityPolicyResolver` donne `DynamicDefault` à `CameraLookAtComponent`, et rien de propre à `ArcBallCameraComponent` ni à `PerspectiveCameraComponent`. Les usages de la visée passant sur la caméra simple (D11), leur politique changerait. Proposition : lire en T2.6 ce que vaut la politique d'un composant non listé ; si elle diffère de `DynamicDefault`, ajouter `PerspectiveCameraComponent` au même cas que `CameraLookAtComponent`, et le dire dans l'ADR | T2.1, T2.6 |
 | O7 | La caméra 2D. `Camera2dComponent` est déjà simple, mais se place d'après une cible et non d'après sa transformation. Faut-il l'aligner sur la caméra 3D en tranche 2, au prix d'un changement de ses clés ? Proposition : ne pas y toucher tant qu'aucun besoin ne le demande | Tranche 2 |
 
 ## Hors périmètre
