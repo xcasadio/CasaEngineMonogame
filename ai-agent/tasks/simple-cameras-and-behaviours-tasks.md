@@ -309,13 +309,14 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Commit : `feat(camera): add an orbit behaviour component for the posed camera`
 - Validation (2026-11-19) : `OrbitCameraComponentTests`, 16 cas verts, dont l'égalité des vues avec `ArcBallCameraComponent` sur les 360 points de la grille à 1e-4 près ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8080 tests, 0 échec. Runtime : `OrbitCameraComponent.cs`. Éditeur : `EditorEntityJsonSerializer.cs`.
 
-### ⏳ T2.3 — Navigation de vue et script
+### ✅ T2.3 — Navigation de vue et script
 
 - Fichiers : `ViewportCameraNavigation.cs` (deux méthodes ajoutées à `ViewportCameraState`) ; `ScriptArcBallCamera.cs` ; tests.
 - Étapes :
   1. Tests d'abord : `From` puis `ApplyTo` sur un composant d'orbite rendent le même état ; le script, sur une entité à caméra simple et orbite, écrit le même état que sur une `ArcBallCameraComponent` pour les mêmes entrées ; sur une entité à `ArcBallCameraComponent` seule, il se comporte comme avant (`EngineOwnedScriptObjectsTests` et `EditorWorldPlaySnapshotTests` verts sans modification).
   2. Écrire les deux méthodes, puis le choix du chemin dans le script.
 - Commit : `feat(camera): drive the orbit component from the viewport navigation`
+- Validation (2026-11-19) : `ScriptArcBallCameraOrbitTests`, 10 cas verts : pour sept gestes (orbite, molette, regard, travelling, panoramique, vol, champ de vision), le script donne à une caméra simple pilotée par une orbite l'état, le champ de vision et la vue qu'il donne à une `ArcBallCameraComponent`, à 1e-4 près. Pour le rendre testable sans jeu, `Update` garde la lecture des entrées et appelle une méthode `internal ApplyNavigation`, que les tests appellent. `EngineOwnedScriptObjectsTests` et `EditorWorldPlaySnapshotTests` verts sans modification ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8090 tests, 0 échec.
 
 ### ⏳ T2.4 — Composant de suivi 2D
 
