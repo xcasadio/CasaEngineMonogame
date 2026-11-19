@@ -3496,6 +3496,22 @@ public class GameEditor : Game, IObservableUpdate
     private void OnActiveDocumentChangedSyncToolPanels(EditorDocumentContext document)
     {
         SyncContextualToolPanels();
+        SilenceInactiveCutscenePreviews(document);
+    }
+
+    /// <summary>
+    /// A cutscene preview that is no longer the tab in front stops its sound and its sound button goes back to off
+    /// (ADR-0103). The documents are still updated while they are in the background, so only this call silences them.
+    /// </summary>
+    private void SilenceInactiveCutscenePreviews(EditorDocumentContext document)
+    {
+        foreach (var cutsceneInspectorPanel in _cutsceneInspectorPanels.Values)
+        {
+            if (!ReferenceEquals(document?.Payload, cutsceneInspectorPanel))
+            {
+                cutsceneInspectorPanel.SetPreviewSound(false);
+            }
+        }
     }
 
     /// <summary>

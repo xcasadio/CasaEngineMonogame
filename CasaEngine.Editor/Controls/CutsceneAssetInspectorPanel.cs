@@ -54,6 +54,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGTextBlock? _previewStatusText;
     private MGTextBlock? _timeText;
     private MGTextBlock? _playPauseText;
+    private MGTextBlock? _soundText;
     private MGStackPanel? _inputRow;
     private int _lastArmedInputVersion = -1;
     private int _lastTimeTenths = -1;
@@ -1199,6 +1200,12 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         row.TryAddChild(CreateTransportButton("-1 frame", () => StepPreviewBack()));
         row.TryAddChild(CreateTransportButton("+1 frame", () => StepPreviewFrames(1)));
 
+        // The sound is off whenever a document is created (ADR-0103); the label changes only when the state changes.
+        var soundButton = CreateTransportButton(SoundOffLabel, () => SetPreviewSound(!(_preview?.IsSoundOn ?? false)));
+        soundButton.MinWidth = 84;
+        _soundText = soundButton.Content as MGTextBlock;
+        row.TryAddChild(soundButton);
+
         // The status word and the play time sit under the buttons: the row has no room left for them at a usual panel width.
         _timeText = new MGTextBlock(_window, string.Empty)
         {
@@ -1259,6 +1266,29 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         RefreshPreviewStatus();
         RefreshTimeText();
         return done;
+    }
+
+    private const string SoundOffLabel = "Sound: off";
+    private const string SoundOnLabel = "Sound: on";
+
+    /// <summary>
+    /// Turns the sound of the preview on or off (ADR-0103). Turning it off stops the voices and the music that the preview
+    /// started and gives the editor mixer back. False, and no change, when the document has no preview or no asset.
+    /// </summary>
+    public bool SetPreviewSound(bool on)
+    {
+        if (_disposed || _preview == null || _session == null)
+        {
+            return false;
+        }
+
+        _preview.SetSound(on);
+        if (_soundText != null)
+        {
+            _soundText.Text = on ? SoundOnLabel : SoundOffLabel;
+        }
+
+        return true;
     }
 
     private MGButton CreateTransportButton(string label, Action onClick)
