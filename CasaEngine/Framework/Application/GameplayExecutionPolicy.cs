@@ -13,6 +13,15 @@ public sealed class GameplayExecutionPolicy
     public required bool UpdatePhysicsEngine { get; init; }
 
     /// <summary>
+    /// True when physics collisions (<c>OnHit</c> and <c>OnHitEnded</c> of an entity's gameplay proxy) and sprite
+    /// animation events (<c>AnimationFinished</c>, <c>AnimationLooped</c>, <c>AnimationEventTriggered</c>) call
+    /// game code. False in <see cref="GameplayExecutionPolicies.EditorLivePreview"/>: the simulation runs, but no
+    /// game code is called. The collision lists of the components stay up to date either way. An entity without a
+    /// world, or a world without a policy, notifies.
+    /// </summary>
+    public required bool RaiseGameplayNotifications { get; init; }
+
+    /// <summary>
     /// True when a script type name that does not resolve (unknown, ambiguous, wrong kind) must throw a
     /// <see cref="CasaEngine.Framework.Assets.ScriptTypeResolutionException"/> at creation. False in the editor
     /// preview: the world then logs a warning and keeps the entity, or the world itself, without its script, so a
@@ -35,6 +44,7 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = true,
         UpdatePhysicsComponents = true,
         UpdatePhysicsEngine = true,
+        RaiseGameplayNotifications = true,
         ThrowOnScriptTypeResolution = true,
     };
 
@@ -49,6 +59,31 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = false,
         UpdatePhysicsComponents = false,
         UpdatePhysicsEngine = false,
+        RaiseGameplayNotifications = true,
+        ThrowOnScriptTypeResolution = false,
+    };
+
+    /// <summary>
+    /// Policy of a world that is shown alive in the editor without running game code: sprite animations, particles
+    /// and physics run, scripts are not updated and no collision or animation event reaches game code. It is meant
+    /// to be set as <see cref="CasaEngine.Framework.Scene.World.World.ExecutionPolicyOverride"/> on a world that
+    /// something else drives.
+    /// <see cref="GameplayExecutionPolicy.UpdatePhysicsEngine"/> is false with this meaning: the game's physics
+    /// component does not step this world, whoever drives the world steps its physics itself. That way a game that
+    /// also steps its worlds (the editor in play mode) never steps this one twice.
+    /// </summary>
+    public static GameplayExecutionPolicy EditorLivePreview { get; } = new()
+    {
+        IsEditorPreview = false,
+        UseExternalViewManagement = true,
+        InitializePlayerControllers = false,
+        InitializeGameplayOnLoad = true,
+        RunBeginPlay = false,
+        UpdateGameplayScripts = false,
+        UpdateAnimatedSprites = true,
+        UpdatePhysicsComponents = true,
+        UpdatePhysicsEngine = false,
+        RaiseGameplayNotifications = false,
         ThrowOnScriptTypeResolution = false,
     };
 
@@ -63,6 +98,7 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = true,
         UpdatePhysicsComponents = true,
         UpdatePhysicsEngine = true,
+        RaiseGameplayNotifications = true,
         ThrowOnScriptTypeResolution = true,
     };
 }

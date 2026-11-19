@@ -245,12 +245,18 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             {
                 if (!wasFinished && isFinished)
                 {
-                    AnimationFinished?.Invoke(this, CurrentAnimation);
+                    if (RaisesGameplayNotifications)
+                    {
+                        AnimationFinished?.Invoke(this, CurrentAnimation);
+                    }
                 }
 
                 for (var turn = 0; turn < loopTurns && ReferenceEquals(CurrentAnimation, animation); turn++)
                 {
-                    AnimationLooped?.Invoke(this, animation);
+                    if (RaisesGameplayNotifications)
+                    {
+                        AnimationLooped?.Invoke(this, animation);
+                    }
                 }
             }
         }
@@ -349,7 +355,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
                 _logicalTick = 0;
                 _completedLoopCount++;
-                AnimationLooped?.Invoke(this, CurrentAnimation);
+                if (RaisesGameplayNotifications)
+                {
+                    AnimationLooped?.Invoke(this, CurrentAnimation);
+                }
             }
             else
             {
@@ -368,7 +377,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
                 }
 
                 _logicalEndReached = true;
-                AnimationFinished?.Invoke(this, CurrentAnimation);
+                if (RaisesGameplayNotifications)
+                {
+                    AnimationFinished?.Invoke(this, CurrentAnimation);
+                }
             }
 
             if (resetVersion != _logicalResetVersion)
@@ -914,9 +926,18 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         return root != null ? root.LocalScale : LocalScale;
     }
 
+    /// <summary>
+    /// True unless the world's execution policy says the engine must not call game code from its notifications
+    /// (<see cref="GameplayExecutionPolicy.RaiseGameplayNotifications"/>). No world or no policy notifies as always.
+    /// </summary>
+    private bool RaisesGameplayNotifications => Owner?.World?.ExecutionPolicy?.RaiseGameplayNotifications != false;
+
     private void OnAnimationEventTriggered(AnimationEventAsset animationEvent)
     {
-        AnimationEventTriggered?.Invoke(this, animationEvent);
+        if (RaisesGameplayNotifications)
+        {
+            AnimationEventTriggered?.Invoke(this, animationEvent);
+        }
     }
 
     public override void OnEnabledValueChange()

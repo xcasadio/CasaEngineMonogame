@@ -26,7 +26,7 @@ public class PhysicsSystemComponent : GameComponent
         }
 
         context = new PhysicsWorld(
-            _casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true,
+            world.ExecutionPolicy?.UseExternalViewManagement == true,
             ResolveSpacePolicy(world));
         _physicsWorldContexts.Add(world, context);
         return context;
@@ -88,7 +88,16 @@ public class PhysicsSystemComponent : GameComponent
 
         for (int i = 0; i < _worldsToUpdate.Count; i++)
         {
-            GetOrCreateContext(_worldsToUpdate[i]).Update(elapsedTime);
+            var world = _worldsToUpdate[i];
+
+            // A world whose own policy says the game does not step it is driven by something else:
+            // skip it before its physics context is even requested.
+            if (world.ExecutionPolicy?.UpdatePhysicsEngine == false)
+            {
+                continue;
+            }
+
+            GetOrCreateContext(world).Update(elapsedTime);
         }
     }
 

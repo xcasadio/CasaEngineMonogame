@@ -6,6 +6,7 @@ using BepuUtilities.Memory;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 
@@ -858,8 +859,8 @@ public sealed class BepuPhysicsEngine
                     continue;
                 }
 
-                collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
-                collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
+                NotifyHitEnded(collision.ColliderA.Owner, collision);
+                NotifyHitEnded(collision.ColliderB.Owner, collision);
                 collision.ColliderA.Collisions.Remove(collision);
                 collision.ColliderB.Collisions.Remove(collision);
             }
@@ -873,6 +874,28 @@ public sealed class BepuPhysicsEngine
         {
             pendingRemoval.Clear();
             _pendingRemovalPool.Push(pendingRemoval);
+        }
+    }
+
+    private static bool RaisesGameplayNotifications(Entity entity)
+    {
+        // No world or no policy (a world without its own rule and without a game): notify as always.
+        return entity.World?.ExecutionPolicy?.RaiseGameplayNotifications != false;
+    }
+
+    private static void NotifyHit(Entity entity, Collision collision)
+    {
+        if (RaisesGameplayNotifications(entity))
+        {
+            entity.GameplayProxy?.OnHit(collision);
+        }
+    }
+
+    private static void NotifyHitEnded(Entity entity, Collision collision)
+    {
+        if (RaisesGameplayNotifications(entity))
+        {
+            entity.GameplayProxy?.OnHitEnded(collision);
         }
     }
 
@@ -900,8 +923,8 @@ public sealed class BepuPhysicsEngine
 
             collision.ColliderA.Collisions.Add(collision);
             collision.ColliderB.Collisions.Add(collision);
-            collision.ColliderA.Owner.GameplayProxy?.OnHit(collision);
-            collision.ColliderB.Owner.GameplayProxy?.OnHit(collision);
+            NotifyHit(collision.ColliderA.Owner, collision);
+            NotifyHit(collision.ColliderB.Owner, collision);
         }
 
         foreach (var collision in _markedAsDeprecatedColl)
@@ -911,8 +934,8 @@ public sealed class BepuPhysicsEngine
                 continue;
             }
 
-            collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
-            collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
+            NotifyHitEnded(collision.ColliderA.Owner, collision);
+            NotifyHitEnded(collision.ColliderB.Owner, collision);
             collision.ColliderA.Collisions.Remove(collision);
             collision.ColliderB.Collisions.Remove(collision);
         }

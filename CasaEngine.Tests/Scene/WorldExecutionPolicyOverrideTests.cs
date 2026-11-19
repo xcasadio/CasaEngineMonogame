@@ -51,9 +51,9 @@ public class WorldExecutionPolicyOverrideTests
         property!.SetValue(target, value);
     }
 
-    private static AnimatedSpriteComponent CreateAnimatedSprite(World world)
+    private static AnimatedSpriteComponent CreateAnimatedSprite(World world, AnimationType animationType = AnimationType.Loop)
     {
-        var data = new Animation2dData { Name = "loop", AnimationType = AnimationType.Loop };
+        var data = new Animation2dData { Name = "loop", AnimationType = animationType };
         data.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = SpriteId });
         var track = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
         track.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, SpriteId));
@@ -263,5 +263,42 @@ public class WorldExecutionPolicyOverrideTests
 
         Assert.Equal(1, worldProxy.BeginPlays);
         Assert.Equal(1, entityProxy.Updates);
+    }
+
+    [Fact]
+    public void AnAnimationOfALivePreviewWorld_AdvancesButRaisesNoAnimationEvent()
+    {
+        var world = CreateWorld(GameplayExecutionPolicies.Runtime, GameplayExecutionPolicies.EditorLivePreview);
+        var once = CreateAnimatedSprite(world, AnimationType.Once);
+        var loop = CreateAnimatedSprite(world, AnimationType.Loop);
+        int finished = 0;
+        int looped = 0;
+        once.AnimationFinished += (_, _) => finished++;
+        loop.AnimationLooped += (_, _) => looped++;
+
+        once.Update(2.5f);
+        loop.Update(2.5f);
+
+        Assert.True(once.CurrentAnimationTimeSeconds > 0f);
+        Assert.Equal(0, finished);
+        Assert.Equal(0, looped);
+    }
+
+    [Fact]
+    public void AnAnimationOfARuntimeWorld_RaisesItsAnimationEvents()
+    {
+        var world = CreateWorld(GameplayExecutionPolicies.Runtime, ownPolicy: null);
+        var once = CreateAnimatedSprite(world, AnimationType.Once);
+        var loop = CreateAnimatedSprite(world, AnimationType.Loop);
+        int finished = 0;
+        int looped = 0;
+        once.AnimationFinished += (_, _) => finished++;
+        loop.AnimationLooped += (_, _) => looped++;
+
+        once.Update(2.5f);
+        loop.Update(2.5f);
+
+        Assert.Equal(1, finished);
+        Assert.True(looped > 0);
     }
 }
