@@ -112,8 +112,9 @@ public class HelloWorldDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var cameraEntity = new Entity { Name = "camera" };
-        var camera = new ArcBallCameraComponent();
+        var camera = new PerspectiveCameraComponent();
         cameraEntity.RootComponent = camera;
+        cameraEntity.AddComponent(new OrbitCameraComponent());
         cameraEntity.SetGameplayProxy(new ScriptArcBallCamera());
         cameraEntity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(cameraEntity);
@@ -124,7 +125,7 @@ public class HelloWorldDemo : Demo
     /// <summary>Called once the world is loaded: where the camera stands and what it looks at.</summary>
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(5f, 4f, 7f), new Vector3(0f, 1f, 0f), Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(5f, 4f, 7f), new Vector3(0f, 1f, 0f));
     }
 
     public override void Update(GameTime gameTime)

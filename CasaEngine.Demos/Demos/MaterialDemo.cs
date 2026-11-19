@@ -377,8 +377,8 @@ public partial class MaterialDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(
-            new Vector3(0f, 6f, 15f), Vector3.Zero, Vector3.Up);
+        DemoCameraFraming.Frame(
+            camera, new Vector3(0f, 6f, 15f), Vector3.Zero);
 
         if (_game == null)
         {

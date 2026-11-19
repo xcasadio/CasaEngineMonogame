@@ -78,7 +78,7 @@ public class TileMap3dDemo : Demo
     public override void InitializeCamera(CameraComponent camera)
     {
         var target = new Vector3(0f, MapHeight / 2f, 0f);
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(34.686f, 42.360f, 50.701f), target, Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(34.686f, 42.360f, 50.701f), target);
     }
 
     public override void Update(GameTime gameTime)

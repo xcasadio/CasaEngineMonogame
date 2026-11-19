@@ -101,16 +101,16 @@ public sealed class WorldSpaceUIDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        if (camera is ArcBallCameraComponent arcBallCamera)
+        if (camera.Owner?.GetComponent<OrbitCameraComponent>() is { } orbit)
         {
-            arcBallCamera.Target = InitialCameraTarget;
-            arcBallCamera.Distance = InitialCameraDistance;
-            arcBallCamera.Yaw = InitialCameraYaw;
-            arcBallCamera.Pitch = InitialCameraPitch;
+            orbit.Target = InitialCameraTarget;
+            orbit.Distance = InitialCameraDistance;
+            orbit.Yaw = InitialCameraYaw;
+            orbit.Pitch = InitialCameraPitch;
             return;
         }
 
-        camera.SetPositionAndTarget(new Vector3(0, 7, 18), InitialCameraTarget);
+        DemoCameraFraming.Frame(camera, new Vector3(0, 7, 18), InitialCameraTarget);
     }
 
     public override void Update(GameTime gameTime)

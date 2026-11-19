@@ -83,7 +83,7 @@ public sealed class StaticShadowValidationDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity { Name = "StaticShadowValidationCamera" };
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
         entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);

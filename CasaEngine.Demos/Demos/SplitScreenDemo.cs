@@ -41,7 +41,7 @@ public class SplitScreenDemo : Demo
     private static readonly Vector3 PbrSphereLeftPosition = new(-10.0f, 4.7f, 9.0f);
     private static readonly Vector3 PbrSphereRightPosition = new(17.0f, 4.2f, 3.0f);
 
-    private ArcBallCameraComponent? _camera2;
+    private PerspectiveCameraComponent? _camera2;
     private RenderView? _offsetView;
     private CasaEngineGame? _game;
     private int _frames;
@@ -148,12 +148,13 @@ public class SplitScreenDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         // Camera 1 — inherited from Demo base
-        var camera1 = (ArcBallCameraComponent)base.CreateCamera(game);
+        var camera1 = (PerspectiveCameraComponent)base.CreateCamera(game);
 
         // Camera 2 — side view
         var entity2 = new Entity { Name = "Camera 2 (side)" };
-        _camera2 = new ArcBallCameraComponent();
+        _camera2 = new PerspectiveCameraComponent();
         entity2.RootComponent = _camera2;
+        entity2.AddComponent(new OrbitCameraComponent());
         entity2.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity2);
 
@@ -173,12 +174,12 @@ public class SplitScreenDemo : Demo
         var rects = SplitScreenLayout.Compute(sceneArea, 2, SplitMode.Vertical);
 
         // ---- Camera 1: heavy left cluster ----
-        var cam1 = (ArcBallCameraComponent)camera;
-        cam1.SetCamera(new Vector3(-10f, 8f, 18f), new Vector3(-10f, 1.4f, 0f), Vector3.Up);
+        var cam1 = (PerspectiveCameraComponent)camera;
+        DemoCameraFraming.Frame(cam1, new Vector3(-10f, 8f, 18f), new Vector3(-10f, 1.4f, 0f));
         cam1.OnScreenResized(rects[0].Width, rects[0].Height);
 
         // ---- Camera 2: lighter right cluster ----
-        _camera2!.SetCamera(new Vector3(24f, 7f, 6f), new Vector3(10f, 1.4f, 0f), Vector3.Up);
+        DemoCameraFraming.Frame(_camera2!, new Vector3(24f, 7f, 6f), new Vector3(10f, 1.4f, 0f));
         _camera2.OnScreenResized(rects[1].Width, rects[1].Height);
 
         // ---- Register views ----

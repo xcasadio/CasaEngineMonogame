@@ -122,7 +122,7 @@ public class TopDownElevationDemo : Demo
         //Frame both spaces at once: the debug volumes, which live in the logical space (y from 18 to 38),
         //and the render plane, where everything projects on the screen row y = -20.
         var target = new Vector3(18f, 6f, 0f);
-        ((ArcBallCameraComponent)camera).SetCamera(target + Vector3.Backward * 95f, target, Vector3.Up);
+        DemoCameraFraming.Frame(camera, target + Vector3.Backward * 95f, target);
     }
 
     public override void Update(GameTime gameTime)

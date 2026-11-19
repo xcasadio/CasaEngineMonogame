@@ -34,7 +34,7 @@ public class RenderToTextureDemo : Demo
     /// <summary>Uniform pixel of the render-to-texture view (view 1) as shown in the inset: 192, 187, 170 with and without SSAO.</summary>
     public static readonly Point SsaoUniformPixelTextureView = new(1000, 750);
 
-    private ArcBallCameraComponent? _camera2;
+    private PerspectiveCameraComponent? _camera2;
     private RenderTargetSurface? _rtSurface;
     private CasaEngineGame? _game;
 
@@ -82,12 +82,13 @@ public class RenderToTextureDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         // Camera 1: main view (inherited from Demo base)
-        var camera1 = (ArcBallCameraComponent)base.CreateCamera(game);
+        var camera1 = (PerspectiveCameraComponent)base.CreateCamera(game);
 
         // Camera 2: top-down view used for render-to-texture
         var entity2 = new Entity { Name = "Camera 2 (top)" };
-        _camera2 = new ArcBallCameraComponent();
+        _camera2 = new PerspectiveCameraComponent();
         entity2.RootComponent = _camera2;
+        entity2.AddComponent(new OrbitCameraComponent());
         entity2.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity2);
 
@@ -101,12 +102,12 @@ public class RenderToTextureDemo : Demo
         var sceneArea = game.GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight);
 
         // ---- Camera 1: front view (the scene area of the backbuffer, ADR-0070) ----
-        var cam1 = (ArcBallCameraComponent)camera;
-        cam1.SetCamera(Vector3.Backward * 18 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        var cam1 = (PerspectiveCameraComponent)camera;
+        DemoCameraFraming.Frame(cam1, Vector3.Backward * 18 + Vector3.Up * 10, Vector3.Zero);
         cam1.OnScreenResized(sceneArea.Width, sceneArea.Height);
 
         // ---- Camera 2: top-down view (render-to-texture) ----
-        _camera2!.SetCamera(Vector3.Up * 25, Vector3.Zero, Vector3.Forward);
+        DemoCameraFraming.Frame(_camera2!, Vector3.Up * 25, Vector3.Zero);
         _camera2.OnScreenResized(RtSize, RtSize);
 
         // ---- Create / (re)create render target ----

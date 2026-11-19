@@ -90,9 +90,9 @@ public sealed class EnvironmentShowcaseDemo : Demo
     // above the ground and a target near the middle of the objects.
     public override void InitializeCamera(CameraComponent camera)
     {
-        if (camera is ArcBallCameraComponent arcBallCamera)
+        if (camera.Owner?.GetComponent<OrbitCameraComponent>() is { } orbit)
         {
-            arcBallCamera.SetCamera(new Vector3(0f, 4.5f, 15.5f), new Vector3(0f, 1.2f, 0f), Vector3.Up);
+            orbit.SetCamera(new Vector3(0f, 4.5f, 15.5f), new Vector3(0f, 1.2f, 0f));
         }
     }
 

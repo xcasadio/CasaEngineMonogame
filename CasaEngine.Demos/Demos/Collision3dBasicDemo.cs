@@ -41,7 +41,8 @@ public class Collision3dBasicDemo : Demo
     private int _nextBall;
 
     private CasaEngineGame? _game;
-    private ArcBallCameraComponent? _camera;
+    private CameraComponent? _camera;
+    private OrbitCameraComponent? _orbit;
     private PhysicsQueryShape? _probeShape;
 
     public override string Title => "Collision 3d basic demo";
@@ -174,12 +175,13 @@ public class Collision3dBasicDemo : Demo
     public override void InitializeCamera(CameraComponent camera)
     {
         base.InitializeCamera(camera);
-        _camera = camera as ArcBallCameraComponent;
+        _camera = camera;
+        _orbit = camera.Owner?.GetComponent<OrbitCameraComponent>();
     }
 
     public override void Update(GameTime gameTime)
     {
-        if (_game == null || _camera == null)
+        if (_game == null || _camera == null || _orbit == null)
         {
             return;
         }
@@ -202,11 +204,11 @@ public class Collision3dBasicDemo : Demo
         CollisionComponent body = _ballBodies[_nextBall];
         _nextBall = (_nextBall + 1) % BallCount;
 
-        Vector3 direction = _camera!.Direction;
+        Vector3 direction = _orbit!.Direction;
 
         // A dynamic body normally writes the transform of the mesh. To move it by hand, write the transform and push
         // it to the body.
-        ball.Position = _camera.Position + direction * 2f;
+        ball.Position = _camera!.Position + direction * 2f;
         body.SyncTransformFromScene();
         body.Velocity = direction * BallSpeed;
     }
@@ -226,9 +228,9 @@ public class Collision3dBasicDemo : Demo
         // The query shape is created once and reused: creating one per frame would allocate.
         _probeShape ??= world.PhysicsWorld.CreateQueryShape(new Sphere { Radius = 0.05f }, Vector3.One);
 
-        Vector3 direction = _camera!.Direction;
+        Vector3 direction = _orbit!.Direction;
         // Start a little ahead, so that a ball just thrown is not the first thing hit.
-        Vector3 from = _camera.Position + direction * 4f;
+        Vector3 from = _camera!.Position + direction * 4f;
         Vector3 to = from + direction * ProbeLength;
 
         if (!world.PhysicsWorld.ShapeSweep(_probeShape, Matrix.CreateTranslation(from), Matrix.CreateTranslation(to), out HitResult hit))
@@ -249,6 +251,7 @@ public class Collision3dBasicDemo : Demo
         _probeShape?.Dispose();
         _probeShape = null;
         _camera = null;
+        _orbit = null;
         _game = null;
         _nextBall = 0;
     }

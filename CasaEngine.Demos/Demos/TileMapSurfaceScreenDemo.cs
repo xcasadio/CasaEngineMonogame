@@ -116,7 +116,7 @@ public sealed class TileMapSurfaceScreenDemo : Demo
     //           (the 24 x 24 ground is wider than the frustum, so it only intersects it)
     public override void InitializeCamera(CameraComponent camera)
     {
-        camera.SetPositionAndTarget(new Vector3(0f, 5.487f, 12.687f), ScreenCenter);
+        DemoCameraFraming.Frame(camera, new Vector3(0f, 5.487f, 12.687f), ScreenCenter);
     }
 
     public override void Update(GameTime gameTime)

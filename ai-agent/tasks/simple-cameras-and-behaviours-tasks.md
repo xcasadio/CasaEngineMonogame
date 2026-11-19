@@ -361,7 +361,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Validation (2026-11-19) : étape 1, les huit visées lues une à une : les deux aperçus de sprite visent le long de z depuis une distance d'au moins 2,5 ; les aperçus de particules, de modèle, de matériau et d'animation, les vignettes de particules et la caméra par défaut d'un monde ont tous un écart en z d'au moins 3 entre position et cible. Aucune ne peut viser à la verticale. Étape 2 : le nom de la classe construite change dans les huit fichiers, 15 lignes, rien d'autre. Fait en session principale et non par un `mech-executor` : un seul remplacement de nom par fichier ne justifiait pas une délégation. `EntityPolicyResolver.cs` inchangé (O10). Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8112 tests, 0 échec.
 - **Reste 🧪 : l'essai des aperçus et des vignettes dans l'éditeur par l'auteur.**
 
-### ⏳ T2.7 — Démos et bac à sable
+### 🧪 T2.7 — Démos et bac à sable
 
 - Fichiers : `CasaEngine.Demos/Demo.cs`, `DemosGame.cs`, les 27 démos recensées, `Projects/SandBoxGame/SandBoxGame.cs`.
 - Objectif : `Demo.CreateCamera` crée une caméra simple, un composant d'orbite et le script ; les démos cadrent par l'orbite ; celles qui créaient une `CameraLookAtComponent` créent une caméra simple, sans orbite.
@@ -377,6 +377,10 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
   4. Rejouer la recherche ci-dessus : aucun `SetPositionAndTarget` ne reste sur une caméra pilotée par une orbite.
 - Validation : build ; tests ; le diff montre des arguments de cadrage inchangés, ce que la note de la tâche atteste démo par démo. Ce que la tâche ne prouve pas : le premier geste de souris après le cadrage dans une démo lancée. La règle de cadrage est couverte par le test de l'étape 1 ; la démo lancée l'est par la recette de l'auteur seule (T2.9), 🧪 jusque-là.
 - Commit : `refactor(demos): build the demo cameras from the posed camera and the orbit component`
+- Validation (2026-11-19) : `DemoCameraFraming.cs`, `Demo.cs` et `DemosGame.cs` en session principale ; `DemoCameraFramingTests` (3 cas) appelle le même `Frame` que les démos, le fichier étant lié dans `CasaEngine.Tests`. Les démos par un `executor` : 25 démos et `SandBoxGame.cs`, relues sur le diff ; les arguments de position et de cible de chaque cadrage sont inchangés au caractère près, le troisième argument `up`, que l'ancienne classe n'utilisait pas, est retiré. Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8115 tests, 0 échec. Étape 4 : il reste huit `SetPositionAndTarget`, tous sur une caméra sans orbite (six démos qui créent leur caméra fixe, la caméra de l'écran principal, et `DemoCameraFraming` lui-même).
+- Cas particuliers : `SandBoxGame` cadre par `SetCamera` de l'orbite, n'ayant pas accès à `CasaEngine.Demos` ; `RenderToTextureDemo` et `ViewManagerSandbox` ont une caméra qui vise à la verticale ou presque, valide parce qu'elle passe par l'orbite, comme avant par l'ancienne caméra ; `Collision3dBasicDemo` lit `Direction` sur l'orbite.
+- **Non converti : `EditorWorldDemo.cs`.** Sa caméra vient d'un fichier, `CasaEngine.Demos/Content/EditorWorld/Entities/camera.entity`, qui nomme `ArcBallCameraComponent` ; elle reste donc une ancienne caméra, pilotée par le chemin conservé de `ScriptArcBallCamera`, jusqu'à la tranche 3, qui traite les données.
+- **Reste 🧪 : aucune démo n'a été lancée.** La recette de l'auteur porte sur les démos, premier geste de souris compris.
 
 ### ⏳ T2.8 — Documentation
 

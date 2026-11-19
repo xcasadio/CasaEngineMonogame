@@ -93,7 +93,7 @@ public sealed class CutsceneNavigateToDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity { Name = "CutsceneNavigateDemoCamera" };
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
         entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);

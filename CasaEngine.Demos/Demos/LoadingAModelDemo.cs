@@ -64,7 +64,7 @@ public class LoadingAModelDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(6f, 8f, 16f), new Vector3(0f, 5f, 0f), Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(6f, 8f, 16f), new Vector3(0f, 5f, 0f));
     }
 
     public override void Update(GameTime gameTime)
