@@ -211,4 +211,172 @@ public sealed class PerspectiveCameraComponentTests
 
         Assert.Equal(typeof(PerspectiveCameraComponent), method!.DeclaringType);
     }
+    // ---- Picture offset ------------------------------------------------------------------------------------
+
+    private const float PixelTolerance = 0.01f;
+
+    // Where a point given in view space lands on the screen, in pixels, y down.
+    private static Vector2 ProjectToPixels(CameraComponent camera, Vector3 viewPoint)
+    {
+        var clip = Vector4.Transform(new Vector4(viewPoint, 1f), camera.ProjectionMatrix);
+        float ndcX = clip.X / clip.W;
+        float ndcY = clip.Y / clip.W;
+        return new Vector2(
+            (ndcX * 0.5f + 0.5f) * camera.Viewport.Width,
+            (1f - (ndcY * 0.5f + 0.5f)) * camera.Viewport.Height);
+    }
+
+    // The point of view space that a centred camera draws at the given pixel, at the given depth.
+    private static Vector3 ViewPointAtPixel(Camera3dComponent camera, float pixelX, float pixelY, float depth)
+    {
+        float halfHeight = depth * MathF.Tan(camera.FieldOfView * 0.5f);
+        float halfWidth = halfHeight * camera.Viewport.AspectRatio;
+        float ndcX = pixelX / camera.Viewport.Width * 2f - 1f;
+        float ndcY = 1f - pixelY / camera.Viewport.Height * 2f;
+        return new Vector3(ndcX * halfWidth, ndcY * halfHeight, -depth);
+    }
+
+    private static Matrix ExpectedOffCentreProjection(Camera3dComponent camera, Vector2 offset)
+    {
+        float near = camera.NearPlane;
+        float halfHeight = near * MathF.Tan(camera.FieldOfView * 0.5f);
+        float halfWidth = halfHeight * camera.Viewport.AspectRatio;
+        float centreX = -offset.X * 2f * halfWidth;
+        float centreY = offset.Y * 2f * halfHeight;
+        return Matrix.CreatePerspectiveOffCenter(
+            centreX - halfWidth, centreX + halfWidth, centreY - halfHeight, centreY + halfHeight, near, camera.FarPlane);
+    }
+
+    [Fact]
+    public void ANewCamera_HasNoPictureOffset_AndTheCentredProjection()
+    {
+        var camera = CreateCamera();
+
+        Assert.Equal(Vector2.Zero, camera.PictureOffset);
+        AssertMatrixEqual(
+            Matrix.CreatePerspectiveFieldOfView(camera.FieldOfView, 320f / 240f, 1f, 1000f),
+            camera.ProjectionMatrix,
+            1e-6f);
+    }
+
+    [Theory]
+    [InlineData(2f)]
+    [InlineData(50f)]
+    [InlineData(900f)]
+    public void AnOffset_MovesEveryDepthByTheSamePixels_RightAndUp(float depth)
+    {
+        var centred = CreateCamera();
+        var shifted = CreateCamera();
+        shifted.PictureOffset = new Vector2(0.25f, -0.1f);
+        var point = ViewPointAtPixel(centred, 100f, 90f, depth);
+
+        var before = ProjectToPixels(centred, point);
+        var after = ProjectToPixels(shifted, point);
+
+        Assert.Equal(100f, before.X, PixelTolerance);
+        Assert.Equal(90f, before.Y, PixelTolerance);
+        Assert.Equal(80f, after.X - before.X, PixelTolerance);
+        Assert.Equal(-24f, after.Y - before.Y, PixelTolerance);
+    }
+
+    [Fact]
+    public void AnOffsetOfNPixels_MovesThePictureByNPixels_OverTheWholeWidth()
+    {
+        var centred = CreateCamera();
+        var shifted = CreateCamera();
+        var point = ViewPointAtPixel(centred, 160f, 120f, 50f);
+        var before = ProjectToPixels(centred, point);
+
+        for (int pixels = -320; pixels <= 320; pixels++)
+        {
+            shifted.PictureOffset = new Vector2(pixels / 320f, 0f);
+
+            var after = ProjectToPixels(shifted, point);
+
+            Assert.True(MathF.Abs(after.X - before.X - pixels) < PixelTolerance,
+                $"offset of {pixels} pixels moved the picture by {after.X - before.X}");
+            Assert.True(MathF.Abs(after.Y - before.Y) < PixelTolerance);
+        }
+    }
+
+    [Fact]
+    public void TheFrustum_FollowsTheOffset()
+    {
+        var camera = CreateCamera();
+        var broughtIn = ViewPointAtPixel(camera, -40f, 120f, 50f);
+        var pushedOut = ViewPointAtPixel(camera, 300f, 120f, 50f);
+        var centredFrustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
+
+        camera.PictureOffset = new Vector2(0.25f, 0f);
+        var shiftedFrustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
+
+        Assert.Equal(ContainmentType.Disjoint, centredFrustum.Contains(broughtIn));
+        Assert.Equal(ContainmentType.Contains, centredFrustum.Contains(pushedOut));
+        Assert.Equal(ContainmentType.Contains, shiftedFrustum.Contains(broughtIn));
+        Assert.Equal(ContainmentType.Disjoint, shiftedFrustum.Contains(pushedOut));
+    }
+
+    [Fact]
+    public void AnOffsetChangedInGame_IsSeenAtTheNextRead()
+    {
+        var camera = CreateCamera();
+        var first = camera.ProjectionMatrix;
+
+        camera.PictureOffset = new Vector2(0.4f, 0.3f);
+        var second = camera.ProjectionMatrix;
+
+        Assert.NotEqual(first, second);
+        AssertMatrixEqual(ExpectedOffCentreProjection(camera, new Vector2(0.4f, 0.3f)), second, 1e-6f);
+    }
+
+    [Fact]
+    public void TheOffset_DoesNotMoveThePointOfView()
+    {
+        var camera = CreateCamera();
+        camera.LocalPosition = new Vector3(1f, 2f, 3f);
+        var view = camera.ViewMatrix;
+
+        camera.PictureOffset = new Vector2(0.5f, -0.5f);
+
+        Assert.Equal(view, camera.ViewMatrix);
+    }
+
+    [Fact]
+    public void TheOffset_RoundTripsThroughTheEditorWriter_UnderItsKey()
+    {
+        var camera = CreateCamera();
+        camera.PictureOffset = new Vector2(0.25f, -0.1f);
+        var node = new JObject();
+        EditorEntityJsonSerializer.SaveEntity(new Entity { RootComponent = camera }, node);
+        var cameraNode = (JObject)node["root_component"]!;
+
+        Assert.Equal(0.25f, (float)cameraNode["picture_offset"]!["x"]!, ViewTolerance);
+        Assert.Equal(-0.1f, (float)cameraNode["picture_offset"]!["y"]!, ViewTolerance);
+
+        var loaded = Assert.IsType<PerspectiveCameraComponent>(ElementFactory.LoadComponent<SceneComponent>(cameraNode));
+
+        Assert.Equal(new Vector2(0.25f, -0.1f), loaded.PictureOffset);
+    }
+
+    [Fact]
+    public void ACameraSavedWithoutTheOffsetKey_LoadsWithNoOffset()
+    {
+        var node = new JObject();
+        EditorEntityJsonSerializer.SaveEntity(new Entity { RootComponent = CreateCamera() }, node);
+        var cameraNode = (JObject)node["root_component"]!;
+        Assert.True(cameraNode.Remove("picture_offset"));
+
+        var loaded = Assert.IsType<PerspectiveCameraComponent>(ElementFactory.LoadComponent<SceneComponent>(cameraNode));
+
+        Assert.Equal(Vector2.Zero, loaded.PictureOffset);
+    }
+
+    [Fact]
+    public void Clone_KeepsTheOffset()
+    {
+        var camera = CreateCamera();
+        camera.PictureOffset = new Vector2(-0.3f, 0.2f);
+
+        Assert.Equal(new Vector2(-0.3f, 0.2f), camera.Clone().PictureOffset);
+    }
 }

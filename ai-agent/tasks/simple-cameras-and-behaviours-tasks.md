@@ -165,7 +165,7 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - Validation (2026-11-19) : `PerspectiveCameraComponentTests`, 14 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8045 tests, 0 échec (8031 + 14), aucun test existant modifié. Ajouts hors liste : un test du roulis vu à l'écran, et le refus par `ArgumentException` d'une cible confondue avec la position ou à la verticale (un look-at y est indéfini). Runtime : `PerspectiveCameraComponent.cs`, `CameraComponent.cs`. Éditeur : `EditorEntityJsonSerializer.cs`.
 - Limite constatée : `CameraComponent.Load` exige les clés `view_distance` et `viewport` ; une caméra écrite à la main doit les porter, comme les caméras existantes.
 
-### ⏳ T1.3 — Décalage de l'image
+### ✅ T1.3 — Décalage de l'image
 
 - Objectif : une propriété de la nouvelle classe, lue dans les données et modifiable en jeu, qui décale l'image sans changer le point de vue. La nouvelle classe redéfinit `ComputeProjectionMatrix` ; celle de `Camera3dComponent` n'est pas touchée. L'écriture de la propriété pose `_needToComputeProjectionMatrix`, comme le fait déjà `FieldOfView`.
 - Convention, proposée en O8 et enregistrée dans l'ADR de T1.1 : le décalage (x, y) est en fraction de la largeur et de la hauteur entières du viewport. Un point qui paraissait au pixel p de l'écran, y vers le bas, paraît en p + (x × largeur, y × hauteur). Clé absente des données : (0, 0).
@@ -182,6 +182,7 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
   2. Projection par `Matrix.CreatePerspectiveOffCenter`, bornes tirées de l'angle vertical, du rapport et du décalage.
 - Validation : build des deux solutions ; tests verts ; aucun test existant modifié.
 - Commit : `feat(camera): shift the picture of the posed perspective camera`
+- Validation (2026-11-19) : 11 cas ajoutés à `PerspectiveCameraComponentTests` (25 en tout), verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8056 tests, 0 échec, aucun test existant modifié. Sur 320x240, tout décalage de −320 à 320 pixels entiers déplace l'image du nombre de pixels demandé à moins de 0,01 pixel. La clé est écrite et lue par `[SerializedProperty]` : `EditorEntityJsonSerializer.cs` n'est pas touché. Avec un décalage nul, la classe appelle la projection de `Camera3dComponent` : la matrice est alors identique bit à bit à celle des autres caméras 3D.
 
 ### ⏳ T1.4 — Sample
 
