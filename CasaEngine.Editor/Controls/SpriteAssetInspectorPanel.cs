@@ -147,6 +147,12 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
     }
 
     public bool TrySaveLoadedAsset(out string? errorMessage)
+        => TrySaveLoadedAsset(out errorMessage, force: false);
+
+    /// <summary>Writes the asset to its file. False, with a message, when it cannot be saved. With <paramref name="force"/>
+    /// false, an unmodified panel is left alone and reported saved; with true, the file is always written (the caller
+    /// has decided the document is modified by a source other than this panel's own flag).</summary>
+    public bool TrySaveLoadedAsset(out string? errorMessage, bool force)
     {
         errorMessage = null;
 
@@ -156,7 +162,7 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             return false;
         }
 
-        if (!IsDirty)
+        if (!force && !IsDirty)
         {
             return true;
         }

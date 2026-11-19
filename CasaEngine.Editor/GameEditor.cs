@@ -2623,43 +2623,20 @@ public class GameEditor : Game, IObservableUpdate
     private void SaveSelectedAnimation2dInspector()
     {
         string activeDocumentPanelId = GetActiveDocumentPanelId();
-        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
-            || !TryGetAnimation2dAssetInspectorPanel(activeDocumentPanelId, out var animation2dInspectorPanel)
-            || !animation2dInspectorPanel.IsDirty)
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetAnimation2dAssetInspectorPanel(activeDocumentPanelId, out var animation2dInspectorPanel))
         {
-            return;
-        }
-
-        if (animation2dInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-        {
-            _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, activeDocumentPanelId));
-            UpdateDockPanelTitle(activeDocumentPanelId, GetAnimation2dDocumentTitle(activeDocumentPanelId));
-            Logs.WriteInfo($"Animation2D asset saved: {animation2dInspectorPanel.LoadedRelativePath}");
-        }
-        else if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            Logs.WriteWarning(errorMessage);
+            TrySaveAnimation2dDocument(activeDocumentPanelId, animation2dInspectorPanel);
         }
     }
 
     private void SaveSelectedCutsceneInspector()
     {
         string activeDocumentPanelId = GetActiveDocumentPanelId();
-        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
-            || !TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutsceneInspectorPanel)
-            || !cutsceneInspectorPanel.IsDirty)
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutsceneInspectorPanel))
         {
-            return;
-        }
-
-        // The panel marks its history context saved, which refreshes the title.
-        if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-        {
-            Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
-        }
-        else if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            Logs.WriteWarning(errorMessage);
+            TrySaveCutsceneDocument(activeDocumentPanelId, cutsceneInspectorPanel);
         }
     }
 
@@ -2997,29 +2974,11 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
         {
-            return TrySaveCutsceneDocumentBeforeClose(cutsceneInspectorPanel);
+            return TrySaveCutsceneDocument(panelId, cutsceneInspectorPanel);
         }
 
         return TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
-               && TrySaveScreenDocument(panelId, previewPanel, new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
-    }
-
-    /// <summary>Saves a cutscene document for the Save answer of its close question. A refused or failed save keeps the
-    /// document open: the reason is logged and shown by the panel.</summary>
-    private static bool TrySaveCutsceneDocumentBeforeClose(CutsceneAssetInspectorPanel cutsceneInspectorPanel)
-    {
-        if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-        {
-            Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
-            return true;
-        }
-
-        if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            Logs.WriteWarning(errorMessage);
-        }
-
-        return false;
+               && TrySaveScreenDocument(panelId, previewPanel);
     }
 
     /// <summary>Closes a screen panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
@@ -3055,27 +3014,6 @@ public class GameEditor : Game, IObservableUpdate
             _ => ModifiedScreenCloseDecision.Answer.Cancel,
         };
 
-
-    /// <summary>Saves one screen document, exactly as <see cref="SaveDirtyScreenDocuments"/> does for
-    /// each dirty one, but for a single panel already known to be dirty and already resolved by the
-    /// caller - used by <see cref="OnDockHostPanelClosing"/>'s Yes answer.</summary>
-    private bool TrySaveScreenDocument(string panelId, UIScreenPreviewPanel previewPanel, EditorHistoryContext historyContext)
-    {
-        if (previewPanel.TrySaveDocument(out string errorMessage))
-        {
-            _editorDirtyState.MarkSaved(historyContext);
-            UpdateDockPanelTitle(panelId, GetScreenDocumentTitle(panelId));
-            Logs.WriteInfo($"UI screen saved: {previewPanel.LoadedSourceXamlPath}");
-            return true;
-        }
-
-        if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            Logs.WriteWarning(errorMessage);
-        }
-
-        return false;
-    }
 
     /// <summary>
     /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save every still-modified screen document before the
@@ -4946,7 +4884,7 @@ public class GameEditor : Game, IObservableUpdate
                 _worldOpenQuestionPending = false;
                 var result = ModifiedScreenCloseDecision.ApplyAnswer(
                     ToModifiedScreenCloseAnswer(answer),
-                    () => TrySaveProjectBeforeOpeningWorld(worldHistoryContext));
+                    () => TrySaveProjectAndWorld(worldHistoryContext));
                 if (result.ShouldProceed)
                 {
                     OpenWorldAsset(fullPath, unsavedChangesHandled: true);
@@ -4954,7 +4892,9 @@ public class GameEditor : Game, IObservableUpdate
             });
     }
 
-    private bool TrySaveProjectBeforeOpeningWorld(EditorHistoryContext worldHistoryContext)
+    /// <summary>Saves the project and the world, for the Save answer of the questions that would otherwise lose the world's
+    /// changes. False, with a warning already logged, when the world is still modified afterwards.</summary>
+    private bool TrySaveProjectAndWorld(EditorHistoryContext worldHistoryContext)
     {
         try
         {
@@ -5797,24 +5737,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _screenPreviewPanels)
         {
-            var panelId = pair.Key;
-            var previewPanel = pair.Value;
-            var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId);
-            if (!_editorDirtyState.IsDirty(historyContext))
-            {
-                continue;
-            }
-
-            if (previewPanel.TrySaveDocument(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(historyContext);
-                UpdateDockPanelTitle(panelId, GetScreenDocumentTitle(panelId));
-                Logs.WriteInfo($"UI screen saved: {previewPanel.LoadedSourceXamlPath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveScreenDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5822,45 +5745,15 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _materialInspectorPanels)
         {
-            var materialInspectorPanel = pair.Value;
-            if (!materialInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (materialInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveMaterialDocument(pair.Key, pair.Value);
         }
     }
 
     private void SaveDirtySoundInspectors()
     {
-        // The sound has no history context: only the panel flag and the tab title are updated.
         foreach (var pair in _soundInspectorPanels)
         {
-            var soundInspectorPanel = pair.Value;
-            if (!soundInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (soundInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                UpdateDockPanelTitle(pair.Key, GetSoundDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Sound asset saved: {soundInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveSoundDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5868,22 +5761,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _spriteInspectorPanels)
         {
-            var spriteInspectorPanel = pair.Value;
-            if (!spriteInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (spriteInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Sprite, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetSpriteDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Sprite asset saved: {spriteInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveSpriteDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5891,22 +5769,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _particleInspectorPanels)
         {
-            var particleInspectorPanel = pair.Value;
-            if (!particleInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (particleInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetParticleDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Particle asset saved: {particleInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveParticleDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5914,22 +5777,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _audioMixerPanels)
         {
-            var mixerPanel = pair.Value;
-            if (!mixerPanel.IsDirty)
-            {
-                continue;
-            }
-
-            // The panel marks its history context saved.
-            if (mixerPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                UpdateDockPanelTitle(pair.Key, GetAudioMixerDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Audio mixer asset saved: {mixerPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveAudioMixerDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5937,22 +5785,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _animation2dInspectorPanels)
         {
-            var animation2dInspectorPanel = pair.Value;
-            if (!animation2dInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (animation2dInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetAnimation2dDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Animation2D asset saved: {animation2dInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveAnimation2dDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5960,21 +5793,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _cutsceneInspectorPanels)
         {
-            var cutsceneInspectorPanel = pair.Value;
-            if (!cutsceneInspectorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            // The panel marks its history context saved, which refreshes the title.
-            if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveCutsceneDocument(pair.Key, pair.Value);
         }
     }
 
@@ -5982,23 +5801,374 @@ public class GameEditor : Game, IObservableUpdate
     {
         foreach (var pair in _entityAssetEditorPanels)
         {
-            var entityAssetEditorPanel = pair.Value;
-            if (!entityAssetEditorPanel.IsDirty)
-            {
-                continue;
-            }
-
-            if (entityAssetEditorPanel.TrySaveLoadedAsset(out string errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Entity, pair.Key));
-                UpdateDockPanelTitle(pair.Key, GetEntityDocumentTitle(pair.Key));
-                Logs.WriteInfo($"Entity asset saved: {entityAssetEditorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
+            TrySaveEntityDocument(pair.Key, pair.Value);
         }
+    }
+
+    // One save method per kind of document. The contract is the same for all of them: a document that is not modified
+    // (Is<Kind>DocumentModified, the condition that puts " *" in its tab) is left alone and reported saved; otherwise the
+    // file is written, the history context is marked saved when the kind has one, the tab title is refreshed, and the
+    // result is true only when the document no longer reads as modified. A document is never marked saved without a write.
+
+    private static void WarnSaveFailed(string errorMessage)
+    {
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+    }
+
+    private bool TrySaveScreenDocument(string panelId, UIScreenPreviewPanel previewPanel)
+    {
+        if (!IsScreenDocumentModified(panelId))
+        {
+            return true;
+        }
+
+        if (!previewPanel.TrySaveDocument(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+        UpdateDockPanelTitle(panelId, GetScreenDocumentTitle(panelId));
+        Logs.WriteInfo($"UI screen saved: {previewPanel.LoadedSourceXamlPath}");
+        return !IsScreenDocumentModified(panelId);
+    }
+
+    private bool TrySaveMaterialDocument(string panelId, MaterialAssetInspectorPanel inspectorPanel)
+    {
+        if (!IsMaterialDocumentModified(panelId, inspectorPanel))
+        {
+            return true;
+        }
+
+        // The panel's own flag can be clean while the history says modified: the file is written anyway.
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage, force: true))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
+        UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
+        Logs.WriteInfo($"Material saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsMaterialDocumentModified(panelId, inspectorPanel);
+    }
+
+    private bool TrySaveSoundDocument(string panelId, SoundAssetInspectorPanel inspectorPanel)
+    {
+        // The sound panel writes the file at every call: the modified test must come first. The sound has no history context.
+        if (!IsSoundDocumentModified(inspectorPanel))
+        {
+            return true;
+        }
+
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        UpdateDockPanelTitle(panelId, GetSoundDocumentTitle(panelId));
+        Logs.WriteInfo($"Sound asset saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsSoundDocumentModified(inspectorPanel);
+    }
+
+    private bool TrySaveSpriteDocument(string panelId, SpriteAssetInspectorPanel inspectorPanel)
+    {
+        if (!IsSpriteDocumentModified(panelId, inspectorPanel))
+        {
+            return true;
+        }
+
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage, force: true))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId));
+        UpdateDockPanelTitle(panelId, GetSpriteDocumentTitle(panelId));
+        Logs.WriteInfo($"Sprite asset saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsSpriteDocumentModified(panelId, inspectorPanel);
+    }
+
+    private bool TrySaveParticleDocument(string panelId, ParticleAssetInspectorPanel inspectorPanel)
+    {
+        if (!IsParticleDocumentModified(panelId, inspectorPanel))
+        {
+            return true;
+        }
+
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage, force: true))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
+        UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
+        Logs.WriteInfo($"Particle asset saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsParticleDocumentModified(panelId, inspectorPanel);
+    }
+
+    private bool TrySaveAudioMixerDocument(string panelId, AudioMixerPanel mixerPanel)
+    {
+        // The mixer panel writes the file at every call: the modified test must come first.
+        if (!IsAudioMixerDocumentModified(panelId, mixerPanel))
+        {
+            return true;
+        }
+
+        // The panel marks its history context saved.
+        if (!mixerPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        UpdateDockPanelTitle(panelId, GetAudioMixerDocumentTitle(panelId));
+        Logs.WriteInfo($"Audio mixer asset saved: {mixerPanel.LoadedRelativePath}");
+        return !IsAudioMixerDocumentModified(panelId, mixerPanel);
+    }
+
+    private bool TrySaveAnimation2dDocument(string panelId, Animation2dAssetInspectorPanel inspectorPanel)
+    {
+        if (!IsAnimation2dDocumentModified(panelId, inspectorPanel))
+        {
+            return true;
+        }
+
+        // The panel's flag can be clean while the history says modified (an undo restores the flag of an older state): the
+        // file is written anyway, with the state that is displayed.
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage, force: true))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panelId));
+        UpdateDockPanelTitle(panelId, GetAnimation2dDocumentTitle(panelId));
+        Logs.WriteInfo($"Animation2D asset saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsAnimation2dDocumentModified(panelId, inspectorPanel);
+    }
+
+    /// <summary>A refused or failed save, such as one blocked by the cutscene save guard, is logged and shown by the panel.</summary>
+    private bool TrySaveCutsceneDocument(string panelId, CutsceneAssetInspectorPanel inspectorPanel)
+    {
+        if (!IsCutsceneDocumentModified(panelId, inspectorPanel))
+        {
+            return true;
+        }
+
+        // The panel reads its state from the history context (the same one as the tab), so it writes whenever the tab
+        // shows " *", and it marks that context saved itself.
+        if (!inspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        UpdateDockPanelTitle(panelId, GetCutsceneDocumentTitle(panelId));
+        Logs.WriteInfo($"Cutscene asset saved: {inspectorPanel.LoadedRelativePath}");
+        return !IsCutsceneDocumentModified(panelId, inspectorPanel);
+    }
+
+    private bool TrySaveEntityDocument(string panelId, EntityAssetEditorPanel entityAssetEditorPanel)
+    {
+        if (!IsEntityDocumentModified(panelId, entityAssetEditorPanel))
+        {
+            return true;
+        }
+
+        // The panel reads its state from the history context (the same one as the tab): it writes whenever the tab shows " *".
+        if (!entityAssetEditorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            WarnSaveFailed(errorMessage);
+            return false;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId));
+        UpdateDockPanelTitle(panelId, GetEntityDocumentTitle(panelId));
+        Logs.WriteInfo($"Entity asset saved: {entityAssetEditorPanel.LoadedRelativePath}");
+        return !IsEntityDocumentModified(panelId, entityAssetEditorPanel);
+    }
+
+    /// <summary>The open document of a panel, seen the way the save questions see it. False when the panel is not an
+    /// open document of a modifiable kind (the tile map and the animation clip have nothing to modify or save).</summary>
+    private bool TryGetSavableDocument(string panelId, out EditorSavableDocument document)
+    {
+        document = null!;
+
+        if (TryGetUIScreenPreviewPanel(panelId, out var previewPanel))
+        {
+            document = CreateScreenSavableDocument(panelId, previewPanel);
+        }
+        else if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
+        {
+            document = CreateCutsceneSavableDocument(panelId, cutsceneInspectorPanel);
+        }
+        else if (TryGetMaterialAssetInspectorPanel(panelId, out var materialInspectorPanel))
+        {
+            document = CreateMaterialSavableDocument(panelId, materialInspectorPanel);
+        }
+        else if (TryGetSpriteAssetInspectorPanel(panelId, out var spriteInspectorPanel))
+        {
+            document = CreateSpriteSavableDocument(panelId, spriteInspectorPanel);
+        }
+        else if (TryGetParticleAssetInspectorPanel(panelId, out var particleInspectorPanel))
+        {
+            document = CreateParticleSavableDocument(panelId, particleInspectorPanel);
+        }
+        else if (TryGetAnimation2dAssetInspectorPanel(panelId, out var animation2dInspectorPanel))
+        {
+            document = CreateAnimation2dSavableDocument(panelId, animation2dInspectorPanel);
+        }
+        else if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel))
+        {
+            document = CreateEntitySavableDocument(panelId, entityAssetEditorPanel);
+        }
+        else if (TryGetAudioMixerPanel(panelId, out var audioMixerPanel))
+        {
+            document = CreateAudioMixerSavableDocument(panelId, audioMixerPanel);
+        }
+        else if (TryGetSoundAssetInspectorPanel(panelId, out var soundInspectorPanel))
+        {
+            document = CreateSoundSavableDocument(panelId, soundInspectorPanel);
+        }
+
+        return document != null;
+    }
+
+    /// <summary>Fills <paramref name="documents"/> with every open document of a modifiable kind, in a fixed order (screens,
+    /// cutscenes, materials, sprites, particles, Animation2D, entities, audio mixers, sounds), then the world when
+    /// <paramref name="includeWorld"/> is true. Modified or not: the callers filter.</summary>
+    private void CollectSavableDocuments(List<EditorSavableDocument> documents, bool includeWorld)
+    {
+        documents.Clear();
+
+        foreach (var pair in _screenPreviewPanels)
+        {
+            documents.Add(CreateScreenSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _cutsceneInspectorPanels)
+        {
+            documents.Add(CreateCutsceneSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _materialInspectorPanels)
+        {
+            documents.Add(CreateMaterialSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _spriteInspectorPanels)
+        {
+            documents.Add(CreateSpriteSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _particleInspectorPanels)
+        {
+            documents.Add(CreateParticleSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _animation2dInspectorPanels)
+        {
+            documents.Add(CreateAnimation2dSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _entityAssetEditorPanels)
+        {
+            documents.Add(CreateEntitySavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _audioMixerPanels)
+        {
+            documents.Add(CreateAudioMixerSavableDocument(pair.Key, pair.Value));
+        }
+
+        foreach (var pair in _soundInspectorPanels)
+        {
+            documents.Add(CreateSoundSavableDocument(pair.Key, pair.Value));
+        }
+
+        if (includeWorld)
+        {
+            documents.Add(CreateWorldSavableDocument());
+        }
+    }
+
+    private static string GetTableTitle(Dictionary<string, string> titles, string panelId, string defaultTitle)
+        => titles.TryGetValue(panelId, out var title) ? title : defaultTitle;
+
+    private EditorSavableDocument CreateScreenSavableDocument(string panelId, UIScreenPreviewPanel previewPanel)
+        => new(panelId, "Screen", GetTableTitle(_screenPreviewPanelTitles, panelId, "UIScreen"),
+            () => IsScreenDocumentModified(panelId),
+            () => TrySaveScreenDocument(panelId, previewPanel));
+
+    private EditorSavableDocument CreateCutsceneSavableDocument(string panelId, CutsceneAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Cutscene", GetTableTitle(_cutsceneInspectorPanelTitles, panelId, "Cutscene"),
+            () =>
+            {
+                if (ReferenceEquals(_cutsceneDetailsPanel?.Document, inspectorPanel))
+                {
+                    // Text typed and not yet validated counts as a change: it is written before the document is asked.
+                    _cutsceneDetailsPanel.CommitPendingText();
+                }
+
+                return IsCutsceneDocumentModified(panelId, inspectorPanel);
+            },
+            () => TrySaveCutsceneDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateMaterialSavableDocument(string panelId, MaterialAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Material", GetTableTitle(_materialInspectorPanelTitles, panelId, "Material"),
+            () => IsMaterialDocumentModified(panelId, inspectorPanel),
+            () => TrySaveMaterialDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateSpriteSavableDocument(string panelId, SpriteAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Sprite", GetTableTitle(_spriteInspectorPanelTitles, panelId, "Sprite"),
+            () => IsSpriteDocumentModified(panelId, inspectorPanel),
+            () => TrySaveSpriteDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateParticleSavableDocument(string panelId, ParticleAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Particle", GetTableTitle(_particleInspectorPanelTitles, panelId, "Particle"),
+            () => IsParticleDocumentModified(panelId, inspectorPanel),
+            () => TrySaveParticleDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateAnimation2dSavableDocument(string panelId, Animation2dAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Animation2D", GetTableTitle(_animation2dInspectorPanelTitles, panelId, "Animation2D"),
+            () => IsAnimation2dDocumentModified(panelId, inspectorPanel),
+            () => TrySaveAnimation2dDocument(panelId, inspectorPanel));
+
+    private EditorSavableDocument CreateEntitySavableDocument(string panelId, EntityAssetEditorPanel entityAssetEditorPanel)
+        => new(panelId, "Entity", GetEntityDocumentName(panelId),
+            () => IsEntityDocumentModified(panelId, entityAssetEditorPanel),
+            () => TrySaveEntityDocument(panelId, entityAssetEditorPanel));
+
+    private EditorSavableDocument CreateAudioMixerSavableDocument(string panelId, AudioMixerPanel mixerPanel)
+        => new(panelId, "Audio Mixer", GetTableTitle(_audioMixerPanelTitles, panelId, "Audio Mixer"),
+            () => IsAudioMixerDocumentModified(panelId, mixerPanel),
+            () => TrySaveAudioMixerDocument(panelId, mixerPanel));
+
+    private EditorSavableDocument CreateSoundSavableDocument(string panelId, SoundAssetInspectorPanel inspectorPanel)
+        => new(panelId, "Sound", GetTableTitle(_soundInspectorPanelTitles, panelId, "Sound"),
+            () => IsSoundDocumentModified(inspectorPanel),
+            () => TrySaveSoundDocument(panelId, inspectorPanel));
+
+    /// <summary>The world, listed after the documents: its Save is the save of the project, which writes the documents
+    /// that are still modified (none, when they were saved first) and the world.</summary>
+    private EditorSavableDocument CreateWorldSavableDocument()
+    {
+        var worldHistoryContext = new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
+        string worldName = _editorRuntime?.GameManager?.CurrentWorld?.Name;
+        return new EditorSavableDocument(
+            EditorPanelIds.WorldViewport,
+            "World",
+            string.IsNullOrWhiteSpace(worldName) ? "World" : worldName,
+            () => _editorDirtyState.IsDirty(worldHistoryContext),
+            () => TrySaveProjectAndWorld(worldHistoryContext));
     }
 
     private void UpdateDockPanelTitleForMaterialInspector(MaterialAssetInspectorPanel inspectorPanel)
@@ -6142,89 +6312,107 @@ public class GameEditor : Game, IObservableUpdate
     private string GetScreenDocumentTitle(string panelId)
     {
         var title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
-        return DecorateDirtyTitle(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId), title);
+        return IsScreenDocumentModified(panelId) ? $"{title} *" : title;
     }
+
+    // Is<Kind>DocumentModified is the one condition of a modified document: it puts " *" in the tab, and the save
+    // questions, the list of modified documents and the save of the document read it too. Where a document has both a
+    // history context and a panel flag, either one makes it modified.
+
+    private bool IsScreenDocumentModified(string panelId)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+
+    private bool IsMaterialDocumentModified(string panelId, MaterialAssetInspectorPanel inspectorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId))
+           || (inspectorPanel != null && inspectorPanel.IsDirty);
+
+    // The sound has no history context: its panel flag is the whole state.
+    private static bool IsSoundDocumentModified(SoundAssetInspectorPanel inspectorPanel)
+        => inspectorPanel != null && inspectorPanel.IsDirty;
+
+    private bool IsSpriteDocumentModified(string panelId, SpriteAssetInspectorPanel inspectorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId))
+           || (inspectorPanel != null && inspectorPanel.IsDirty);
+
+    private bool IsParticleDocumentModified(string panelId, ParticleAssetInspectorPanel inspectorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId))
+           || (inspectorPanel != null && inspectorPanel.IsDirty);
+
+    private bool IsAudioMixerDocumentModified(string panelId, AudioMixerPanel mixerPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.AudioMixer, panelId))
+           || (mixerPanel != null && mixerPanel.IsDirty);
+
+    private bool IsCutsceneDocumentModified(string panelId, CutsceneAssetInspectorPanel inspectorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panelId))
+           || (inspectorPanel != null && inspectorPanel.IsDirty);
+
+    private bool IsAnimation2dDocumentModified(string panelId, Animation2dAssetInspectorPanel inspectorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panelId))
+           || (inspectorPanel != null && inspectorPanel.IsDirty);
+
+    private bool IsEntityDocumentModified(string panelId, EntityAssetEditorPanel entityAssetEditorPanel)
+        => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId))
+           || (entityAssetEditorPanel != null && entityAssetEditorPanel.IsDirty);
 
     private string GetMaterialDocumentTitle(string panelId)
     {
         var title = _materialInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Material";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
-        if (TryGetMaterialAssetInspectorPanel(panelId, out var inspectorPanel))
-        {
-            isDirty |= inspectorPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetMaterialAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsMaterialDocumentModified(panelId, inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetSoundDocumentTitle(string panelId)
     {
         var title = _soundInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Sound";
-        bool isDirty = TryGetSoundAssetInspectorPanel(panelId, out var inspectorPanel) && inspectorPanel.IsDirty;
-        return isDirty ? $"{title} *" : title;
+        TryGetSoundAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsSoundDocumentModified(inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetSpriteDocumentTitle(string panelId)
     {
         var title = _spriteInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Sprite";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId));
-        if (TryGetSpriteAssetInspectorPanel(panelId, out var inspectorPanel))
-        {
-            isDirty |= inspectorPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetSpriteAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsSpriteDocumentModified(panelId, inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetParticleDocumentTitle(string panelId)
     {
         var title = _particleInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Particle";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
-        if (TryGetParticleAssetInspectorPanel(panelId, out var inspectorPanel))
-        {
-            isDirty |= inspectorPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetParticleAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsParticleDocumentModified(panelId, inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetAudioMixerDocumentTitle(string panelId)
     {
         var title = _audioMixerPanelTitles.TryGetValue(panelId, out var value) ? value : "Audio Mixer";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.AudioMixer, panelId));
-        if (TryGetAudioMixerPanel(panelId, out var mixerPanel))
-        {
-            isDirty |= mixerPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetAudioMixerPanel(panelId, out var mixerPanel);
+        return IsAudioMixerDocumentModified(panelId, mixerPanel) ? $"{title} *" : title;
     }
 
     private string GetCutsceneDocumentTitle(string panelId)
     {
         var title = _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Cutscene";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panelId));
-        if (TryGetCutsceneAssetInspectorPanel(panelId, out var inspectorPanel))
-        {
-            isDirty |= inspectorPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetCutsceneAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsCutsceneDocumentModified(panelId, inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetAnimation2dDocumentTitle(string panelId)
     {
         var title = _animation2dInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Animation2D";
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panelId));
-        if (TryGetAnimation2dAssetInspectorPanel(panelId, out var inspectorPanel))
-        {
-            isDirty |= inspectorPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        TryGetAnimation2dAssetInspectorPanel(panelId, out var inspectorPanel);
+        return IsAnimation2dDocumentModified(panelId, inspectorPanel) ? $"{title} *" : title;
     }
 
     private string GetEntityDocumentTitle(string panelId)
+    {
+        string title = GetEntityDocumentName(panelId);
+        TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel);
+        return IsEntityDocumentModified(panelId, entityAssetEditorPanel) ? $"{title} *" : title;
+    }
+
+    /// <summary>The title of an entity document without the modified marker: the name of the loaded entity, else the
+    /// title it was opened with.</summary>
+    private string GetEntityDocumentName(string panelId)
     {
         string title = _entityAssetEditorPanelTitles.TryGetValue(panelId, out var value) ? value : "Entity";
         if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel)
@@ -6233,13 +6421,7 @@ public class GameEditor : Game, IObservableUpdate
             title = entityAssetEditorPanel.LoadedEntity.Name;
         }
 
-        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId));
-        if (TryGetEntityAssetEditorPanel(panelId, out var loadedEntityPanel))
-        {
-            isDirty |= loadedEntityPanel.IsDirty;
-        }
-
-        return isDirty ? $"{title} *" : title;
+        return title;
     }
 
     private string GetAnimationClipDocumentTitle(string panelId)
