@@ -1,12 +1,12 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100, ADR-0101 and ADR-0102.
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100, ADR-0101, ADR-0102 and ADR-0103.
 
 ## Summary
 
 Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete, move, wrap, ungroup, cut, copy, paste) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model. The file format gained one action type, `At`, which places a group of actions in time (see "Placing actions in time"); nothing else in it changed.
 
-The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A **Cutscene Timeline** panel shows the tree in time, and lets an action be dragged to another instant (see "Timeline" and "Placing actions in time"). The structure is edited by mouse in the Hierarchy tree and from a context menu shared with the timeline (see "Structure editing").
+The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). The preview draws the screen fades, can simulate the input of an `ExitOnInput` and can play the sound on demand (see "Drawn fades", "Simulated input" and "Sound"). A **Cutscene Timeline** panel shows the tree in time, and lets an action be dragged to another instant (see "Timeline" and "Placing actions in time"). The structure is edited by mouse in the Hierarchy tree and from a context menu shared with the timeline (see "Structure editing").
 
 ## Usage
 
@@ -189,7 +189,7 @@ The ruler stays fixed while the row headers and the rows scroll together vertica
 
 - Items cannot be resized, deleted or moved from a row to another; the keyboard shortcuts of the generic control (Delete, Backspace, Ctrl+D, Ctrl+C) do nothing here. The structure is edited in the tree and from the context menu.
 - Measured durations are those of the **first occurrence** of each action during the last play. The duration of a `MoveSprite` effect is wrong when another move, `ShowSprite` or `HideSprite` interrupts it.
-- In the preview a `FadeMusic` does not wait (sound is muted): its bar shows the declared duration while the play goes faster.
+- In the preview a `FadeMusic` waits for its duration, as in the game, whether the sound is on or off (see "Sound"): its bar and the play agree.
 - For an endless loop whose lap holds an action of unknown duration that is not yet measured, the loop-back of the playhead becomes exact only after a first lap.
 - A `MoveSprite` or a `TintSprite` notifies its end right after its start: the length of its bar is not the length of its action in the director.
 
@@ -232,7 +232,7 @@ Free placement is carried by one action of the format, **`At`**, and by nothing 
 
 ## Preview
 
-The document shows a transport bar (a world choice, `Play` / `Pause`, `Stop`, `Restart`, `-1 frame` and `+1 frame`, with the state word and the play time under them), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
+The document shows a transport bar (a world choice, `Play` / `Pause`, `Stop`, `Restart`, `-1 frame`, `+1 frame` and the `Sound: off` / `Sound: on` button, with the state word and the play time under them), a row of input buttons that is collapsed until an input is armed, a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
 
 - **Isolated copy.** The preview loads a copy of a world of the project. The world open in the editor is never touched.
 - **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.
@@ -268,20 +268,61 @@ The state word and the label of the `Play` / `Pause` button follow this table, r
 
 Effects that would leave the preview world are neutralised and reported in the status line:
 
-- A world change (`ChangeWorld`), a screen (`OpenScreen`), a video (`PlayVideo`) and the chaining of `ExitOnInput` are skipped and listed as skipped actions (type and target); the playback continues. When a `ChangeWorld` is skipped, the playback ends on the next step, as the game would replace the world.
-- Sound is muted: sound and music actions do nothing, and a music fade does not wait for its duration.
-- Screen fades run for their duration, but are shown as text in the status line; they are not drawn over the preview.
+- A world change (`ChangeWorld`), a screen (`OpenScreen`), a video (`PlayVideo`) and the chaining of `ExitOnInput` are skipped and listed as skipped actions (type and target); the playback continues. When a `ChangeWorld` is skipped, the playback ends on the next step, as the game would replace the world. The `ExitOnInput` that is skipped is also remembered as the armed input (see "Simulated input").
+- Sound is off when the document opens: the sound actions run, with their durations, but nothing is heard until the `Sound` button is turned on (see "Sound").
+- Screen fades are drawn over the preview image (see "Drawn fades"), and the status line also says so in text.
 - A `MoveTo` that cannot run (missing entity, entity without a character controller, timeout) ends the play as `Failed` with a reason, in the preview as in the game.
+
+### Drawn fades
+
+A `FadeScreen` or a `FadeScreenFrames` darkens, lightens or tints the image of the preview, at the instant of the playhead, with the same blend as the game: opaque, alpha, additive or subtractive.
+
+- **How it is drawn.** An overlay registered on the render view of the preview viewport draws one white pixel stretched over the whole current viewport of the graphics device, coloured with the `rgba` of the screen effect of the play, after the interface of the view. It is drawn in screen coordinates because the preview camera is not a 2D camera, so the placement formula of the game does not apply. Every graphics device state it changes is restored.
+- **Blend states.** The four blend states are copies of the private ones of the engine sprite renderer, which are not reachable from the editor; a test compares them field by field with the engine ones, so a divergence shows.
+- **Nothing is drawn** when the effect is inactive or when its alpha is 2 or less, as the sprite shader of the engine discards those texels.
+- **Same effect, same instance.** The screen effect of the preview is one object for the whole life of the document; the start of a play, `Stop`, `Restart` and a change of preview world put it back in its first state (black, alpha 255, default blend, inactive), so a fade of a previous play never shows in the next one.
+- **Status line.** It keeps the text mention (`Screen fade in progress.` or `Screen overlay rgba(r,g,b,a).`), which says what the image shows even when the veil is faint.
+- An `OpenScreen` does not open a screen in the preview, so the order between the veil and a screen does not arise.
+
+### Simulated input
+
+In the game, an `ExitOnInput` arms a watch: the next press of one of its inputs plays another cutscene. The preview cannot press a key, so it simulates the press with a button.
+
+- **Armed input.** While a play runs, the last `ExitOnInput` the play went through is the armed input; a new one replaces the previous one, and the same one met again in a loop does not change it. The armed input is dropped at the end of every play, by `Stop`, `Restart` and a change of preview world.
+- **Buttons.** A row under the transport bar shows one `Press "<name>"` button per input of the armed action. It is collapsed while nothing is armed. It is rebuilt, on the following frame, only when the armed action changes, never from the click itself.
+- **What a press does.** The play ends, the state is `Ended`, the world keeps its state and the playhead stays where it was. The status line says `Input "<name>": the game would play <cutscene>. The play ends here.` (`no cutscene` when the action has none). The next cutscene is not played in the preview.
+- **When it acts.** Only while a play runs or is paused, not while it seeks, and only for an armed name. It goes through no device: it is a button, not a key.
+- **Moves in progress.** A `MoveSprite` started before the press goes on to its end after the play has stopped, as in the game, because the move does not belong to the cutscene director; only the clock of the play is frozen.
+
+### Sound
+
+The `Sound: off` / `Sound: on` button is the last button of the transport bar. It is off whenever a document opens and its state is not remembered, so no preview makes a noise unless asked.
+
+- **Durations are those of the game.** The sound actions always have an audio service: the preview owns a silent one, built on the silent backend of the engine and recreated at every start of a play. So `FadeMusic` waits for its duration whether the sound is on or off, and a seek replays exactly the course of a play.
+- **When it is heard.** The audio service of the editor (the one of the sound inspector, shared with the play mode of the editor) is given to the cutscene only when the sound is on **and** the step is a normal play step: a step made while the transport is `Running`. It is not given for the steps of a seek, for `+1 frame`, nor for the zero-duration step of the first instant (see "Time 0"), which use the silent service: nothing is heard during a seek, or every sound of the path would start at once. A music started before the instant reached by a seek is not heard afterwards: use `Restart`.
+- **Stop, not pause.** The preview gives the audio service of the editor back clean at every stopping point: `Pause`, `Stop`, a seek that goes on from the current state, `+1 frame`, `Restart`, the end of a play, turning the button off, a change of preview world, deactivating the tab and closing the document. It stops the voices owned by the preview world, stops the music, and puts the mixer back in the state captured at the start of the play. Resuming after a pause does not restart a music.
+- **Mixer state.** The state of the editor mixer is captured once per play, just after the previous play is cleaned, whether the sound is on or not; turning the button on never captures. A music fade writes the volume of the music bus, which is the one of the whole editor: that is why the state is put back.
+- **Tab in the background.** When the tab of the document is no longer the active document, the sound is turned off, and the button goes back to `Sound: off`.
+- **Master bus.** If the project mutes the `Master` bus of its mixer, the sound stays inaudible even when the button is on. The diagnostics say whether the master bus is muted.
+
+Limits of the sound:
+
+- A music fade started during an audible play goes on acting on the music volume of the editor while the button is turned off, or during a seek or frame steps that follow, until the next stopping point, where the state is put back.
+- Putting the mixer state back also cancels a mixer setting made elsewhere between the start of the play and that stopping point.
+- The silent audio service writes a warning in the log for each sound it cannot play.
+- Stopping the music acts on the music player shared by the editor; `StopMusic` and a `PlayMusic` with a crossfade played by a cutscene act on it too. The voices are stopped only for the preview world.
+- No sample plays a sound: the sound is checked by tests with a fake audio backend, and by ear.
 
 ### Limits
 
-- Sprite animations, physics and gameplay scripts are frozen in the preview. The status line says so.
+- Sprite animations, physics and gameplay scripts are frozen in the preview, because the editor execution policy is shared by all the worlds of the editor; changing it for the preview world alone is a separate decision. The status line says so. A video played on a sprite does play.
 - No keyboard shortcut for the transport (space, arrows): the buttons and the timeline are the only way.
 - Going back in time replays from the start, so each move backwards rebuilds the world from its asset. On a large world a drag backwards in the ruler rebuilds it at every mouse move; this cost has not been measured on a large world.
 - A seek advances by fixed steps of 1/60 s, a play by the editor frames. An action counted in frames (`WaitFrames`, `FadeScreenFrames`) can therefore fall at a slightly different time in a play and in a seek: the same cutscene can end one step later when reached by a seek (for example 61 frames instead of 60 for a one-second fade).
 - The first instant (time 0) does not show the actions placed at time 0 inside a `Parallel`.
 - An effect that outlives the last action (a sprite move still running) goes on after the end in the preview whatever the way the end was reached, since the world is live again.
-- Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
+- The cutscene that an `ExitOnInput` or a `ChangeWorld` leads to is announced, never played.
+- Pausing the sound and resuming it is not offered: a pause stops it (see "Sound").
 - The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
 - Editing the cutscene is disabled while a play session of the editor is running.
 - The state of the editor's own world in play mode is shown in the Inspector cutscene view under "Editor play mode"; it is not the state of the preview.
@@ -300,6 +341,13 @@ Two more switches change the order or add a step:
 
 - `--cutscene-edit-after-transport` applies the edits (`--cutscene-select-action`, `--cutscene-add-action`, see below) after the seeks, steps and stop instead of before. The automation then waits for the replay that the edit triggers to finish before the capture delay starts counting.
 - `--cutscene-preview-resume` resumes the play after all other steps, as `Play` does during a pause. It acts only when the state is `Paused` at that moment; otherwise the diagnostics note it as refused. When `--cutscene-preview-stop` is also given, only the stop is applied and the diagnostics say so.
+
+Two more switches drive the simulated input and the sound:
+
+- `--cutscene-preview-sound` turns the sound of the document on before any play, seek, step or edit; those steps, and the capture, wait for it.
+- `--cutscene-preview-input <name>` is the last step of the transport, after the resume and the edits; the capture delay counts from it. Without a play it is refused at once. With a play it waits for the preview to have made a step and for an input to be armed, for 120 editor frames at most (a seek in progress is waited for without counting), then presses the input, or is refused and noted. A name that starts with `--` is not taken for a name. With `--cutscene-preview-stop` it is ignored and the transport options line says so, as for the resume.
+
+The diagnostics also give the screen veil (active, `rgba`, blend, fading), the armed inputs and their cutscene, the simulated input and its cutscene, the sound (button label, on or off, presence of the editor audio service, master bus muted or not, editor audio service lent since the launch) and the step count since the launch: normal play steps, other steps, and the nature of the last step. The transport options line also gives the sound and input switches and their result (`done` or `refused (...)`).
 
 The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button, the last seek requested from the timeline ruler and the number of play launches since the document opened (each successful world rebuild followed by a launch of the cutscene; `Stop` and a world that fails to load are not counted).
 
@@ -378,6 +426,7 @@ An empty text sets a nullable property that is not a string back to "no value".
 - `CasaEngine.EditorServices/Cutscenes/CutscenePlacement.cs`: the pure rule of what can be dragged (`Resolve`), the conversion of a drop (`ConvertDrop`, `LowestInstant`), the undoable placement and add commands (`TryCreatePlace`, `TryCreateAdd`) and the target `Parallel` of a selection (`FindTargetParallel`). `CutsceneTimelineLayout.TryGetContainerStart` gives the start of a container.
 - `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: also `PlaceActionAt` and `AddActionAt`, with their `GetPlaceActionRefusal` and `GetAddActionAtRefusal` queries. `CasaEngine.Editor/Controls/Cutscenes/CutsceneTimelineEditPolicy.cs`: the edit policy of the timeline (frame snapping and lowest instant, no resize, no insertion).
 - `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.Drag.cs` (drag and drop, Delete and Escape keys) and `CutsceneOutlinerPanel.Automation.cs` (`menu` and `draghover`); `Controls/Cutscenes/CutsceneActionMenu.cs` (the context menu, used by the tree and by `CutsceneTimelinePanel`); `CasaEngine.Editor/CutsceneEditOperation.cs` (the parsing of `--cutscene-edit-ops`).
+- `CasaEngine.Editor/Runtime/Overlays/CutsceneScreenFadeOverlay.cs`: the overlay that draws the screen veil (`IPostUIOverlay`), set on the preview viewport by `WorldViewportPanel.SetPostUiOverlay`. `CutscenePreviewEffectHost` also holds the armed input, the silent audio service, the audio service lent by the editor and the captured mixer state; `CutscenePreviewSession` exposes `SimulateInput`, `SetSound`, `EndedByInput` and the armed inputs; the document exposes `SimulatePreviewInput` and `SetPreviewSound`.
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
 ## Limits
@@ -397,6 +446,6 @@ An empty text sets a nullable property that is not a string back to "no value".
 
 - Multiple selection; automatic scroll and expansion during a drag; keyboard moves; dragging a type from a palette.
 - Picking an entity by clicking it in the preview.
-- A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
+- A per-world execution policy for the preview (sprite animations, physics and scripts); playing the cutscene an input or a world change leads to.
 - Keyboard shortcuts for the transport, a playback speed, and going back in time without a replay.
 - Editing on the timeline: resizing a bar, snapping to other items, moving a clip from a row to another, multiple selection.

@@ -239,16 +239,19 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit le voile dessiné, l'entrée simulée, le bouton du son et ses règles (muet en recherche, arrêt et non pause, service partagé avec le panneau des sons), ce qui reste figé, les deux options d'automatisation et les diagnostics ; trois limites du son : un fondu de musique commencé pendant une lecture audible continue d'agir sur le volume de musique de l'éditeur pendant une extinction du bouton, une recherche ou des pas d'image qui suivent, jusqu'au point d'arrêt suivant, où l'état est rendu ; rendre l'état du mélangeur annule aussi un réglage du mélangeur fait par ailleurs entre le lancement et ce point d'arrêt ; le service muet écrit un avertissement dans le journal pour chaque son qu'il ne peut pas jouer ; les phrases qui disaient les fondus non dessinés et le son coupé sans bouton sont corrigées.
 - Fichiers : ce document, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the drawn fades, the simulated input and the sound of the cutscene preview`
+- Note de validation : documentation seule, aucun code touché : ni build ni test lancés. `docs/editor/cutscene-editor.md` : trois sections ajoutées sous « Preview » (« Drawn fades », « Simulated input », « Sound »), avec les trois limites du son demandées (fondu de musique qui agit encore sur le volume de l'éditeur jusqu'au point d'arrêt suivant ; rendre l'état du mélangeur annule un réglage fait par ailleurs ; avertissement du service muet), le service muet et les durées du jeu, la règle « muet en recherche », « arrêt et non pause », le service partagé avec le panneau des sons, le prêt et le relevé du mélangeur, le bus principal coupé, et ce qui reste figé ; les phrases qui disaient les fondus non dessinés, le son coupé sans bouton et `FadeMusic` qui n'attend pas sont corrigées (Reported effects, Limits, Timeline limits, Next) ; la liste des ADR cite ADR-0103. Relu contre le code livré : libellés des boutons et de la ligne d'état, rangée d'entrées, remise à zéro de l'effet d'écran et désarmement (`Launch`, `Rewind`, `SetWorld`, `OnEnded`), extinction du son à la désactivation de l'onglet. Les deux options d'automatisation et les lignes de diagnostics sont décrites dans la section « Automation » du même fichier. `docs/README.md` (ligne de l'index) et `ai-agent/README.md` (ligne du plan) mis à jour. Aucun nom de jeu ni de projet tiers. Aucun test existant modifié.
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D5) : en particulier l'écoute du son, qu'aucune capture ne peut montrer. Passe en 🧪 quand les captures sont envoyées.
+
+- Note : les captures de T2.6 ont été envoyées pour validation à distance ; le son demande l'oreille de l'auteur (O1).
 
 ---
 
