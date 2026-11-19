@@ -247,6 +247,10 @@ internal static class EditorEntityJsonSerializer
                 SaveCameraComponent(cameraComponent, node);
                 return;
 
+            case OrbitCameraComponent orbitCameraComponent:
+                SaveOrbitCameraComponent(orbitCameraComponent, node);
+                return;
+
             case CollisionComponent collisionComponent:
                 SaveCollisionComponent(collisionComponent, node);
                 return;
@@ -395,6 +399,18 @@ internal static class EditorEntityJsonSerializer
     private static void SaveArcBallCameraComponent(ArcBallCameraComponent component, JObject node)
     {
         SaveCamera3dComponent(component, node);
+
+        var targetNode = new JObject();
+        component.Target.Save(targetNode);
+        node.Add("target", targetNode);
+        node.Add("distance", component.Distance);
+        node.Add("yaw", component.Yaw);
+        node.Add("pitch", component.Pitch);
+    }
+
+    private static void SaveOrbitCameraComponent(OrbitCameraComponent component, JObject node)
+    {
+        SaveEntityComponent(component, node);
 
         var targetNode = new JObject();
         component.Target.Save(targetNode);

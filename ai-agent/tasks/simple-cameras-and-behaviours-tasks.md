@@ -288,7 +288,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Commit : `docs(decisions): record the camera behaviour components`
 - Validation (2026-11-19) : ADR-0145, listée dans l'index. O10 tranché par la lecture : un composant que `EntityPolicyResolver` ne liste pas laisse le constructeur intact, et celui-ci retombe sur `DynamicDefault` (`EntityPolicyResolver.cs:71-86`), la politique que demandait `CameraLookAtComponent`. `EntityPolicyResolver.cs` ne change donc pas.
 
-### ⏳ T2.2 — Composant d'orbite
+### ✅ T2.2 — Composant d'orbite
 
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/OrbitCameraComponent.cs` ; `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs` (écriture des quatre clés) ; tests dans `CasaEngine.Tests/Scene/`.
 - Étapes :
@@ -307,6 +307,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
   2. Écrire le composant, puis son écriture par l'éditeur.
 - Validation : build des deux solutions ; tests verts.
 - Commit : `feat(camera): add an orbit behaviour component for the posed camera`
+- Validation (2026-11-19) : `OrbitCameraComponentTests`, 16 cas verts, dont l'égalité des vues avec `ArcBallCameraComponent` sur les 360 points de la grille à 1e-4 près ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8080 tests, 0 échec. Runtime : `OrbitCameraComponent.cs`. Éditeur : `EditorEntityJsonSerializer.cs`.
 
 ### ⏳ T2.3 — Navigation de vue et script
 
