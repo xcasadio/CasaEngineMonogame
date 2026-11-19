@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using CasaEngine.Core.Logging;
+using CasaEngine.EditorServices;
+using CasaEngine.Framework.Scene.Entities;
 
 namespace CasaEngine.Editor.Remote;
 
@@ -44,5 +47,70 @@ internal static class EditorRemoteEntityAssets
             // A path the system cannot normalise names no file the panel could hold: refused, never thrown at a command.
             return false;
         }
+    }
+
+    /// <summary>
+    /// Plan P6, security review S3-4: creates an empty entity asset (an entity named <see cref="RemoteNewAssetFile.Name"/>,
+    /// without component) at a prepared new file. The file is reserved first (<see cref="EditorRemoteAssetCreation.Reserve"/>:
+    /// a file that appeared since <c>Prepare</c> throws the remote refusal, nothing is undone), then written by
+    /// <paramref name="write"/>, then the catalog entry is added and the catalog saved by <paramref name="saveCatalog"/>.
+    /// The entry comes after the write, so a failed write leaves no entry. On any exception after the reservation, the
+    /// entry is removed from memory once its addition was reached and the reserved file is deleted, each step guarded on
+    /// its own; the failure is logged and returned through <paramref name="error"/>.
+    /// Residuals: an editor stop between two steps can leave the reserved file alone; when the catalog save fails after
+    /// the entry was added, the content browser may show the entry until its next refresh, and a partly written
+    /// <c>AssetInfos.json</c> may keep it.
+    /// </summary>
+    public static bool Create(RemoteNewAssetFile file, Action<string, Entity> write, Action saveCatalog, out Guid assetId, out string error)
+    {
+        assetId = Guid.Empty;
+        EditorRemoteAssetCreation.Reserve(file.FullPath);
+        var entity = new Entity
+        {
+            Name = file.Name,
+            FileName = file.RelativeFile,
+        };
+
+        // Set before the call: Add can throw from a subscriber after the entry was inserted.
+        bool addReached = false;
+        try
+        {
+            write(file.RelativeFile, entity);
+            addReached = true;
+            EditorAssetCatalogService.Add(entity);
+            saveCatalog();
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"[Remote] The entity asset '{file.RelativeFile}' could not be created, the creation is undone: {ex.GetType().Name}: {ex.Message}");
+            if (addReached)
+            {
+                try
+                {
+                    // The id is fresh: this removes the entry of this creation only, in memory.
+                    EditorAssetCatalogService.TryRemoveEntry(entity.Id, out _);
+                }
+                catch (Exception removeEx)
+                {
+                    Logs.WriteWarning($"[Remote] The catalog entry of '{file.RelativeFile}' could not be removed: {removeEx.Message}");
+                }
+            }
+
+            try
+            {
+                File.Delete(file.FullPath);
+            }
+            catch (Exception deleteEx)
+            {
+                Logs.WriteWarning($"[Remote] The reserved file '{file.RelativeFile}' could not be deleted: {deleteEx.Message}");
+            }
+
+            error = $"'{file.RelativeFile}' could not be created: {ex.Message}";
+            return false;
+        }
+
+        assetId = entity.Id;
+        error = null;
+        return true;
     }
 }

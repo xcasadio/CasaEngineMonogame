@@ -652,6 +652,15 @@ public partial class GameEditor
             }
         }
 
+        /// <summary>Plan P6: the editor's writer and catalog save, behind the steps and the rollback of <see cref="EditorRemoteEntityAssets.Create"/>.</summary>
+        public bool CreateEntityAsset(RemoteNewAssetFile file, out Guid assetId, out string error)
+            => EditorRemoteEntityAssets.Create(
+                file,
+                (relative, entity) => EditorAssetWriterService.SaveAsset(relative, entity, EditorAssetSaveSource.EntityAssetEditorPanel),
+                EditorAssetCatalogService.Save,
+                out assetId,
+                out error);
+
         /// <summary>
         /// The entity asset panel of <paramref name="assetId"/> when it is open: registered and with its dock tab. A panel
         /// registered without its tab is not open (security review S3-6), as in <see cref="GetAssetPanelKind"/>.

@@ -145,6 +145,13 @@ internal interface IEditorRemoteHost
 
     /// <summary>Selects a component in the entity asset panel open with its dock tab; no effect when the panel is not open.</summary>
     void SelectEntityAssetComponent(Guid assetId, EntityComponent component);
+
+    /// <summary>
+    /// Creates an empty entity asset (an entity named after the file, without component) at a prepared new file, reserved
+    /// first and never overwriting, then adds it to the asset catalog and saves the catalog (plan P6); a failure is
+    /// undone and reported through <paramref name="error"/>.
+    /// </summary>
+    bool CreateEntityAsset(RemoteNewAssetFile file, out Guid assetId, out string error);
 }
 
 /// <summary>

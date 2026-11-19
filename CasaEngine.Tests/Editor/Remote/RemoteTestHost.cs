@@ -158,9 +158,21 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         return "panel_" + type + "_test";
     }
 
-    /// <summary>The registered entity asset's context first, then <see cref="AssetContexts"/>.</summary>
+    /// <summary>Asset ids whose history context the host does not give, even for a registered entity asset.</summary>
+    public HashSet<Guid> AssetsWithoutHistoryContext { get; } = new();
+
+    /// <summary>
+    /// None for an id of <see cref="AssetsWithoutHistoryContext"/>; otherwise the registered entity asset's context first,
+    /// then <see cref="AssetContexts"/>.
+    /// </summary>
     public bool TryGetAssetHistoryContext(Guid assetId, out CasaEngine.Editor.History.EditorHistoryContext context)
     {
+        if (AssetsWithoutHistoryContext.Contains(assetId))
+        {
+            context = default;
+            return false;
+        }
+
         if (EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel))
         {
             context = panel.Context;
@@ -351,6 +363,21 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
     {
         EntityAssetCalls++;
         SelectedEntityAssetComponents.Add((assetId, component));
+    }
+
+    /// <summary>The files <see cref="CreateEntityAsset"/> was asked to create, with the id it answered (empty on failure).</summary>
+    public List<(string RelativeFile, Guid AssetId)> CreatedEntityAssets { get; } = new();
+
+    /// <summary>When set, <see cref="CreateEntityAsset"/> fails with this error.</summary>
+    public string CreateEntityAssetError { get; set; }
+
+    /// <summary>Records the requested file and answers a fresh id, like <see cref="CreateSoundAsset"/>; nothing is written.</summary>
+    public bool CreateEntityAsset(RemoteNewAssetFile file, out Guid assetId, out string error)
+    {
+        assetId = CreateEntityAssetError == null ? Guid.NewGuid() : Guid.Empty;
+        CreatedEntityAssets.Add((file.RelativeFile, assetId));
+        error = CreateEntityAssetError;
+        return error == null;
     }
 
     private EntityAssetPanel FindEntityAsset(string fullPath)

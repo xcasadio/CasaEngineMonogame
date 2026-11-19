@@ -651,4 +651,75 @@ public sealed class EditorRemoteEntityAssetCommandsTests : IDisposable
         Assert.Contains("The disk is full.", failed.Error!.Message);
         Assert.True(IsModified());
     }
+
+    /// <summary>Plan T1.3: when the host gives no history context for the open panel, every command is refused before any read or edit.</summary>
+    [Theory]
+    [InlineData("entity_asset.get")]
+    [InlineData("entity_asset.set_property")]
+    [InlineData("entity_asset.add_component")]
+    [InlineData("entity_asset.remove_component")]
+    [InlineData("entity_asset.save")]
+    public void EveryCommand_IsRefused_WhenTheHostGivesNoHistoryContext(string method)
+    {
+        (RemoteEditSceneComponent root, RemoteEditComponent listed) = SeedEntity();
+        _host.AssetsWithoutHistoryContext.Add(_assetId);
+
+        AssertRefused(Call(method, Args(method, Asset, listed.Id)), RemoteErrorReasons.Failed);
+
+        Assert.Same(root, _entity.RootComponent);
+        Assert.Empty(root.Children);
+        Assert.Same(listed, Assert.Single(_entity.Components));
+        Assert.Equal(2.5f, listed.Speed);
+        Assert.False(HasHistory());
+        Assert.Empty(_host.SavedAssets);
+        Assert.Empty(_host.SelectedEntityAssetComponents);
+    }
+
+    /// <summary>
+    /// Plan T1.3 (same class as security review S3-1): when the context the host gives for the asset id is of another
+    /// kind (a material panel found first under that id), every command is refused and no entity edit enters either
+    /// history.
+    /// </summary>
+    [Theory]
+    [InlineData("entity_asset.get")]
+    [InlineData("entity_asset.set_property")]
+    [InlineData("entity_asset.add_component")]
+    [InlineData("entity_asset.remove_component")]
+    [InlineData("entity_asset.save")]
+    public void EveryCommand_IsRefused_WhenTheHistoryContextIsOfAnotherKind(string method)
+    {
+        (RemoteEditSceneComponent root, RemoteEditComponent listed) = SeedEntity();
+        var materialContext = new EditorHistoryContext(
+            EditorHistoryContextKind.Material,
+            CasaEngine.Editor.Workspaces.EditorPanelIds.MaterialAssetDocumentPrefix + _assetId.ToString("N"));
+        ResetContext(materialContext);
+        _host.EntityAssets[_assetId] = new RemoteTestHost.EntityAssetPanel
+        {
+            Entity = _entity,
+            LoadedFile = BoxFile,
+            PanelId = _panel.PanelId,
+            Context = materialContext,
+        };
+
+        try
+        {
+            RemoteResponse response = Call(method, Args(method, Asset, listed.Id));
+
+            AssertRefused(response, RemoteErrorReasons.Failed);
+            Assert.Contains("Another kind of panel", response.Error!.Message);
+            Assert.Same(root, _entity.RootComponent);
+            Assert.Empty(root.Children);
+            Assert.Same(listed, Assert.Single(_entity.Components));
+            Assert.Equal(2.5f, listed.Speed);
+            Assert.False(HasHistory());
+            Assert.False(EditorHistoryService.Current.TryGet(materialContext, out _));
+            Assert.Empty(_host.SavedAssets);
+            Assert.Empty(_host.SelectedEntityAssetComponents);
+        }
+        finally
+        {
+            ResetContext(materialContext);
+            ResetContext(_panel.Context);
+        }
+    }
 }

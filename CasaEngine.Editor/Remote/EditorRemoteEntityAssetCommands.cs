@@ -14,7 +14,8 @@ namespace CasaEngine.Editor.Remote;
 /// Entity asset commands (ADR-0129, plan T1.2). They act on the single entity of a <c>.entity</c> asset through its
 /// open panel, with the panel's own undo history: one entry per edit, undone with <c>history.undo</c> (context = the
 /// asset id). Every command, <c>entity_asset.get</c> included, is refused in play mode (plan P14) and checks that the
-/// open panel holds the resolved file before any read or edit (plan P13).
+/// open panel holds the resolved file before any read or edit (plan P13). <c>entity_asset.create</c> (plan T1.3, P6)
+/// creates an empty entity asset, without opening it.
 /// </summary>
 internal static class EditorRemoteEntityAssetCommands
 {
@@ -27,6 +28,30 @@ internal static class EditorRemoteEntityAssetCommands
 
     public static void Register(EditorRemoteCommandRegistry registry, IEditorRemoteHost host)
     {
+        registry.Register(new EditorRemoteCommand(
+            "entity_asset.create",
+            "Creates <folder>/<name>.entity, an empty entity asset (an entity with that name and no component: add its root with " +
+            "entity_asset.add_component), and adds it to the asset catalog. Never overwrites a file or reuses a catalogued name. " +
+            "Not undoable. Refused in play mode.",
+            "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"folder\":{\"type\":\"string\",\"description\":\"Existing project folder, '' for the root.\"}},\"required\":[\"name\",\"folder\"],\"additionalProperties\":false}",
+            readOnly: false,
+            destructive: false,
+            call =>
+            {
+                if (host.IsPlaySessionActive)
+                {
+                    throw new EditorRemoteRefusedException(RemoteErrorReasons.PlayModeActive, "The editor is in play mode: call play.stop first.");
+                }
+
+                RemoteNewAssetFile file = EditorRemoteAssetCreation.Prepare(host.ProjectDirectory, call.GetString("folder", 260), call.GetString("name", 64), EditorRemoteAssetTypes.Entity);
+                if (!host.CreateEntityAsset(file, out Guid assetId, out string error))
+                {
+                    throw new EditorRemoteRefusedException(RemoteErrorReasons.Failed, error ?? "The entity asset was not created.");
+                }
+
+                call.Succeed(new { asset_id = assetId, file = file.RelativeFile.Replace('\\', '/') });
+            }));
+
         registry.Register(new EditorRemoteCommand(
             "entity_asset.get",
             "Opens an entity asset (.entity) in its panel and reads its entity: id, name and components with their editable properties " +
@@ -183,7 +208,8 @@ internal static class EditorRemoteEntityAssetCommands
 
     /// <summary>
     /// The checks every command of the family runs first, in this order: play mode (plan P14), the asset reference, the
-    /// panel open, the panel holds the resolved file (plan P13, security review S3-1), its entity and its history context.
+    /// panel open, the panel holds the resolved file (plan P13, security review S3-1), its entity and its history context,
+    /// which must be an entity context (plan T1.3).
     /// </summary>
     private static OpenedEntityAsset OpenEntityAsset(EditorRemoteCall call, IEditorRemoteHost host)
     {
@@ -211,6 +237,15 @@ internal static class EditorRemoteEntityAssetCommands
         if (!host.TryGetAssetHistoryContext(assetId, out EditorHistoryContext context))
         {
             throw new EditorRemoteRefusedException(RemoteErrorReasons.Failed, $"'{asset.Info.FileName}' has no open panel history: see logs.read.");
+        }
+
+        // The editor looks up the material, particle, screen and sound panels before the entity panel for the same id:
+        // no entity edit may enter the history of another kind of panel.
+        if (context.Kind != EditorHistoryContextKind.Entity)
+        {
+            throw new EditorRemoteRefusedException(
+                RemoteErrorReasons.Failed,
+                $"Another kind of panel ({context.Kind}) is open under the id of '{asset.Info.FileName}': close it, then try again.");
         }
 
         return new OpenedEntityAsset(asset, entity, context);
