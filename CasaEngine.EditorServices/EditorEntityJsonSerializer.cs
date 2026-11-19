@@ -251,6 +251,10 @@ internal static class EditorEntityJsonSerializer
                 SaveOrbitCameraComponent(orbitCameraComponent, node);
                 return;
 
+            case Follow2dCameraComponent follow2dCameraComponent:
+                SaveFollow2dCameraComponent(follow2dCameraComponent, node);
+                return;
+
             case CollisionComponent collisionComponent:
                 SaveCollisionComponent(collisionComponent, node);
                 return;
@@ -418,6 +422,16 @@ internal static class EditorEntityJsonSerializer
         node.Add("distance", component.Distance);
         node.Add("yaw", component.Yaw);
         node.Add("pitch", component.Pitch);
+    }
+
+    //  target_entity_name and dead_zone are serialized properties, written by SaveComponent.
+    private static void SaveFollow2dCameraComponent(Follow2dCameraComponent component, JObject node)
+    {
+        SaveEntityComponent(component, node);
+
+        var limitsNode = new JObject();
+        component.Limits.Save(limitsNode);
+        node.Add("limits", limitsNode);
     }
 
     private static void SaveAnimatedSpriteComponent(AnimatedSpriteComponent component, JObject node)

@@ -318,12 +318,13 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Commit : `feat(camera): drive the orbit component from the viewport navigation`
 - Validation (2026-11-19) : `ScriptArcBallCameraOrbitTests`, 10 cas verts : pour sept gestes (orbite, molette, regard, travelling, panoramique, vol, champ de vision), le script donne à une caméra simple pilotée par une orbite l'état, le champ de vision et la vue qu'il donne à une `ArcBallCameraComponent`, à 1e-4 près. Pour le rendre testable sans jeu, `Update` garde la lecture des entrées et appelle une méthode `internal ApplyNavigation`, que les tests appellent. `EngineOwnedScriptObjectsTests` et `EditorWorldPlaySnapshotTests` verts sans modification ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8090 tests, 0 échec.
 
-### ⏳ T2.4 — Composant de suivi 2D
+### ✅ T2.4 — Composant de suivi 2D
 
 - Prérequis : O9 tranché.
 - Fichiers : `Follow2dCameraComponent.cs` ; `EditorEntityJsonSerializer.cs` ou `[SerializedProperty]` selon les types de ses réglages ; tests.
 - Étapes : tests d'abord, un par règle de O9 (cible dans la zone, sortie par chaque bord, limites, cible absente ou retirée du monde, écriture et relecture, aucune allocation dans `Update`) ; puis le composant.
 - Commit : `feat(camera): add a 2d follow behaviour component`
+- Validation (2026-11-19) : `Follow2dCameraComponentTests`, 19 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8109 tests, 0 échec. `target_entity_name` et `dead_zone` passent par `[SerializedProperty]` ; `limits` (x, y, w, h entiers, comme l'ancienne classe) est lue par `Load`, clé facultative, et écrite par `EditorEntityJsonSerializer`. Une cible détruite (`ToBeRemoved`) est lâchée. La recherche par nom se teste par la méthode `internal ResolveTarget`, sur un `World` sans jeu. Limite : le composant écrit la position locale de la caméra et lit la position monde de la cible ; une caméra sous un parent n'est pas prévue.
 
 ### ⏳ T2.5 — Vue 3D de l'éditeur
 
