@@ -1519,21 +1519,34 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     // The live state of the preview world, read through public members only: the time of the current animation of
-    // each animated sprite and the number of living particles of each particle system. Entities that have neither
-    // keep the exact line they had before.
+    // each animated sprite and the number of living particles of each particle system. The sprites and the particle
+    // systems sit in the scene component tree under the root component, not in the entity's own component list, so the
+    // tree is walked. Entities that have neither keep the exact line they had before.
     private static string DescribeLiveComponents(Entity entity)
     {
-        var text = string.Empty;
-        foreach (var component in entity.Components)
+        return DescribeLiveComponent(entity.RootComponent);
+    }
+
+    private static string DescribeLiveComponent(SceneComponent component)
+    {
+        if (component == null)
         {
-            if (component is AnimatedSpriteComponent animatedSprite)
-            {
-                text += string.Create(CultureInfo.InvariantCulture, $" animation '{animatedSprite.Name}' time={animatedSprite.CurrentAnimationTimeSeconds:0.###} s");
-            }
-            else if (component is ParticleSystemComponent particles)
-            {
-                text += string.Create(CultureInfo.InvariantCulture, $" particles '{particles.Name}' alive={particles.RuntimeInstance?.AliveCount ?? 0}");
-            }
+            return string.Empty;
+        }
+
+        var text = string.Empty;
+        if (component is AnimatedSpriteComponent animatedSprite)
+        {
+            text = string.Create(CultureInfo.InvariantCulture, $" animation '{animatedSprite.Name}' time={animatedSprite.CurrentAnimationTimeSeconds:0.###} s");
+        }
+        else if (component is ParticleSystemComponent particles)
+        {
+            text = string.Create(CultureInfo.InvariantCulture, $" particles '{particles.Name}' alive={particles.RuntimeInstance?.AliveCount ?? 0}");
+        }
+
+        foreach (var child in component.Children)
+        {
+            text += DescribeLiveComponent(child);
         }
 
         return text;
