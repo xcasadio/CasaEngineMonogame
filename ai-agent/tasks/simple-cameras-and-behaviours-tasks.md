@@ -382,10 +382,11 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - **Non converti : `EditorWorldDemo.cs`.** Sa caméra vient d'un fichier, `CasaEngine.Demos/Content/EditorWorld/Entities/camera.entity`, qui nomme `ArcBallCameraComponent` ; elle reste donc une ancienne caméra, pilotée par le chemin conservé de `ScriptArcBallCamera`, jusqu'à la tranche 3, qui traite les données.
 - **Reste 🧪 : aucune démo n'a été lancée.** La recette de l'auteur porte sur les démos, premier geste de souris compris.
 
-### ⏳ T2.8 — Documentation
+### ✅ T2.8 — Documentation
 
 - Fichiers : `docs/engine/` (les deux composants), `docs/editor/viewport-camera-controls.md`, `docs/editor/editor-2d-viewport.md`, `docs/engine/demos-main-menu.md`, `docs/README.md`.
 - Commit : `docs(engine): describe the camera behaviour components`
+- Validation (2026-11-19) : `docs/engine/camera-behaviour-components.md`, lié depuis `docs/README.md` et depuis la doc de la caméra simple ; `docs/editor/viewport-camera-controls.md` et `docs/editor/editor-2d-viewport.md` nomment la nouvelle caméra de la vue 3D. `docs/engine/demos-main-menu.md` ne nomme que `ScriptArcBallCamera`, qui garde son nom : inchangé.
 
 ### ⏳ T2.9 — Vérification indépendante et recette
 
