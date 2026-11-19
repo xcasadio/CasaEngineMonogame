@@ -131,12 +131,14 @@ la propre transformation caméra et fait toujours couvrir tout l'écran, où que
 est soumis à `z = cameraPosition.Z` (et non plus une profondeur littérale `0f`) : le fondu suit ainsi
 la profondeur de la caméra exactement comme la teinte des couches défilantes
 (`ScrollingLayerComponent.Submit`, `cameraTarget.Z` — voir [scrolling-layers.md](scrolling-layers.md)
-§4), ce qui reste sans effet observable tant que la caméra garde `Target.Z == 0` (le cas d'Alundra)
+§4), ce qui reste sans effet observable tant que la caméra reste à sa distance par défaut du plan z = 0 (le cas d'Alundra)
 mais évite qu'un fondu se retrouve rejeté en profondeur derrière une couche d'arrière-plan reculée si
 la caméra s'éloignait un jour de z = 0.
 
 `Update` résout la seule source caméra retenue par le plan — `ViewManager.ActiveView.Camera` (casté
-en `Camera2dComponent`, dont `.Target` est la position monde). La taille de vue passée à
+en `Camera2dComponent`). Depuis l'ADR-0150 la caméra 2D est posée par sa transformation : le centre du quad
+est sa position monde en x et y, et sa profondeur est le z de la caméra moins `Camera2dComponent.DefaultDistance`
+(`ScreenEffectComponent.ResolveOverlayCentre`), soit les valeurs d'avant pour une caméra sans rotation. La taille de vue passée à
 `SubmitOverlay` n'est **plus** `ScreenSizeWidth/Height` en pixels par défaut (P3 hérité, plan E9.b
 D-E9b-12) : la couture pure `TryGetCameraViewSize(camera, out width, out height)` — testable sans
 périphérique — calcule `(Viewport.Width / Zoom, Viewport.Height / Zoom)` en **unités monde** quand la

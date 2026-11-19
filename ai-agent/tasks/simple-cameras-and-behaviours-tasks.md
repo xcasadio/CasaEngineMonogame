@@ -630,10 +630,11 @@ Un seul commit : le dépôt ne compile pas entre les deux.
 - Validation : le test de T4.1 vert ; aucune erreur de clé `target` au chargement des 14 mondes (test) ; builds ; tests. Indice joint au rapport, pas preuve : une capture de `Projects/SpriteDrawOrderSample` avant (sur la base de la tranche) et après, par `tools/run-launcher.ps1` du dépôt hôte, si le projet se lance.
 - **Fait (2026-11-19).** L'objet `target` retiré du nœud de la caméra des 14 mondes (cinq lignes par fichier, rien d'autre). Deux tests ajoutés à `Camera2dTargetKeyTests` : chaque caméra des 14 mondes se charge sans rien signaler au journal (14 lignes), et aucun `*.world` ni `*.entity` de `Projects/` et de `CasaEngine.Demos/Content/` ne garde de clé `target` sous une caméra 2D. Ces tests échouaient tant que la clé était là, constaté avant le retrait. Le test de T4.1 vert sans modification. Les deux solutions à 0 erreur ; 8158 tests, 0 échec (8143 + 15). Indice : `Projects/SpriteDrawOrderSample` lancé 6 s par le script de capture, avant le changement de la caméra et après : les deux images sont identiques octet pour octet (trois disques qui se recouvrent, au centre).
 
-### ⏳ T4.5 — Documentation
+### ✅ T4.5 — Documentation
 
 - `docs/engine/rendering-2d-3d-spaces.md`, `docs/engine/camera-behaviour-components.md`, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, `docs/editor/editor-2d-viewport.md`, `docs/README.md`, là où ils décrivent la cible de la caméra 2D ; `ai-agent/README.md`.
 - Validation : relecture ; liens vérifiés.
+- **Fait (2026-11-19).** `rendering-2d-3d-spaces.md` (extrait de code sur `CentreOn`, migration d'un monde), `screen-effects.md` (centre et profondeur du quad), `camera-behaviour-components.md` (le suivi pilote aussi la caméra 2D), `docs/README.md`, `ai-agent/README.md`. `data-driven-screens.md` et `editor-2d-viewport.md` ne décrivaient pas la cible de la caméra 2D (leurs `target` sont ceux des actions d'écran et de l'état de vue de l'éditeur) : inchangés. Documentation seule.
 
 ### ⏳ T4.6 — Vérification indépendante et recette
 

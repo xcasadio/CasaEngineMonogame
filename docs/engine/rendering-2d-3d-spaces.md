@@ -63,9 +63,10 @@ perspective** sur les layers placés à un autre Z, ce qui est l'intérêt déci
 // CasaEngine.Demos/Demos/TileMapDemo.cs
 var entity = new Entity();
 var camera = new Camera2dComponent();
-camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f,
+// Posed by its transform (ADR-0150): CentreOn places the camera 500 units in front of the point.
+camera.CentreOn(new Vector3(game.Window.ClientBounds.Size.X / 2f,
                             game.Window.ClientBounds.Size.Y / 2f,
-                            0.0f);
+                            0.0f));
 entity.AddComponent(camera);
 entity.Initialize();
 game.GameManager.CurrentWorld.AddEntity(entity);
@@ -339,14 +340,19 @@ profit de `Camera2dComponent`, qui rend le même cadrage sans ses fragilités :
 
 Si un monde sérialisé porte encore `"type": "Camera3dIn2dAxisComponent"`, il faut le migrer à la main
 — `ElementFactory` résout les composants par nom de type et échouerait au chargement. Remplacer le
-`type` et le `name` par `Camera2dComponent`, retirer `fieldOfView`, et ajouter les champs que lit
-`Camera2dComponent.Load` :
+`type` et le `name` par `Camera2dComponent`, retirer `fieldOfView`, ajouter les champs que lit
+`Camera2dComponent.Load`, et écrire la position de la caméra dans `coordinates` : le point à centrer,
+reculé de 500 en z (ADR-0150).
 
 ```json
-"target": { "x": 0.0, "y": 0.0, "z": 0.0 },
 "zoom": 1.0,
 "pixel_snap": false
 ```
+
+**Depuis l'ADR-0150**, `Camera2dComponent` est posée par la transformation de son composant et ne lit
+plus de clé `target`. Un monde qui la porte encore s'ouvre, signale la clé au journal, et montre ce que
+donne sa transformation enregistrée. Pour le migrer : écrire (cible.x, cible.y, cible.z + 500) dans
+`coordinates.position` de la caméra, puis retirer `target`.
 
 Le cadrage X/Y est équivalent à `Zoom = 1` ; seule la fenêtre de profondeur change (voir mode 2).
 

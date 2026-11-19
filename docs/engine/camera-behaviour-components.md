@@ -60,7 +60,7 @@ There is no aim component. `PerspectiveCameraComponent.SetPositionAndTarget(posi
 ## Limits
 
 - Both components write the local transform of the camera and expect a camera with no parent.
-- The follow component reads the world position of its target and does not drive a `Camera2dComponent`, which places itself from its own target.
+- The follow component reads the world position of its target. It drives a `Camera2dComponent` as well as a perspective camera: both are posed by their transform (ADR-0150).
 - No repository world uses the follow component: it is proven by its tests only.
 - `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent` are removed (ADR-0149); [perspective-camera-component.md](perspective-camera-component.md) shows how to migrate a file that names one.
 
