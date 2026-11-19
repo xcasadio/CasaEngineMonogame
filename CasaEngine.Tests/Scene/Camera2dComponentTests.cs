@@ -18,6 +18,57 @@ public sealed class Camera2dComponentTests
         return camera;
     }
 
+    //  Centres the camera on a point of the scene.
+    private static void Place(Camera2dComponent camera, Vector3 point)
+    {
+        camera.Target = point;
+    }
+
+    //  The view the camera gave before ADR-0150 for a target: it stood 500 units in front of the target, which was
+    //  first rounded to the 1 / zoom grid in x and y when the pixel snap was on.
+    private static Matrix FormulaView(Vector3 target, float zoom, bool pixelSnap)
+    {
+        if (pixelSnap)
+        {
+            float step = 1.0f / zoom;
+            target.X = MathF.Round(target.X / step) * step;
+            target.Y = MathF.Round(target.Y / step) * step;
+        }
+
+        return Matrix.CreateLookAt(new Vector3(target.X, target.Y, target.Z + 500f), target, Vector3.Up);
+    }
+
+    [Fact]
+    public void OverAGridOfPointsZoomsAndSnaps_TheView_IsTheOneOfTheFormerTarget()
+    {
+        Vector3[] points = [Vector3.Zero, new Vector3(10.3f, -20.4f, 0f), new Vector3(640f, 360f, 0f), new Vector3(-123.45f, 67.89f, 12f), new Vector3(0.49f, 0.51f, -30f)];
+        float[] zooms = [0.5f, 1f, 2f, 3f, 4f];
+
+        foreach (Vector3 point in points)
+        {
+            foreach (float zoom in zooms)
+            {
+                foreach (bool pixelSnap in new[] { false, true })
+                {
+                    var camera = CreateCamera();
+                    camera.Zoom = zoom;
+                    camera.PixelSnap = pixelSnap;
+
+                    Place(camera, point);
+
+                    Matrix expected = FormulaView(point, zoom, pixelSnap);
+                    float[] expectedTerms = Matrix.ToFloatArray(expected);
+                    float[] actualTerms = Matrix.ToFloatArray(camera.ViewMatrix);
+                    for (int index = 0; index < expectedTerms.Length; index++)
+                    {
+                        Assert.True(MathF.Abs(expectedTerms[index] - actualTerms[index]) <= 1e-4f,
+                            $"term {index}: expected {expectedTerms[index]}, actual {actualTerms[index]} (point {point}, zoom {zoom}, snap {pixelSnap})");
+                    }
+                }
+            }
+        }
+    }
+
     [Fact]
     public void ProjectionMatrix_UsesViewportSizeDividedByZoom()
     {

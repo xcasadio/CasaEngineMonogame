@@ -596,13 +596,14 @@ Travail répétitif à jugement borné : confié à un `executor`, relu par la s
 - Validation : relecture.
 - **Fait (2026-11-19).** ADR-0150 écrit et indexé, sur la branche `chantier/camera-2d-pose`, partie de la tête de `chantier/camera-removal` (`a053061e`), la tranche 3 n'étant pas fusionnée. Documentation seule.
 
-### ⏳ T4.1 — Figer la vue des 14 mondes
+### ✅ T4.1 — Figer la vue des 14 mondes
 
 Tests seulement.
 
 - Nouveau test, une théorie à 14 lignes, une par monde. Elle lit le fichier, prend le nœud dont `type` vaut `Camera2dComponent`, le charge par `ElementFactory.LoadComponent`, lui donne un viewport de 1280 × 720 et les profondeurs 1 et 1000, et compare sa vue et sa projection à des termes écrits en dur. Tous les mondes ayant une cible nulle, un zoom de 1 et pas d'arrondi, la vue attendue est `CreateLookAt((0, 0, 500), (0, 0, 0), Up)` et la projection `CreateOrthographic(1280, 720, 1, 1000)` : la note le vérifie sur les 14 relevés avant de les réduire à ces deux matrices.
 - Nouveau test de grille (validation globale, troisième point), d'abord écrit sur l'ancienne classe par `Target`, avec la vue attendue calculée par la formule dans le test ; il passera sur `CentreOn` en T4.3 sans changer la formule.
 - Validation : tests verts sur le code d'aujourd'hui ; la note donne les relevés.
+- **Fait (2026-11-19).** Nouveau `Camera2dWorldDataTests`, 14 lignes, vert sur le code d'avant : les 14 caméras chargées donnent `CreateLookAt((0, 0, 500), (0, 0, 0), Up)` et `CreateOrthographic(1280, 720, 1, 1000)` à 1e-4 près, ce qui confirme le relevé (cible nulle, zoom 1, pas d'arrondi dans les 14). Vérifié en plus : les 14 caméras sont des entités écrites dans le monde (`asset_id` nul), sans transformation initiale de référence qui écraserait leur position. Test de grille `OverAGridOfPointsZoomsAndSnaps_TheView_IsTheOneOfTheFormerTarget` ajouté à `Camera2dComponentTests` (5 points, 5 zooms, arrondi ou non), écrit sur `Target` par une méthode `Place`, la vue attendue par la formule. 24 tests verts dans ces deux classes.
 
 ### ⏳ T4.2 — Écrire la position dans les 14 mondes
 
