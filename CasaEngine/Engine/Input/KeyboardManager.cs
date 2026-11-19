@@ -6,12 +6,56 @@ public class KeyboardManager
 {
     private KeyboardState _currentState;
     private KeyboardState _previousState;
+    private readonly Keys[] _pressedKeys = new Keys[256];
 
     public KeyboardState State => _currentState;
 
     public bool IsKeyJustPressed(Keys key)
     {
         return _currentState.IsKeyDown(key) && !_previousState.IsKeyDown(key);
+    }
+
+    /// <summary>
+    /// True on the frame a key goes down, except Shift, Control, Alt and Windows alone. Nothing counts while an Alt or
+    /// a Windows key is held, so that Alt+Tab, Alt+F4 or Windows+D do not. Reads the state without allocating.
+    /// </summary>
+    public bool IsAnyKeyJustPressed()
+    {
+        var count = _currentState.GetPressedKeyCount();
+        if (count == 0)
+        {
+            return false;
+        }
+
+        if (count > _pressedKeys.Length)
+        {
+            count = _pressedKeys.Length;
+        }
+
+        _currentState.GetPressedKeys(_pressedKeys);
+        for (int i = 0; i < count; i++)
+        {
+            if (_pressedKeys[i] is Keys.LeftAlt or Keys.RightAlt or Keys.LeftWindows or Keys.RightWindows)
+            {
+                return false;
+            }
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            var key = _pressedKeys[i];
+            if (key is Keys.LeftShift or Keys.RightShift or Keys.LeftControl or Keys.RightControl)
+            {
+                continue;
+            }
+
+            if (!_previousState.IsKeyDown(key))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public bool IsKeyPressed(Keys key)

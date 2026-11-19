@@ -24,12 +24,33 @@ internal class TimelineControl : MGGrid
     private readonly TimelineTrackHeaderPanel _trackHeaderPanel;
     private readonly TimelineViewport _viewport;
     private readonly TimelineHorizontalScrollBar _horizontalScrollBar;
+    private readonly MGScrollViewer? _scrollViewer;
+    private readonly ColumnDefinition? _contentTrackColumn;
+    private int _lastScrollBarWidth;
     private TimelineModel? _model;
     private float _currentTimeSeconds;
     private bool _suppressScrollBarCallback;
     private int _lastViewportWidth = -1;
     private float _lastPixelsPerSecond = float.NaN;
     private float _lastTimelineEndSeconds = float.NaN;
+
+    /// <summary>True when the ruler stays fixed while track headers and the track area scroll vertically together.</summary>
+    public bool VerticalScrollEnabled { get; }
+
+    /// <summary>True when a click picks the most specific item under the cursor instead of the first one found.</summary>
+    public bool PreciseHitTestEnabled { get; }
+
+    internal TimelineRuler Ruler => _ruler;
+
+    /// <summary>True when holding the left button down in the ruler and moving the mouse scrubs the playhead continuously; otherwise only a click does.</summary>
+    public bool RulerDragScrubEnabled { get; }
+
+    /// <summary>True when dragging an item in time keeps the distance between the cursor and the start of the item that it had when the item was grabbed
+    /// (between 0 and its duration); otherwise the start of the item goes under the cursor.</summary>
+    public bool KeepGrabOffsetEnabled { get; }
+
+    /// <summary>Height of one track row in pixels; <see cref="TimelineControlMetrics.TrackRowHeight"/> unless a compact height was requested.</summary>
+    public int TrackRowHeight { get; }
 
     public TimelineViewState ViewState { get; } = new();
 
@@ -100,15 +121,36 @@ internal class TimelineControl : MGGrid
     public event Action<TimelineTrack, string>? TrackLabelEditCommitted;
 
     public TimelineControl(MGWindow window)
+        : this(window, verticalScroll: false, preciseHitTest: false)
+    {
+    }
+
+    /// <param name="verticalScroll">Scrolls the track headers and the track area vertically under a fixed ruler, and takes the height
+    /// given by the parent instead of the height of the content.</param>
+    /// <param name="preciseHitTest">Makes a click pick a marker before a bar and the shortest bar first.</param>
+    /// <param name="trackRowHeight">Height of a track row in pixels; the default keeps the height of every existing timeline.</param>
+    /// <param name="rulerDragScrub">Makes dragging in the ruler scrub the playhead continuously instead of only a click; off by default.</param>
+    /// <param name="keepGrabOffset">Makes a dragged item keep the place where it was grabbed instead of jumping so that its start is under the cursor; off by default.</param>
+    public TimelineControl(MGWindow window, bool verticalScroll, bool preciseHitTest, int trackRowHeight = TimelineControlMetrics.TrackRowHeight, bool rulerDragScrub = false, bool keepGrabOffset = false)
         : base(window)
     {
+        if (trackRowHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(trackRowHeight), "The track row height must be positive.");
+        }
+
+        VerticalScrollEnabled = verticalScroll;
+        PreciseHitTestEnabled = preciseHitTest;
+        RulerDragScrubEnabled = rulerDragScrub;
+        KeepGrabOffsetEnabled = keepGrabOffset;
+        TrackRowHeight = trackRowHeight;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         ColumnSpacing = 0;
         RowSpacing = 0;
 
         AddColumn(GridLength.CreateWeightedLength(1));
-        AddRow(GridLength.Auto);
+        AddRow(verticalScroll ? GridLength.CreateWeightedLength(1) : GridLength.Auto);
         _scrollBarRow = AddRow(GridLength.CreatePixelLength(0));
 
         _timelineGrid = new MGGrid(window)
@@ -125,7 +167,7 @@ internal class TimelineControl : MGGrid
         _trackColumn = _timelineGrid.AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
         _timelineGrid.AddColumn(GridLength.CreateWeightedLength(1));
         _timelineGrid.AddRow(GridLength.Auto);
-        _timelineGrid.AddRow(GridLength.Auto);
+        _timelineGrid.AddRow(verticalScroll ? GridLength.CreateWeightedLength(1) : GridLength.Auto);
 
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
@@ -147,8 +189,37 @@ internal class TimelineControl : MGGrid
 
         _timelineGrid.TryAddChild(0, 0, _cornerHeader);
         _timelineGrid.TryAddChild(0, 1, _ruler);
-        _timelineGrid.TryAddChild(1, 0, _trackHeaderPanel);
-        _timelineGrid.TryAddChild(1, 1, _viewport);
+        if (verticalScroll)
+        {
+            MGGrid contentGrid = new(window)
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Top,
+                ColumnSpacing = 1,
+                RowSpacing = 0,
+                GridLineMargin = 0,
+                GridLinesVisibility = GridLinesVisibility.InnerVertical,
+                VerticalGridLineBrush = new MGSolidFillBrush(CasaEngine.Editor.Styling.EditorThemePalette.PreviewSurfaceBorder),
+            };
+            _contentTrackColumn = contentGrid.AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
+            contentGrid.AddColumn(GridLength.CreateWeightedLength(1));
+            contentGrid.AddRow(GridLength.Auto);
+            contentGrid.TryAddChild(0, 0, _trackHeaderPanel);
+            contentGrid.TryAddChild(0, 1, _viewport);
+
+            _scrollViewer = new MGScrollViewer(window, ScrollBarVisibility.Auto, ScrollBarVisibility.Disabled)
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+            };
+            _scrollViewer.SetContent(contentGrid);
+            _timelineGrid.TryAddChild(1, 0, new GridSpan(1, 2), _scrollViewer);
+        }
+        else
+        {
+            _timelineGrid.TryAddChild(1, 0, _trackHeaderPanel);
+            _timelineGrid.TryAddChild(1, 1, _viewport);
+        }
 
         TryAddChild(0, 0, _timelineGrid);
         TryAddChild(1, 0, _horizontalScrollBar);
@@ -164,6 +235,7 @@ internal class TimelineControl : MGGrid
     {
         base.UpdateSelf(UA);
         UpdateTrackColumnWidth();
+        UpdateRulerScrollBarMargin();
 
         int viewportWidth = (int)MathF.Round(_viewport.GetVisibleTimeAreaWidth());
         float timelineEndSeconds = GetTimelineEndSeconds();
@@ -218,6 +290,82 @@ internal class TimelineControl : MGGrid
         ClampScrollToViewport();
         UpdateHorizontalScrollBarState();
         InvalidateViewPresentation();
+    }
+
+    /// <summary>Width of the time area in pixels, 0 before the first layout.</summary>
+    public float VisibleTimeAreaWidth => _viewport.GetVisibleTimeAreaWidth();
+
+    /// <summary>
+    /// Sets the horizontal zoom so that <paramref name="seconds"/> plus a margin fill the time area, within the zoom limits, and
+    /// scrolls to the start. Does nothing, and returns false, before the first layout or for a duration that is not positive.
+    /// </summary>
+    /// <param name="seconds">The time to fit.</param>
+    /// <param name="marginFraction">The room kept free after it, as a fraction of <paramref name="seconds"/>.</param>
+    public bool FitTimeToWidth(float seconds, float marginFraction)
+    {
+        float width = _viewport.GetVisibleTimeAreaWidth();
+        if (width <= 0f || seconds <= 0f)
+        {
+            return false;
+        }
+
+        ViewState.ScrollX = 0f;
+        SyncTransformFromViewState();
+        SetPixelsPerSecond(width / (seconds * (1f + Math.Max(0f, marginFraction))));
+        ClampScrollToViewport();
+        UpdateHorizontalScrollBarState();
+        InvalidateViewPresentation();
+        return true;
+    }
+
+    /// <summary>Clears the selected track, so that no track looks selected; a click on a track or an item selects one again.</summary>
+    public void ClearSelectedTrack()
+    {
+        if (!ViewState.SelectedTrackId.HasValue)
+        {
+            return;
+        }
+
+        ViewState.SelectedTrackId = null;
+        _trackHeaderPanel.RefreshSelection();
+        InvalidateViewPresentation();
+    }
+
+    /// <summary>Vertical scroll offset of the track area in pixels; 0 without the vertical scroll option.</summary>
+    public float ScrollY => _scrollViewer?.VerticalOffset ?? 0f;
+
+    /// <summary>Visible height of the track area; 0 without the vertical scroll option.</summary>
+    public int TrackAreaViewportHeight => _scrollViewer?.ContentViewport.Height ?? 0;
+
+    /// <summary>Height of the track area content, headers included; 0 without the vertical scroll option.</summary>
+    public int TrackAreaContentHeight => _scrollViewer?.Content?.AllocatedBounds.Height ?? 0;
+
+    /// <summary>True when the vertical scroll bar is currently shown.</summary>
+    public bool IsVerticalScrollBarVisible => _scrollViewer?.VSBBounds.HasValue ?? false;
+
+    /// <summary>Scrolls vertically the minimum needed to bring a track into view. Does nothing without the vertical scroll option.</summary>
+    public void EnsureTrackVisible(Guid trackId)
+    {
+        if (_scrollViewer == null)
+        {
+            return;
+        }
+
+        int trackIndex = GetTrackIndex(trackId);
+        if (trackIndex < 0)
+        {
+            return;
+        }
+
+        float offset = TimelineVerticalScroll.GetOffsetToReveal(
+            trackIndex,
+            _scrollViewer.VerticalOffset,
+            _scrollViewer.ContentViewport.Height,
+            TrackRowHeight);
+        if (Math.Abs(offset - _scrollViewer.VerticalOffset) >= TimelineControlMetrics.Epsilon)
+        {
+            _scrollViewer.VerticalOffset = offset;
+        }
     }
 
     public void SetCurrentTimeSeconds(float currentTimeSeconds)
@@ -432,8 +580,8 @@ internal class TimelineControl : MGGrid
     {
         Rectangle contentBounds = GetTrackContentBounds(layoutBounds);
         int actualLaneIndex = Math.Clamp(laneIndex, 0, GetTrackCount() - 1);
-        int top = contentBounds.Top + (actualLaneIndex * TimelineControlMetrics.TrackRowHeight);
-        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TimelineControlMetrics.TrackRowHeight);
+        int top = contentBounds.Top + (actualLaneIndex * TrackRowHeight);
+        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TrackRowHeight);
     }
 
     internal TimelineTrack? GetTrackAtY(Rectangle layoutBounds, int y)
@@ -449,7 +597,7 @@ internal class TimelineControl : MGGrid
             return null;
         }
 
-        int laneIndex = Math.Clamp((y - contentBounds.Top) / TimelineControlMetrics.TrackRowHeight, 0, _model.Tracks.Count - 1);
+        int laneIndex = Math.Clamp((y - contentBounds.Top) / TrackRowHeight, 0, _model.Tracks.Count - 1);
         return _model.Tracks[laneIndex];
     }
 
@@ -891,7 +1039,7 @@ internal class TimelineControl : MGGrid
     private Rectangle GetTrackContentBounds(Rectangle layoutBounds)
     {
         int top = layoutBounds.Top + TimelineControlMetrics.ViewportVerticalPadding;
-        int height = Math.Max(1, GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
+        int height = Math.Max(1, GetTrackCount() * TrackRowHeight);
         return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), height);
     }
 
@@ -944,6 +1092,28 @@ internal class TimelineControl : MGGrid
         }
 
         _trackColumn.Length = GridLength.CreatePixelLength(width);
+        if (_contentTrackColumn != null)
+        {
+            _contentTrackColumn.Length = GridLength.CreatePixelLength(width);
+        }
+    }
+
+    /// <summary>Keeps the time scale of the fixed ruler aligned with the track area when the vertical scroll bar takes some width.</summary>
+    private void UpdateRulerScrollBarMargin()
+    {
+        if (_scrollViewer == null)
+        {
+            return;
+        }
+
+        int width = _scrollViewer.VSBBounds?.Width ?? 0;
+        if (width == _lastScrollBarWidth)
+        {
+            return;
+        }
+
+        _lastScrollBarWidth = width;
+        _ruler.Margin = new MonoGame.Extended.Thickness(0, 0, width, 0);
     }
 
     private void OnHorizontalScrollBarValueChanged(object? sender, (float PreviousValue, float NewValue) e)

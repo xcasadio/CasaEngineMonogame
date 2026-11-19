@@ -16,4 +16,5 @@ public enum EditorHistoryContextKind
     AudioMixer,
     Texture,
     StaticModel,
+    Cutscene,
 }

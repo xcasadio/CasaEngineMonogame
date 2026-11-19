@@ -139,14 +139,15 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 
 ## Phase 1 — Fusion et code
 
-### ⏳ T1.1 — Avancer MGUI
+### ✅ T1.1 — Avancer MGUI
 
 - Objectif : P3.
 - Étapes : dans `MGUI/` : arbre propre (`git -C MGUI status --short` vide), `git -C MGUI rev-parse HEAD` = `f6ed1fcd…`, `git -C MGUI symbolic-ref HEAD` = `refs/heads/develop`, `git -C MGUI rev-parse origin/develop` = `2f9773d0…`, `f6ed1fcd` ancêtre de ce commit ; `git -C MGUI merge --ff-only origin/develop`. Aucun commit ici : le pointeur est pris par la fusion (T1.2). Entre T1.1 et le commit de fusion, `git status` du moteur montre ` M MGUI`. T1.1 n'est lancée que si la validation de T0.1 a tenu.
 - Validation : `git -C MGUI rev-parse HEAD` = `2f9773d0…` ; `git -C MGUI status --short` vide.
 - Commit : aucun (note dans le commit de T1.2).
+- Note de validation (2026-11-19) : préconditions tenues (arbre de MGUI propre, `HEAD` = `f6ed1fcd` sur `refs/heads/develop`, `origin/develop` = `2f9773d0`, ancêtre contrôlé, `origin/main` épingle bien ce commit) ; `git -C MGUI merge --ff-only origin/develop` : avance rapide ; `HEAD` de MGUI = `2f9773d0`, arbre propre.
 
-### ⏳ T1.2 — Fusionner `origin/main`, résoudre, compiler, passer les tests
+### ✅ T1.2 — Fusionner `origin/main`, résoudre, compiler, passer les tests
 
 - Objectif : la branche contient `origin/main` et la ligne locale, compile et passe les tests (P4, P5, P8).
 - Étapes, dans cet ordre : `git merge --no-ff --no-commit origin/main` ; résoudre `docs/decisions/README.md` (les lignes d'`origin/main` 0128 à 0143, puis les deux lignes locales 0144 et 0145 : l'ordre des numéros) et `ai-agent/README.md` s'il est en conflit (les lignes des deux côtés, celles de la ligne locale en premier) ; mettre à jour le commentaire de `GameEditor.cs` laissé par T0.1 (`ADR-0129` → `ADR-0145`, commentaire seulement ; `git grep -n -E "ADR-0129|ADR-0145" -- CasaEngine.Editor/GameEditor.cs` ne rend alors qu'une ligne, en `ADR-0145`) ; les deux builds ; réparer selon P5 ; tests ; contrôle P8 ; liste de contrôle ci-dessous ; **et seulement alors** le commit de fusion. La liste des fichiers résolus ou réparés à la main est tenue pendant toute la tâche.
@@ -164,6 +165,21 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
   - (h) pilotage (P5) : `git diff <commit de T0.1> -- CasaEngine.Editor/Remote CasaEngine.Editor/GameEditor.Remote.cs Tools CasaEngine.Tests/Editor/Remote` (arbre de travail) est vide, ou ne montre que des réparations passées par `security-executor` et listées.
 - Validation, avant le commit : les deux builds à 0 erreur ; `CasaEngine.Tests` tout vert, nombre noté ; table P8 sans écart inexpliqué ; la liste de contrôle. **Après le commit** : `git ls-tree HEAD MGUI` = `2f9773d0…` ; `git merge-base --is-ancestor origin/main HEAD` et `git merge-base --is-ancestor <commit de T0.1> HEAD` rendent vrai. Si l'un de ces trois contrôles échoue une fois le commit fait : ⚠️, le commit de fusion reste sur la branche du chantier (rien n'est avancé ni poussé, aucun `reset`), l'écart est écrit dans les points ouverts.
 - Commit : `Merge remote-tracking branch 'origin/main' into chantier/integrate-origin-main-2`, dont le message liste : le pointeur MGUI `f6ed1fcd` → `2f9773d0` (T1.1), le commentaire de `GameEditor.cs` renuméroté, les conflits résolus et chaque réparation.
+- Note de validation (2026-11-19), sorties dans `artifacts/entity-asset-remote/integration/` du dépôt du jeu (`build-engine.txt`, `build-editor.txt`, `test-merged.txt`) :
+  - Fusion de `origin/main` (`760734aea`) sur le commit de T0.1 (`dcd91e106`) : un seul conflit, `docs/decisions/README.md`, résolu comme écrit (les seize lignes 0128 à 0143 d'`origin/main`, puis les deux lignes locales 0144 et 0145). `ai-agent/README.md` a fusionné sans conflit. Fichiers touchés à la main : l'index, et le commentaire de `GameEditor.cs` (`ADR-0145`, une ligne).
+  - **Aucune réparation** : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur du premier coup (O3 répondu : la fusion compile telle quelle).
+  - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8182 réussis sur 8182**, aucun ignoré.
+  - P8, aucun test perdu : 592 fichiers ; lignes `[Fact` et `[Theory` : base 4695, ligne locale 4751, `origin/main` 5699, arbre fusionné 5755 = 4751 + 5699 − 4695 ; aucun fichier hors de la règle.
+  - Liste de contrôle, sur l'arbre fusionné, avant le commit :
+    - (a) `MGDockHost.ClosePanel` (`MGUI/MGUI.Core/UI/Docking/Controls/MGDockHost.cs:1151`) : sa documentation dit qu'il ferme « without raising `PanelClosing` (ADR-0018) » (`:1141`), et son corps n'appelle pas `RaisePanelClosingVetoed` (appelé en `:462`, `:1678`, `:2616`, les chemins de fermeture par l'utilisateur) ;
+    - (b) prédicats de l'éditeur (`GameEditor.cs:6938-6971`) : écran, matériau, particule, son et entité, tels que relevés ; égaux à ceux de l'hôte ;
+    - (c) `TryOpenEntityAsset` : un panneau existant n'est pas rechargé (`LoadAsset` seulement si le panneau vient d'être créé), `SetHistoryContextId(panelId)` toujours posé ; `EditorPanelIds` ne gagne qu'une constante (`CutsceneTimeline`), les préfixes sont inchangés ; les cinq tables de panneaux portent les mêmes noms (`GameEditor.cs:222-239`) ;
+    - (d) le retrait d'un panneau d'entité libère toujours le panneau, son titre, son historique et son état modifié ;
+    - (e) `TryOpenAutomationAsset` s'aiguille par `IsAutomationOpenable` (`GameEditor.cs:9735`) ; onze appels de `TryRunAutomationCommand` et huit résolutions de chemin d'automatisation, comme avant la fusion ; les douze options ajoutées par `origin/main` sont celles de l'éditeur de cutscenes et ne prennent aucun chemin de fichier (`CutsceneSelectActionPath` est un chemin dans l'arbre des actions) ;
+    - (f) `OpenWorldAsset(..., unsavedChangesHandled: true)` ne pose pas la question (elle n'est posée que si l'argument est faux) ; `SaveCurrentProject` n'appelle que les enregistrements par sorte, aucune boîte de dialogue ;
+    - (g) `.claude/` : `hooks/block-commit-on-main.ps1` supprimé (87 lignes), et `settings.json` perd son bloc `hooks` et sa règle de refus `Bash(git push *)` ; `.mcp.json` et `.vscode/mcp.json` inchangés. Gardes qui restent : le hook de niveau utilisateur et les règles de ce plan ; rien n'a été élargi par l'agent ;
+    - (h) `git diff dcd91e106 -- CasaEngine.Editor/Remote CasaEngine.Editor/GameEditor.Remote.cs Tools CasaEngine.Tests/Editor/Remote` : vide.
+  - Après le commit : `git ls-tree HEAD MGUI` = `2f9773d0`, `origin/main` et `dcd91e106` ancêtres de `HEAD` (sorties dans le rapport de la tâche suivante si l'un échouait ; tenus).
 
 ### ⏳ T1.3 — L'hôte du pilotage enregistre un asset d'entité par la méthode de l'éditeur
 
@@ -234,7 +250,7 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 |---|---|---|
 | O1 | Valider ou modifier P1 à P12 ; en particulier P3 (une commande git dans MGUI), P7 (`.` et segment vide refusés avec `..`), P10 (une différence de parité arrête tout avant le push) et P11 (l'approbation vaut demande de push pour les têtes produites). | Approbation |
 | O2 | La parité du jeu tient-elle sur le runtime d'`origin/main` ? Inconnu avant T3.1. | T3.1 |
-| O3 | La fusion compile-t-elle sans réparation ? Inconnu avant T1.2 (un seul conflit de texte, aucun build fait). | T1.2 |
+| O3 | **Répondu en T1.2 : oui**, les deux solutions compilent sans réparation et 8182 tests passent. Texte d'origine : La fusion compile-t-elle sans réparation ? Inconnu avant T1.2 (un seul conflit de texte, aucun build fait). | T1.2 |
 | R1 | Risque : conflit sémantique dans `GameEditor.cs` (fermeture et enregistrement des documents) ; atténuation : T1.3, T2.1, T4.1. | T1.2, T1.3 |
 | R2 | Risque : `origin/main` bouge encore avant le push ; atténuation : `fetch` et contrôle d'ancêtre en T4.2, arrêt sinon. | T4.2 |
 

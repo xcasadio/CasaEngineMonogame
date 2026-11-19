@@ -9,7 +9,9 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.ScreenEffects;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scripting.Coroutines;
 using Microsoft.Xna.Framework;
 
@@ -17,6 +19,9 @@ namespace CasaEngine.Framework.Cutscenes;
 
 internal static class CutsceneActionCoroutineFactory
 {
+    /// <summary>The asset type the catalogue infers for a <c>.sprite</c> file.</summary>
+    private const string SpriteAssetType = "sprite";
+
     public static IEnumerator Create(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -28,6 +33,9 @@ internal static class CutsceneActionCoroutineFactory
 
     private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
+        // Observation only (ADR-0137): a failing action leaves through yield break below and raises no end, and the
+        // code after a yield never runs for a stopped play, so no end is raised for it either. Nothing is raised from a finally block.
+        owner.RaiseActionStarted(action, playToken);
         switch (action)
         {
             case WaitCutsceneActionData waitAction:
@@ -39,7 +47,11 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case MoveToCutsceneActionData moveToAction:
-                ICharacterMotionHandle moveToHandle = StartMoveTo(moveToAction, world, owner);
+                if (!TryStartMoveTo(moveToAction, world, owner, out ICharacterMotionHandle moveToHandle, out string moveToFailure))
+                {
+                    FailPlay(owner, moveToFailure, playToken);
+                    yield break;
+                }
 
                 while (moveToHandle.IsActive)
                 {
@@ -48,7 +60,8 @@ internal static class CutsceneActionCoroutineFactory
 
                 if (moveToHandle.HasTimedOut)
                 {
-                    throw new TimeoutException($"MoveTo action timed out for entity '{moveToAction.EntityName}'.");
+                    FailPlay(owner, $"MoveTo action timed out for entity '{moveToAction.EntityName}'.", playToken);
+                    yield break;
                 }
 
                 break;
@@ -80,19 +93,19 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case PlaySoundCutsceneActionData playSoundAction:
-                PlaySound(playSoundAction, world);
+                PlaySound(playSoundAction, world, GetAudioService(world, owner));
                 break;
 
             case PlayMusicCutsceneActionData playMusicAction:
-                PlayMusic(playMusicAction, world);
+                PlayMusic(playMusicAction, world, owner);
                 break;
 
             case StopMusicCutsceneActionData stopMusicAction:
-                GetAudioService(world)?.Music.StopAll(stopMusicAction.FadeOutSeconds);
+                GetAudioService(world, owner)?.Music.StopAll(stopMusicAction.FadeOutSeconds);
                 break;
 
             case FadeMusicCutsceneActionData fadeMusicAction:
-                AudioService fadeMusicService = GetAudioService(world);
+                AudioService fadeMusicService = GetAudioService(world, owner);
                 if (fadeMusicService != null)
                 {
                     yield return new FadeMusicBusInstruction(
@@ -104,7 +117,7 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case FadeScreenCutsceneActionData fadeScreenAction:
-                ScreenEffectService fadeScreenService = GetScreenEffectService(world);
+                ScreenEffectService fadeScreenService = GetScreenEffectService(world, owner);
                 if (fadeScreenService != null)
                 {
                     yield return new FadeScreenInstruction(fadeScreenService, fadeScreenAction);
@@ -121,7 +134,7 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case FadeScreenFramesCutsceneActionData fadeFramesAction:
-                ScreenEffectService fadeFramesService = GetScreenEffectService(world);
+                ScreenEffectService fadeFramesService = GetScreenEffectService(world, owner);
                 if (fadeFramesService != null)
                 {
                     // Unlike FadeScreen, the layer is set and the ramp started during this very update, so the
@@ -146,6 +159,11 @@ internal static class CutsceneActionCoroutineFactory
 
             case OpenScreenCutsceneActionData openScreenAction:
                 {
+                    if (IsGameRequestRefused(owner, openScreenAction))
+                    {
+                        break;
+                    }
+
                     GameManager openScreenManager = world.Game?.GameManager;
                     string openScreenFailure = openScreenManager == null
                         ? "OpenScreen needs a running game, and this world has none."
@@ -159,8 +177,39 @@ internal static class CutsceneActionCoroutineFactory
                     break;
                 }
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                {
+                    if (IsGameRequestRefused(owner, playVideoAction))
+                    {
+                        break;
+                    }
+
+                    GameManager playVideoManager = world.Game?.GameManager;
+                    if (playVideoManager == null)
+                    {
+                        FailPlay(owner, "PlayVideo needs a running game, and this world has none.", playToken);
+                        yield break;
+                    }
+
+                    yield return PlayVideoScreen(
+                        playVideoAction.Target,
+                        screenName =>
+                        {
+                            string failure = playVideoManager.OpenVideoScreenFromCutscene(screenName, out IUIScreen screen, out IUIViewRuntime view);
+                            return (failure, screen, view);
+                        },
+                        owner,
+                        playToken);
+                    break;
+                }
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 {
+                    if (IsGameRequestRefused(owner, changeWorldAction))
+                    {
+                        break;
+                    }
+
                     GameManager changeWorldManager = world.Game?.GameManager;
                     string changeWorldFailure = changeWorldManager == null
                         ? "ChangeWorld needs a running game, and this world has none."
@@ -171,6 +220,127 @@ internal static class CutsceneActionCoroutineFactory
                         yield break;
                     }
 
+                    break;
+                }
+
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                {
+                    string showSpriteFailure = ShowSprite(showSpriteAction, world);
+                    if (showSpriteFailure != null)
+                    {
+                        FailPlay(owner, showSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    break;
+                }
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, hideSpriteAction.EntityName, "HideSprite", out Entity hideEntity, out StaticSpriteComponent hideSprite, out string hideSpriteFailure))
+                    {
+                        FailPlay(owner, hideSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    hideEntity.IsVisible = false;
+                    hideSprite.StopMotionAndTint();
+                    break;
+                }
+
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                {
+                    if (!TryGetVideoSpriteEntity(world, playVideoSpriteAction.EntityName, "PlayVideoSprite", out Entity videoEntity, out VideoSpriteComponent videoSprite, out string playVideoSpriteFailure))
+                    {
+                        FailPlay(owner, playVideoSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    // Shown and started in the same update; the last picture of the film, or the cleanup below, hides it.
+                    videoEntity.IsVisible = true;
+                    videoSprite.Play();
+                    int playGeneration = videoSprite.PlayGeneration;
+                    try
+                    {
+                        // A later play of the same film (another cutscene, or this one replaced) takes it over.
+                        while (videoSprite.IsPlaying && videoSprite.PlayGeneration == playGeneration)
+                        {
+                            yield return null;
+                        }
+                    }
+                    finally
+                    {
+                        // A cleared world has already released the component and dropped the entity, and a later play
+                        // owns the film it started: in both cases there is nothing to undo here. A stopped coroutine
+                        // runs this at the end of a later coroutine update, after a replacing play may have started.
+                        if (videoSprite.PlayGeneration == playGeneration
+                            && videoSprite.HasPlayer
+                            && ReferenceEquals(FindEntityByName(world, videoEntity.Name), videoEntity))
+                        {
+                            videoSprite.Stop();
+                            videoEntity.IsVisible = false;
+                        }
+                    }
+
+                    break;
+                }
+
+            case StartVideoSpriteCutsceneActionData startVideoSpriteAction:
+                {
+                    if (!TryGetVideoSpriteEntity(world, startVideoSpriteAction.EntityName, "StartVideoSprite", out Entity startEntity, out VideoSpriteComponent startVideo, out string startVideoSpriteFailure))
+                    {
+                        FailPlay(owner, startVideoSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    // ADR-0132: nothing of the cutscene stays with the film. The component hides the entity when the film
+                    // ends; a stop, a replacement or a failure of the play leaves the film running.
+                    startEntity.IsVisible = true;
+                    startVideo.Play(hideWhenEnded: true);
+                    break;
+                }
+
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, moveSpriteAction.EntityName, "MoveSprite", out _, out StaticSpriteComponent moveSprite, out string moveSpriteFailure))
+                    {
+                        FailPlay(owner, moveSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    moveSprite.StartMove(new Vector2(moveSpriteAction.X.Value, moveSpriteAction.Y.Value), moveSpriteAction.Speed.Value);
+                    break;
+                }
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, tintSpriteAction.EntityName, "TintSprite", out _, out StaticSpriteComponent tintSprite, out string tintSpriteFailure))
+                    {
+                        FailPlay(owner, tintSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    tintSprite.StartTint(tintSpriteAction.Color.Value, tintSpriteAction.Duration.Value);
+                    break;
+                }
+
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                {
+                    if (IsGameRequestRefused(owner, exitOnInputAction))
+                    {
+                        break;
+                    }
+
+                    (CutsceneInputWatch watch, string exitOnInputFailure) = owner.ExitOnInputResolver != null
+                        ? owner.ExitOnInputResolver(exitOnInputAction)
+                        : ResolveExitOnInput(exitOnInputAction, world, owner);
+                    if (watch == null)
+                    {
+                        FailPlay(owner, exitOnInputFailure, playToken);
+                        yield break;
+                    }
+
+                    owner.ArmInputWatch(watch, playToken);
                     break;
                 }
 
@@ -186,10 +356,94 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case AtCutsceneActionData atAction:
+                if (atAction.Seconds > 0f)
+                {
+                    yield return new WaitForSeconds(atAction.Seconds);
+                    if (owner.IsPlayAborted(playToken))
+                    {
+                        yield break;
+                    }
+                }
+
+                for (int index = 0; index < atAction.Actions.Count; index++)
+                {
+                    yield return ExecuteAction(atAction.Actions[index], world, owner, playToken);
+                    if (owner.IsPlayAborted(playToken))
+                    {
+                        yield break;
+                    }
+                }
+
+                break;
+
+            case RepeatCutsceneActionData repeatAction:
+                {
+                    int repeatCount = repeatAction.Count.Value;
+                    bool endless = repeatCount == 0;
+                    if (!endless && repeatAction.Actions.Count == 0)
+                    {
+                        break;
+                    }
+
+                    for (int lap = 0; endless || lap < repeatCount; lap++)
+                    {
+                        bool framePassed = false;
+                        for (int index = 0; index < repeatAction.Actions.Count; index++)
+                        {
+                            // The child is driven here, to see whether it yields to the coroutine manager: a nested
+                            // enumerator is followed, anything else it yields lets a frame pass.
+                            var stack = new Stack<IEnumerator>();
+                            stack.Push(ExecuteAction(repeatAction.Actions[index], world, owner, playToken));
+                            try
+                            {
+                                while (stack.Count > 0)
+                                {
+                                    IEnumerator current = stack.Peek();
+                                    if (!current.MoveNext())
+                                    {
+                                        (stack.Pop() as IDisposable)?.Dispose();
+                                        continue;
+                                    }
+
+                                    if (current.Current is IEnumerator nested)
+                                    {
+                                        stack.Push(nested);
+                                        continue;
+                                    }
+
+                                    framePassed = true;
+                                    yield return current.Current;
+                                }
+                            }
+                            finally
+                            {
+                                while (stack.Count > 0)
+                                {
+                                    (stack.Pop() as IDisposable)?.Dispose();
+                                }
+                            }
+
+                            if (owner.IsPlayAborted(playToken))
+                            {
+                                yield break;
+                            }
+                        }
+
+                        if (endless && !framePassed)
+                        {
+                            FailPlay(owner, "Repeat: a lap of an endless repeat ended without a frame passing; add a Wait or another action that takes time.", playToken);
+                            yield break;
+                        }
+                    }
+
+                    break;
+                }
+
             case ParallelCutsceneActionData parallelAction:
                 if (parallelAction.Actions.Count == 0)
                 {
-                    yield break;
+                    break;
                 }
 
                 var handles = new List<CoroutineHandle>(parallelAction.Actions.Count);
@@ -216,9 +470,57 @@ internal static class CutsceneActionCoroutineFactory
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
         }
+
+        owner.RaiseActionEnded(action, playToken);
     }
 
-    private static AudioService GetAudioService(World world) => world.Game?.AudioSystemComponent?.Service;
+    /// <summary>
+    /// The <c>PlayVideo</c> action: opens the screen, waits until none of its videos is playing, then removes it. The
+    /// removal is in a <c>finally</c> so that a stopped cutscene takes its screen away too. When the world is cleared
+    /// the views go with it and the removal finds nothing to do.
+    /// </summary>
+    /// <param name="open">Opens the screen: why it cannot, then the screen and the view it went on (both null when nothing opened).</param>
+    internal static IEnumerator PlayVideoScreen(
+        string target,
+        Func<string, (string Failure, IUIScreen Screen, IUIViewRuntime View)> open,
+        CutsceneDirector owner,
+        int playToken)
+    {
+        var (failure, screen, view) = open(target);
+        if (failure != null)
+        {
+            FailPlay(owner, failure, playToken);
+            yield break;
+        }
+
+        // Under external view management nothing opened, so there is nothing to wait for.
+        if (screen == null)
+        {
+            yield break;
+        }
+
+        try
+        {
+            if (screen is not DataDrivenScreen { VideoCount: > 0 } videoScreen)
+            {
+                FailPlay(owner, $"PlayVideo: screen '{target}' has no Video element.", playToken);
+                yield break;
+            }
+
+            yield return new WaitForVideosInstruction(videoScreen);
+        }
+        finally
+        {
+            view.RemoveScreen(screen);
+        }
+    }
+
+    private static AudioService GetAudioService(World world, CutsceneDirector owner)
+        => owner?.EffectHost != null ? owner.EffectHost.Audio : world.Game?.AudioSystemComponent?.Service;
+
+    /// <summary>True when the host of the play refuses a request to the running game: the action is then skipped.</summary>
+    private static bool IsGameRequestRefused(CutsceneDirector owner, CutsceneActionData action)
+        => owner.EffectHost != null && !owner.EffectHost.AllowGameRequest(action);
 
     /// <summary>Fails the play and logs the reason once: the action ends here, so this runs once per play.</summary>
     private static void FailPlay(CutsceneDirector owner, string reason, int playToken)
@@ -227,7 +529,8 @@ internal static class CutsceneActionCoroutineFactory
         owner.MarkRuntimeFailure(reason, playToken);
     }
 
-    private static ScreenEffectService GetScreenEffectService(World world) => world.Game?.ScreenEffectComponent?.Service;
+    private static ScreenEffectService GetScreenEffectService(World world, CutsceneDirector owner)
+        => owner?.EffectHost != null ? owner.EffectHost.ScreenEffects : world.Game?.ScreenEffectComponent?.Service;
 
     /// <summary>
     /// Acquires the <see cref="SoundAsset"/> for the duration of the action alone (ADR-0037): the handle
@@ -253,9 +556,12 @@ internal static class CutsceneActionCoroutineFactory
         }
     }
 
+    /// <summary>Plays the sound on the service of the game, with no host involved (kept for the tests that reach it by reflection).</summary>
     private static void PlaySound(PlaySoundCutsceneActionData action, World world)
+        => PlaySound(action, world, GetAudioService(world, null));
+
+    private static void PlaySound(PlaySoundCutsceneActionData action, World world, AudioService audioService)
     {
-        AudioService audioService = GetAudioService(world);
         if (audioService == null)
         {
             return;
@@ -271,9 +577,9 @@ internal static class CutsceneActionCoroutineFactory
         });
     }
 
-    private static void PlayMusic(PlayMusicCutsceneActionData action, World world)
+    private static void PlayMusic(PlayMusicCutsceneActionData action, World world, CutsceneDirector owner)
     {
-        AudioService audioService = GetAudioService(world);
+        AudioService audioService = GetAudioService(world, owner);
         if (audioService == null)
         {
             return;
@@ -340,17 +646,25 @@ internal static class CutsceneActionCoroutineFactory
         return true;
     }
 
-    private static ICharacterMotionHandle StartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
+    private static bool TryStartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner, out ICharacterMotionHandle handle, out string failureReason)
     {
-        Entity entity = FindEntityByName(world, action.EntityName)
-            ?? throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' was not found.");
+        handle = null;
+        failureReason = null;
+
+        Entity entity = FindEntityByName(world, action.EntityName);
+        if (entity == null)
+        {
+            failureReason = $"MoveTo action target entity '{action.EntityName}' was not found.";
+            return false;
+        }
 
         if (entity.GetComponent<CharacterControllerComponent>() == null)
         {
-            throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.");
+            failureReason = $"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.";
+            return false;
         }
 
-        return world.RuntimeSystems.CharacterMotion.MoveTo(
+        handle = world.RuntimeSystems.CharacterMotion.MoveTo(
             entity,
             action.Destination,
             new CharacterMoveToOptions
@@ -360,6 +674,162 @@ internal static class CutsceneActionCoroutineFactory
                 ControlMode = CharacterControlMode.Cutscene,
             },
             owner);
+        return true;
+    }
+
+    /// <summary>Finds the entity and its root sprite component, or says why it cannot.</summary>
+    private static bool TryGetSpriteEntity(World world, string entityName, string actionName, out Entity entity, out StaticSpriteComponent sprite, out string failure)
+    {
+        sprite = null;
+        entity = FindEntityByName(world, entityName);
+        if (entity == null)
+        {
+            failure = $"{actionName}: entity '{entityName}' was not found in the world.";
+            return false;
+        }
+
+        sprite = entity.RootComponent as StaticSpriteComponent;
+        if (sprite == null)
+        {
+            failure = $"{actionName}: the root component of entity '{entityName}' is not a StaticSpriteComponent.";
+            return false;
+        }
+
+        failure = null;
+        return true;
+    }
+
+    /// <summary>Finds the entity and its root video component, or says why it cannot.</summary>
+    private static bool TryGetVideoSpriteEntity(World world, string entityName, string actionName, out Entity entity, out VideoSpriteComponent video, out string failure)
+    {
+        video = null;
+        entity = FindEntityByName(world, entityName);
+        if (entity == null)
+        {
+            failure = $"{actionName}: entity '{entityName}' was not found in the world.";
+            return false;
+        }
+
+        video = entity.RootComponent as VideoSpriteComponent;
+        if (video == null)
+        {
+            failure = $"{actionName}: the root component of entity '{entityName}' is not a VideoSpriteComponent.";
+            return false;
+        }
+
+        if (!video.HasPlayer)
+        {
+            failure = $"{actionName}: the video of entity '{entityName}' is not loaded (the component was not initialized in a world).";
+            return false;
+        }
+
+        failure = null;
+        return true;
+    }
+
+    /// <summary>Applies a ShowSprite action. Everything is checked before anything changes. Returns why it failed, or null.</summary>
+    private static string ShowSprite(ShowSpriteCutsceneActionData action, World world)
+    {
+        if (!TryGetSpriteEntity(world, action.EntityName, "ShowSprite", out Entity entity, out StaticSpriteComponent sprite, out string failure))
+        {
+            return failure;
+        }
+
+        if (action.Sprite != null)
+        {
+            AssetInfo spriteInfo = AssetCatalog.Get(action.Sprite);
+            if (spriteInfo == null)
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' is not in the asset catalog.";
+            }
+
+            if (!string.Equals(spriteInfo.AssetType, SpriteAssetType, StringComparison.OrdinalIgnoreCase))
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' is not a sprite asset (it is catalogued as '{spriteInfo.AssetType}').";
+            }
+
+            try
+            {
+                // A sprite that fails to load leaves the current sprite of the entity in place.
+                sprite.TryLoadSpriteData(action.Sprite);
+            }
+            catch (Exception exception)
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' cannot be loaded. {exception.Message}";
+            }
+        }
+
+        if (action.X is { } x && action.Y is { } y)
+        {
+            sprite.Position = new Vector3(x, y, sprite.Position.Z);
+        }
+
+        if (action.Color is { } color)
+        {
+            sprite.Color = color;
+        }
+
+        if (action.BlendMode is { } blendMode)
+        {
+            sprite.BlendMode = blendMode;
+        }
+
+        sprite.StopMotionAndTint();
+        entity.IsVisible = true;
+        return null;
+    }
+
+    /// <summary>Reads the devices of the running game, the mapping and the next cutscene of an ExitOnInput action, or says why it cannot.</summary>
+    private static (CutsceneInputWatch Watch, string Failure) ResolveExitOnInput(ExitOnInputCutsceneActionData action, World world, CutsceneDirector owner)
+    {
+        CasaEngineGame game = world.Game;
+        if (game?.InputComponent == null)
+        {
+            return (null, "ExitOnInput needs a running game, and this world has none.");
+        }
+
+        ButtonsMapping mapping;
+        try
+        {
+            mapping = game.AssetContentManager.LoadCopy<ButtonsMapping>(GameManager.FindButtonsMappingAsset(action.Mapping).Id);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return (null, $"ExitOnInput: mapping '{action.Mapping}' cannot be used. {exception.Message}");
+        }
+
+        var inputs = new List<InputMapping>(action.Inputs.Count);
+        for (int index = 0; index < action.Inputs.Count; index++)
+        {
+            InputMapping found = null;
+            for (int buttonIndex = 0; buttonIndex < mapping.Buttons.Count && found == null; buttonIndex++)
+            {
+                if (string.Equals(mapping.Buttons[buttonIndex].Name, action.Inputs[index], StringComparison.Ordinal))
+                {
+                    found = mapping.Buttons[buttonIndex];
+                }
+            }
+
+            if (found == null)
+            {
+                return (null, $"ExitOnInput: input '{action.Inputs[index]}' is not in mapping '{action.Mapping}'.");
+            }
+
+            inputs.Add(found);
+        }
+
+        CutsceneAsset next;
+        try
+        {
+            // ADR-0037: a cutscene is read as a copy that the director's play owns.
+            next = game.AssetContentManager.LoadCopy<CutsceneAsset>(GameManager.FindCutsceneAsset(action.NextCutscene).Id);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return (null, $"ExitOnInput: next_cutscene '{action.NextCutscene}' cannot be used. {exception.Message}");
+        }
+
+        return (new CutsceneInputWatch(owner, inputs, game.InputComponent.KeyboardManager, game.InputComponent.MouseManager, game.InputComponent.GamePadManager, next), null);
     }
 
     private static Entity FindEntityByName(World world, string entityName)
@@ -457,6 +927,16 @@ internal static class CutsceneActionCoroutineFactory
             _elapsed += context.DeltaTime;
             return _elapsed >= _duration;
         }
+    }
+
+    /// <summary>Completes once no video of the screen is playing: each has ended or been skipped.</summary>
+    private sealed class WaitForVideosInstruction : ICoroutineInstruction
+    {
+        private readonly DataDrivenScreen _screen;
+
+        public WaitForVideosInstruction(DataDrivenScreen screen) => _screen = screen;
+
+        public bool IsCompleted(CoroutineUpdateContext context) => !_screen.IsAnyVideoPlaying;
     }
 
     private sealed class NavigateToCutsceneInstruction : ICoroutineInstruction

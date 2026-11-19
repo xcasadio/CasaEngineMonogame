@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Configuration;
+using CasaEngine.Framework.Video;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MGUI.Shared.Assets;
@@ -10,10 +11,12 @@ using MGUI.Shared.Text;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 
-public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
+public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScope, IDisposable
 {
     private static readonly string SpriteAssetType = Constants.FileNameExtensions.Sprite.TrimStart('.');
     private static readonly string Animation2dAssetType = Constants.FileNameExtensions.Animation2d.TrimStart('.');
+
+    private static readonly string MdecVideoAssetType = Constants.FileNameExtensions.MdecVideo.TrimStart('.');
 
     private AssetContentManager _assetContentManager;
     private readonly HashSet<string> _warnedNames = new();
@@ -38,11 +41,26 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
     /// program).</summary>
     private readonly List<CasaUIAnimatedImage> _createdAnimatedImages = new();
 
+    /// <summary>One held container per distinct video name resolved by <see cref="TryCreateVideo"/>: the header and
+    /// the offset table are loaded once and shared by every <see cref="MdecVideoPlayer"/> created for that name.</summary>
+    private readonly Dictionary<string, AssetHandle<MdecVideoAsset>> _videoAssetsByName = new();
+
+    /// <summary>Every player this provider created and MGUI has not disposed yet, so a player whose element is
+    /// discarded without a source change does not keep its texture and its file open past the provider.</summary>
+    private readonly List<MdecVideoPlayer> _createdVideos = new();
+
+    private readonly Action<MdecVideoPlayer> _onVideoDisposed;
+
     // True while ReleaseAllHeldAssets disposes the instances itself: they must not remove themselves from the list
     // it is walking.
     private bool _releasingAnimatedImages;
+    private bool _releasingVideos;
 
     private bool _disposed;
+
+    // The list of the open video creation scope, null outside one; the previous lists of enclosing scopes wait here.
+    private List<IUIVideo> _videoScope;
+    private readonly Stack<List<IUIVideo>> _outerVideoScopes = new();
 
     public ContentManager Content { get; }
     public FontManager FontManager { get; }
@@ -57,6 +75,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         Content = content;
         FontManager = fontManager;
         _assetContentManager = assetContentManager;
+        _onVideoDisposed = OnVideoDisposed;
     }
 
     /// <summary>
@@ -220,6 +239,105 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         _createdAnimatedImages.Add(instance);
         animatedImage = instance;
         return true;
+    }
+
+    /// <summary>Resolves <paramref name="name"/> as a catalogued MDEC video asset (by id or by name, ADR-0128) and
+    /// returns a new, independent <see cref="MdecVideoPlayer"/> for it, which the caller disposes. The container
+    /// header is loaded and held once per name, in this provider. Never throws: an unknown name, a non-video asset,
+    /// a missing asset manager or graphics device, or a load failure all return false, logging one warning per
+    /// name. Once the provider is disposed it creates nothing and returns false, without a warning.</summary>
+    public bool TryCreateVideo(string name, out IUIVideo video)
+    {
+        video = null;
+
+        if (_disposed)
+        {
+            return false;
+        }
+
+        if (_assetContentManager == null)
+        {
+            WarnOnce(name, "no AssetContentManager was provided to this UI asset provider");
+            return false;
+        }
+
+        if (!_videoAssetsByName.TryGetValue(name, out var handle))
+        {
+            var assetInfo = Guid.TryParse(name, out var assetId) ? AssetCatalog.Get(assetId) : AssetCatalog.Get(name);
+            if (assetInfo == null)
+            {
+                WarnOnce(name, "no catalogued asset matches this name or id");
+                return false;
+            }
+
+            if (!string.Equals(assetInfo.AssetType, MdecVideoAssetType, StringComparison.OrdinalIgnoreCase))
+            {
+                WarnOnce(name, $"asset '{assetInfo.Name}' ({assetInfo.Id}) is a '{assetInfo.AssetType}' asset, not a video");
+                return false;
+            }
+
+            try
+            {
+                handle = _assetContentManager.Acquire<MdecVideoAsset>(assetInfo.Id);
+            }
+            catch (Exception exception)
+            {
+                WarnOnce(name, $"failed to load video asset '{assetInfo.Name}' ({assetInfo.Id}): {exception.Message}");
+                return false;
+            }
+
+            _videoAssetsByName.Add(name, handle);
+        }
+
+        var graphicsDevice = _assetContentManager.GraphicsDevice;
+        if (graphicsDevice == null)
+        {
+            WarnOnce(name, "the AssetContentManager has no graphics device");
+            return false;
+        }
+
+        MdecVideoPlayer player;
+        try
+        {
+            player = new MdecVideoPlayer(graphicsDevice, handle.Asset, _onVideoDisposed);
+        }
+        catch (Exception exception)
+        {
+            WarnOnce(name, $"failed to open video asset '{handle.Asset.FileName}': {exception.Message}");
+            return false;
+        }
+
+        _createdVideos.Add(player);
+        _videoScope?.Add(player);
+        video = player;
+        return true;
+    }
+
+    /// <inheritdoc/>
+    void IUIVideoCreationScope.BeginVideoCreationScope(List<IUIVideo> created)
+    {
+        ArgumentNullException.ThrowIfNull(created);
+        _outerVideoScopes.Push(_videoScope);
+        _videoScope = created;
+    }
+
+    /// <inheritdoc/>
+    void IUIVideoCreationScope.EndVideoCreationScope()
+    {
+        if (_outerVideoScopes.Count == 0)
+        {
+            throw new InvalidOperationException("No video creation scope is open.");
+        }
+
+        _videoScope = _outerVideoScopes.Pop();
+    }
+
+    private void OnVideoDisposed(MdecVideoPlayer player)
+    {
+        if (!_releasingVideos)
+        {
+            _createdVideos.Remove(player);
+        }
     }
 
     private AnimationCacheEntry TryCreateAnimationCacheEntry(string name)
@@ -390,6 +508,20 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         }
         _createdAnimatedImages.Clear();
         _releasingAnimatedImages = false;
+
+        _releasingVideos = true;
+        foreach (var player in _createdVideos)
+        {
+            player.Dispose();
+        }
+        _createdVideos.Clear();
+        _releasingVideos = false;
+
+        foreach (var videoHandle in _videoAssetsByName.Values)
+        {
+            videoHandle.Dispose();
+        }
+        _videoAssetsByName.Clear();
 
         foreach (var entry in _spriteCacheBySpriteId.Values)
         {

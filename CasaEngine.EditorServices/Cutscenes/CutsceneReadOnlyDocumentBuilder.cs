@@ -59,6 +59,18 @@ public static class CutsceneReadOnlyDocumentBuilder
                 AddChildren(node, parallelAction.Actions, path);
                 break;
 
+            case AtCutsceneActionData atAction:
+                node.AddProperty("seconds", atAction.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
+                node.AddProperty("children", atAction.Actions.Count.ToString(CultureInfo.InvariantCulture));
+                AddChildren(node, atAction.Actions, path);
+                break;
+
+            case RepeatCutsceneActionData repeatAction:
+                node.AddProperty("count", repeatAction.Count?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("children", repeatAction.Actions.Count.ToString(CultureInfo.InvariantCulture));
+                AddChildren(node, repeatAction.Actions, path);
+                break;
+
             case WaitFramesCutsceneActionData waitFramesAction:
                 AddFrames(node, waitFramesAction.Frames);
                 break;
@@ -75,8 +87,52 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("target", openScreenAction.Target ?? string.Empty);
                 break;
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                node.AddProperty("target", playVideoAction.Target ?? string.Empty);
+                break;
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 node.AddProperty("target", changeWorldAction.Target ?? string.Empty);
+                break;
+
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                node.AddProperty("entity", showSpriteAction.EntityName ?? string.Empty);
+                node.AddProperty("sprite", showSpriteAction.Sprite ?? string.Empty);
+                node.AddProperty("x", showSpriteAction.X?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("y", showSpriteAction.Y?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("color", FormatColor(showSpriteAction.Color));
+                node.AddProperty("blend_mode", showSpriteAction.BlendMode?.ToString() ?? string.Empty);
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                node.AddProperty("entity", hideSpriteAction.EntityName ?? string.Empty);
+                break;
+
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                node.AddProperty("entity", playVideoSpriteAction.EntityName ?? string.Empty);
+                break;
+
+            case StartVideoSpriteCutsceneActionData startVideoSpriteAction:
+                node.AddProperty("entity", startVideoSpriteAction.EntityName ?? string.Empty);
+                break;
+
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                node.AddProperty("entity", moveSpriteAction.EntityName ?? string.Empty);
+                node.AddProperty("x", moveSpriteAction.X?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("y", moveSpriteAction.Y?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("speed", moveSpriteAction.Speed?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                break;
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                node.AddProperty("entity", tintSpriteAction.EntityName ?? string.Empty);
+                node.AddProperty("color", FormatColor(tintSpriteAction.Color));
+                node.AddProperty("duration", tintSpriteAction.Duration?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                break;
+
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                node.AddProperty("mapping", exitOnInputAction.Mapping ?? string.Empty);
+                node.AddProperty("inputs", string.Join(", ", exitOnInputAction.Inputs));
+                node.AddProperty("next_cutscene", exitOnInputAction.NextCutscene ?? string.Empty);
                 break;
 
             case UnknownCutsceneActionData unknownAction:

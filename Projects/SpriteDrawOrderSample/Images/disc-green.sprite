@@ -1,0 +1,17 @@
+{
+  "id": "87110392-78be-5744-91a3-5eb8fddd56c0",
+  "name": "disc-green",
+  "sprite_sheet_asset_id": "8b96280f-c45a-5328-8844-dc2d6bca16f6",
+  "location": {
+    "x": 48,
+    "y": 0,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 24,
+    "y": 24
+  },
+  "collisions": [],
+  "sockets": []
+}

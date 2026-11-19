@@ -1,0 +1,22 @@
+{
+  "WindowTitle": "Video Sample",
+  "ProjectName": "VideoSample",
+  "FirstScreenName": "",
+  "AllowUserResizing": true,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": true,
+  "FirstWorldLoaded": "VideoWorld.world",
+  "GameplayDllName": "",
+  "UIInputMapping": "ui-input",
+  "ExternalToolsDirectory": "ExternalTools",
+  "VirtualResolution": {
+    "Width": 320,
+    "Height": 180,
+    "Mode": "IntegerFit",
+    "ScaleUI": true
+  },
+  "DebugIsFullScreen": false,
+  "DebugHeight": 540,
+  "DebugWidth": 960,
+  "VSyncEnabled": true
+}

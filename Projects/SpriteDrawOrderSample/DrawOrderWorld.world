@@ -1,0 +1,203 @@
+{
+  "id": "073b9c8f-661e-5b8e-99df-9a86a5ee02a6",
+  "name": "DrawOrderWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "a843797c-0225-526e-96bb-a1b200053185",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera2dComponent",
+          "type": "Camera2dComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "view_distance": 0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 320,
+            "h": 180,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "zoom": 1,
+          "pixel_snap": false
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "afb7e673-e170-5ccf-82cb-8df08763ab36",
+        "name": "disc-red",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": -24,
+              "y": 0,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "disc-red",
+          "blend_mode": "AlphaBlend",
+          "draw_order": 2
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "c15b4b9a-ff5e-58c9-bd9b-9148a1ba51ce",
+        "name": "disc-green",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "disc-green",
+          "blend_mode": "AlphaBlend",
+          "draw_order": 1
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "52655501-d6bb-5a7b-a00b-ea7c42ca4450",
+        "name": "disc-blue",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 24,
+              "y": 0,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "disc-blue",
+          "blend_mode": "AlphaBlend",
+          "draw_order": 0
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 235,
+      "g": 235,
+      "b": 235,
+      "a": 255
+    }
+  }
+}

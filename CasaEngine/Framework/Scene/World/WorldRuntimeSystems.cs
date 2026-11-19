@@ -20,7 +20,9 @@ public sealed class WorldRuntimeSystems
     {
         // Coroutines issue the motion requests that CharacterMotion consumes, so they must run
         // first: in the reverse order a request issued on frame N only takes effect on frame N+1.
+        int playToken = CutsceneDirector.PlayToken;
         CoroutineManager.Update(new CoroutineUpdateContext(frameTime));
+        CutsceneDirector.AdvancePlayClock(playToken, frameTime.DeltaTime);
         CharacterMotion.Update(frameTime);
     }
 

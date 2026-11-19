@@ -1,6 +1,6 @@
 # ADR-0014: Generic timeline base for the editor
 
-- **Status**: Accepted
+- **Status**: Accepted (decision 2 superseded by ADR-0135)
 - **Date**: 2026-06-13
 - **Source**: `docs/editor/timeline-generic.md:1-35`
 

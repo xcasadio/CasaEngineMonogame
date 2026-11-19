@@ -1,0 +1,28 @@
+{
+  "id": "4d87db18-c1ce-4ee4-893f-c6e473220860",
+  "name": "Exit Film End",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 2
+      },
+      {
+        "type": "FadeScreen",
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "duration_seconds": 0,
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "ExitFilmWorld.world"
+      }
+    ]
+  }
+}

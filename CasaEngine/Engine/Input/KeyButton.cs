@@ -54,6 +54,7 @@ public class KeyButton : ISerializable
             InputDevices.Keyboard => keyboardManager.IsKeyPressed(KeyOnLayout()),
             InputDevices.GamePad => gamePad.ButtonPressed(GamePadButton),
             InputDevices.Mouse => mouseManager.ButtonPressed(MouseButton),
+            InputDevices.AnyKey => keyboardManager.IsAnyKeyJustPressed(),
             _ => throw new ArgumentOutOfRangeException(nameof(InputDevice))
         };
     }

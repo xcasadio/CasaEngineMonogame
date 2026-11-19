@@ -1,0 +1,17 @@
+{
+  "id": "a16ed175-ed9a-5e2a-bcf0-a30b690cddae",
+  "name": "disc-blue",
+  "sprite_sheet_asset_id": "8b96280f-c45a-5328-8844-dc2d6bca16f6",
+  "location": {
+    "x": 96,
+    "y": 0,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 24,
+    "y": 24
+  },
+  "collisions": [],
+  "sockets": []
+}

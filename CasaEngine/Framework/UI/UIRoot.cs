@@ -96,6 +96,7 @@ public sealed class UIRoot : IUIViewRuntime
         if (game.UIInputMapping != null)
         {
             _navigationInput = new UINavigationInput(Desktop, game.UIInputMapping) { CancelNotHandled = ReportCancelToTopScreen };
+            _navigationInput.SubmitOrCancelPressed = SkipVideosOfTopScreen;
         }
     }
 
@@ -106,6 +107,17 @@ public sealed class UIRoot : IUIViewRuntime
             screen.ReportCancel();
         }
     }
+
+    private bool SkipVideosOfTopScreen() => SkipVideosOfTopScreen(ScreenStack);
+
+    /// <summary>
+    /// What <see cref="UINavigationInput.SubmitOrCancelPressed"/> does here: the screen at the top, when it is a
+    /// <see cref="DataDrivenScreen"/>, skips its playing videos that can be skipped. Apart from the instance so that a
+    /// test runs this very code.
+    /// </summary>
+    /// <returns>True when a video was skipped, so that the press is consumed.</returns>
+    internal static bool SkipVideosOfTopScreen(ScreenStack screenStack)
+        => screenStack.Top is DataDrivenScreen screen && screen.SkipVideos();
 
     private FontStashSharpTextEngine CreateFontStashSharpTextEngine(CasaEngineGame game)
     {

@@ -3,6 +3,7 @@ using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
+using MGUI.Shared.Assets;
 using MGUI.Shared.Input.Keyboard;
 using Microsoft.Xna.Framework;
 
@@ -62,6 +63,13 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     private bool _isFocusWrapPending;
 
+    // The Video elements of the window, collected at load and disposed with the screen: each holds a player that owns
+    // a texture and an open file.
+    private readonly List<MGVideo> _videos = new();
+
+    // Set when the screen leaves its stack (Hide): its videos no longer play, whatever disposes them later.
+    private bool _hasLeftTheStack;
+
     // The pairs of focus_markers, resolved at load: element, then marker.
     private readonly List<(MGElement Element, MGElement Marker)> _focusMarkers = new();
 
@@ -115,13 +123,42 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     protected override MGWindow LoadWindow(MGDesktop desktop)
     {
         HoldFonts();
-        return base.LoadWindow(desktop);
+
+        // A Video element creates its player while the XAML is built. If a later element fails, OnWindowLoaded never
+        // runs and nothing collects those players: the scope lets this load dispose them.
+        if (desktop.Resources.AssetProvider is not IUIVideoCreationScope scope)
+        {
+            return base.LoadWindow(desktop);
+        }
+
+        var created = new List<IUIVideo>();
+        scope.BeginVideoCreationScope(created);
+        try
+        {
+            return base.LoadWindow(desktop);
+        }
+        catch
+        {
+            foreach (var video in created)
+            {
+                video.Dispose();
+            }
+
+            throw;
+        }
+        finally
+        {
+            scope.EndVideoCreationScope();
+        }
     }
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">The envelope is invalid.</exception>
     protected override void OnWindowLoaded(MGWindow window)
     {
+        // First, so that any failure below still lets Dispose release the players the XAML load created.
+        CollectVideos(window);
+
         if (Asset.CommandFormatErrors.Count > 0)
         {
             throw InvalidEnvelope(string.Join(" ", Asset.CommandFormatErrors));
@@ -131,6 +168,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         ResolveNavigationCommands();
         CollectFocusCandidates(window);
         CheckButtons(window);
+        CheckVideos();
         ResolveFocusMarkers(window);
         PrepareDesignScale(window);
         _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
@@ -179,11 +217,57 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
+    /// Skips the videos of the screen that are playing and can be skipped. <see cref="UIRoot"/> asks this of the screen
+    /// at the top when a Submit or a Cancel is pressed.
+    /// </summary>
+    /// <returns>True when at least one video was skipped.</returns>
+    public bool SkipVideos()
+    {
+        bool isSkipped = false;
+
+        for (int i = 0; i < _videos.Count; i++)
+        {
+            isSkipped |= _videos[i].Skip();
+        }
+
+        return isSkipped;
+    }
+
+    /// <summary>How many <c>Video</c> elements the window holds.</summary>
+    internal int VideoCount => _videos.Count;
+
+    /// <summary>
+    /// True while a video of the screen is still playing: it has neither ended nor been skipped. A video whose source
+    /// the game could not resolve does not play, so it does not hold the <c>PlayVideo</c> cutscene action back.
+    /// </summary>
+    internal bool IsAnyVideoPlaying
+    {
+        get
+        {
+            if (_hasLeftTheStack)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _videos.Count; i++)
+            {
+                if (_videos[i].IsPlaying)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Disposes the screen, or leaves that to the end of the command when one of its actions closed it: the actions
     /// after the closing one still need the sounds.
     /// </summary>
     public override void Hide()
     {
+        _hasLeftTheStack = true;
         CloseWindow();
 
         if (_isRunningCommand)
@@ -216,6 +300,14 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         _focusMarkers.Clear();
         _markedFocus = null;
         _lastFocused = null;
+        _hasLeftTheStack = true;
+
+        for (int i = 0; i < _videos.Count; i++)
+        {
+            _videos[i].Dispose();
+        }
+
+        _videos.Clear();
         base.Dispose();
     }
 
@@ -510,6 +602,35 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             {
                 throw InvalidEnvelope($"A button names command '{button.CommandName}', which 'ui_commands' does not declare.");
             }
+        }
+    }
+
+    /// <summary>
+    /// A video that names a command nobody declared is refused, like a button: the command would never run, with no
+    /// sign why.
+    /// </summary>
+    private void CheckVideos()
+    {
+        foreach (var video in _videos)
+        {
+            CheckVideoCommand(video, "ended", video.EndedCommandName);
+            CheckVideoCommand(video, "skipped", video.SkippedCommandName);
+        }
+    }
+
+    private void CollectVideos(MGWindow window)
+    {
+        foreach (var video in window.TraverseVisualTree<MGVideo>())
+        {
+            _videos.Add(video);
+        }
+    }
+
+    private void CheckVideoCommand(MGVideo video, string whenRun, string commandName)
+    {
+        if (!string.IsNullOrEmpty(commandName) && !video.GetResources().TryGetCommand(commandName, out _))
+        {
+            throw InvalidEnvelope($"A video names command '{commandName}' for when it is {whenRun}, which 'ui_commands' does not declare.");
         }
     }
 

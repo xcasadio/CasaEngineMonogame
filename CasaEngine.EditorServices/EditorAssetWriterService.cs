@@ -19,6 +19,7 @@ public enum EditorAssetSaveSource
     WorldInspector = 8,
     TextureEditorPanel = 9,
     StaticModelEditorPanel = 10,
+    CutsceneEditorPanel = 11,
 }
 
 public sealed class EditorAssetSavedEventArgs : EventArgs

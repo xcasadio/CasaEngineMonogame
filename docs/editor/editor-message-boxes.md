@@ -40,23 +40,40 @@ _messageBoxes.AskSave("Close Screen", $"Save changes to '{title}' before closing
 The ordering is `EditorMessageBoxQueue` (pure, tested in `CasaEngine.Tests/Editor/EditorMessageBoxQueueTests.cs`). A
 question asked from an answer's callback comes after the questions already waiting.
 
-## The three "save before losing changes?" questions
+## The "save before losing changes?" questions
+
+Every open document that can be modified asks before its changes are lost. Decisions: [ADR-0143](../decisions/0143-every-modified-document-asks-before-its-changes-are-lost.md).
 
 A native box answered on the next line; an MGUI box answers later. Each flow therefore refuses or stops at once, asks,
 and redoes the action by code once the answer lets it go. The decision itself is `ModifiedScreenCloseDecision.ApplyAnswer`:
 Save saves then proceeds (or stops if the save failed), Don't Save proceeds without saving, Cancel stops.
 
-| Flow | Where | Once the answer lets it go |
-|---|---|---|
-| Closing a modified screen (tab, Close Others, Close All, floating tab, auto-hide drawer, whole floating window) | `ModifiedScreenCloseCoordinator` (`CasaEngine.Editor/History`) | `MGDockHost.ClosePanel(panel)`; for a whole floating window, `TryCloseWindow()` on it again, which asks about its next modified screen |
-| Quitting with modified screens (File > Exit, window close button) | `ModifiedScreensExitCoordinator` (`CasaEngine.Editor/History`) | `Game.Exit()` again; that one exit is let through |
-| Opening a world while the current one is modified | `GameEditor.AskSaveBeforeOpeningWorld` | `OpenWorldAsset(fullPath, unsavedChangesHandled: true)`, which redoes every other check |
+Documents that ask (eleven kinds): Screen, Cutscene, Material, Sprite, Particle, Animation2D, Entity, Audio Mixer, Sound,
+Texture and Static Model. A document is "modified" when its tab shows ` *`; the question, the list and the save all read
+that same condition. The kind names above are the `<Kind>` labels of the texts below. The read-only asset preview, the
+tile map and the animation clip are not modifiable and never ask.
 
-"Close All" and "Close Others" ask each modified screen in turn; Cancel keeps that screen only. A whole floating window
-stops at its first modified screen and retries after each screen it closed; Cancel or a failed save stops the chain.
+| Flow | Title and message | Where | Once the answer lets it go |
+|---|---|---|---|
+| Closing a modified document (tab, Close Others, Close All, floating tab, auto-hide drawer, whole floating window) | `Close <Kind>`, "Save changes to '<title>' before closing?" | `ModifiedScreenCloseCoordinator` (`CasaEngine.Editor/History`) | `MGDockHost.ClosePanel(panel)`; for a whole floating window, `TryCloseWindow()` on it again, which asks about its next modified document |
+| Quitting with modified documents or a modified world (File > Exit, window close button) | `Quit`, "Save changes to the modified documents before quitting?" followed by the list `- <Kind>: <title>` (the world is `World: <name>`) | `ModifiedScreensExitCoordinator` (`CasaEngine.Editor/History`) | `Game.Exit()` again; that one exit is let through |
+| Opening or creating another project while documents or the world are modified | `Open Project`, "Save changes to the modified documents before opening another project?" followed by the same list | `ModifiedDocumentsGate` (`CasaEngine.Editor/History`), asked once the project is chosen in the launcher, before loading | The queued open or create action runs; Cancel keeps the current project and does not reopen the launcher |
+| Opening a world while the current one is modified | `GameEditor.AskSaveBeforeOpeningWorld` | `GameEditor` | `OpenWorldAsset(fullPath, unsavedChangesHandled: true)`, which redoes every other check |
 
-Under editor automation, nothing is asked when a screen is closed or the editor exits: the abandoned screens are logged,
-as before.
+"Close All" and "Close Others" ask each modified document in turn; Cancel keeps that document only. A whole floating
+window stops at its first modified document and retries after each document it closed; Cancel or a failed save stops
+the chain.
+
+On quit and on project switch, Save writes each modified document one by one, then the world through the project
+save. The action goes on only if nothing of the list is still modified; otherwise it is cancelled and the reason is in
+the log. If a play session is running when Save is answered on quit, it is stopped first (the project save is refused
+during a session). Closing a tab during a session saves that document directly.
+
+When another project is loaded, every open document of the previous project is closed by code first (saved or
+abandoned according to the answer), so none stays open with the paths of the old project.
+
+Under editor automation, nothing is asked on any of the three paths: the exit logs `[Automation] Exiting with N modified
+document(s) abandoned`, as before for screens.
 
 ## Limits
 
@@ -65,7 +82,14 @@ as before.
   `CasaEngine.Editor.csproj`.
 - No icons in the boxes.
 - The question lists and texts are fixed when the question is queued: a quit question queued behind another question
-  lists the screens modified at the time the user asked to quit.
+  lists the documents modified at the time the user asked to quit.
+- Text typed in a field and not yet validated is not counted as a change, except for the cutscene and the audio mixer.
+- After `Reset Layout` or `Load Layout`, open documents lose their tab but stay open: they are saved by "Save project"
+  and listed when quitting. Opening the asset again from the Content Browser brings the tab back.
+- Opening an asset whose document is already open and modified never reloads the file: the unsaved changes are kept
+  and the log says "Unsaved changes kept for <path>".
+- Closing a project's documents on a project switch happens before loading: if the load then fails, the documents of
+  the previous project are already closed.
 - To be checked by hand in the running editor (automated tests cover the logic, not the clicks): each close gesture,
   File > Exit and the window close button with each answer - only a real run shows that `Exit()` requested again after
   a cancelled exit closes the editor under MonoGame DesktopGL.

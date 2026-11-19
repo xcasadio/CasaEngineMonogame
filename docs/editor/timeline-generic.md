@@ -48,7 +48,24 @@
 >   recommandés » de la section 10 **renomment** les événements existants au lieu d'en
 >   ajouter.
 
-## Contexte
+### Mise à jour — défilement vertical et clic précis (2026-11-18)
+
+`TimelineControl` reçoit quatre options à la construction, `TimelineControl(window, verticalScroll, preciseHitTest, trackRowHeight, rulerDragScrub)`. Le constructeur `TimelineControl(window)` les met à faux : la timeline Animation2D est inchangée.
+
+- **Défilement vertical** (`verticalScroll`) : la règle et le coin restent fixes ; les en-têtes de pistes et la zone des pistes défilent ensemble dans un `MGScrollViewer` vertical, qui n'affiche sa barre que si les pistes dépassent. Le contrôle occupe alors la hauteur que son parent lui donne, au lieu d'exiger celle de son contenu : le parent doit la borner (un `MGDockPanel` dont le contrôle est le dernier enfant, pas un `MGStackPanel` vertical). La molette au-dessus de la zone du temps zoome, au-dessus des en-têtes elle fait défiler. API : `EnsureTrackVisible(trackId)`, `ScrollY`, `TrackAreaViewportHeight`, `TrackAreaContentHeight`, `IsVerticalScrollBarVisible`.
+- **Clic précis** (`preciseHitTest`) : sous le curseur, un élément instantané à portée gagne sur une barre ; parmi les barres et les plages, la plus courte gagne. Sans l'option, le premier élément `Duration` ou `Range` est rendu, comme avant.
+- **Hauteur de rangée** (`trackRowHeight`) : 34 px par défaut ; la timeline des cutscenes demande 23 px pour que ses sept rangées tiennent dans le groupe du bas. `TimelineVerticalScroll.GetOffsetToReveal` prend la même hauteur. `FitTimeToWidth(seconds, marginFraction)` règle le zoom pour faire tenir une durée dans la zone du temps, `ClearSelectedTrack()` retire la piste sélectionnée.
+- **Glisser dans la règle** (`rulerDragScrub`) : tenir le bouton gauche enfoncé dans la règle et bouger la souris déplace la tête de lecture en continu. Chaque déplacement qui change l'instant appelle `SetCurrentTimeSeconds` puis lève `TimeScrubbed`, avec le même calcul que le clic ; le relâchement qui suit le glisser ne lève pas de seconde notification. Sans l'option (par défaut), seul le clic déplace la tête de lecture.
+
+### Mise à jour — garder l'endroit saisi (2026-11-18)
+
+Une cinquième option de construction, `keepGrabOffset` (propriété `KeepGrabOffsetEnabled`, fausse par défaut), change le glisser de déplacement d'un élément. Par défaut, le début de l'élément va sous le curseur dès le premier mouvement : une barre saisie par son milieu saute de la moitié de sa longueur. Avec l'option, le contrôle retient, au début du glisser, l'écart entre l'instant du point d'appui et le début de l'élément, borné entre 0 et la durée de l'élément, et donne au magnétisme l'instant du curseur moins cet écart (pas moins de 0). Un élément instantané a une durée nulle : son comportement ne change pas. Les étirements ne changent pas non plus. Le panneau Cutscene Timeline active l'option ; la timeline Animation2D ne l'active pas.
+
+Premier consommateur de ces options : le panneau Cutscene Timeline, en lecture seule et sans `Adapter` (voir [cutscene-editor.md](cutscene-editor.md), ADR-0137). Il remplace `ItemRenderer` par `CutsceneTimelineItemRenderer`.
+
+---
+
+# Contexte
 
 Le moteur possède déjà un contrôle de timeline utilisé pour les animations :
 

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scripting;
@@ -79,6 +80,12 @@ internal static class EditorEntityJsonSerializer
         node.Add("tick_policy", entity.Policies.TickPolicy.ToString());
         node.Add("spatial_policy", entity.Policies.SpatialPolicy.ToString());
         node.Add("render_dynamic_policy", entity.Policies.RenderDynamicPolicy.ToString());
+
+        // Written only when the entity starts hidden, so an entity saved before this field existed keeps its file unchanged.
+        if (!entity.IsVisible)
+        {
+            node.Add("is_visible", false);
+        }
 
         if (entity.RootComponent != null && ShouldSaveComponent(entity.RootComponent))
         {
@@ -279,6 +286,10 @@ internal static class EditorEntityJsonSerializer
                 SaveStaticSpriteComponent(staticSpriteComponent, node);
                 return;
 
+            case VideoSpriteComponent videoSpriteComponent:
+                SaveVideoSpriteComponent(videoSpriteComponent, node);
+                return;
+
             case TileMapComponent tileMapComponent:
                 SaveTileMapComponent(tileMapComponent, node);
                 return;
@@ -417,8 +428,45 @@ internal static class EditorEntityJsonSerializer
     private static void SaveStaticSpriteComponent(StaticSpriteComponent component, JObject node)
     {
         var spriteData = StaticSpriteDataField?.GetValue(component) as SpriteData;
-        node.Add("spriteDataName", spriteData?.Name ?? "null");
+        node.Add("spriteDataName", spriteData?.Name ?? component.PendingSpriteDataName ?? "null");
         SaveSceneComponent(component, node);
+
+        // Written only when they differ from the defaults, so a sprite saved before these fields existed keeps its file unchanged.
+        if (component.Color != Color.White)
+        {
+            var colorNode = new JObject();
+            component.Color.Save(colorNode);
+            node.Add("color", colorNode);
+        }
+
+        if (component.BlendMode != SpriteBlendMode.Opaque)
+        {
+            node.Add("blend_mode", component.BlendMode.ToString());
+        }
+
+        if (component.DrawOrder != 0)
+        {
+            node.Add("draw_order", component.DrawOrder);
+        }
+    }
+
+    private static void SaveVideoSpriteComponent(VideoSpriteComponent component, JObject node)
+    {
+        SaveSceneComponent(component, node);
+        node.Add("video", component.VideoName);
+
+        // Written only when it differs from the default.
+        if (component.Color != Color.White)
+        {
+            var colorNode = new JObject();
+            component.Color.Save(colorNode);
+            node.Add("color", colorNode);
+        }
+
+        if (component.DrawOrder != 0)
+        {
+            node.Add("draw_order", component.DrawOrder);
+        }
     }
 
     private static void SaveTileMapComponent(TileMapComponent component, JObject node)

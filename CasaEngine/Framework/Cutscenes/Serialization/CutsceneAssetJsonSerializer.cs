@@ -80,6 +80,20 @@ public static class CutsceneAssetJsonSerializer
                 node["actions"] = SaveActions(parallelAction.Actions);
                 break;
 
+            case AtCutsceneActionData atAction:
+                node["seconds"] = atAction.Seconds;
+                node["actions"] = SaveActions(atAction.Actions);
+                break;
+
+            case RepeatCutsceneActionData repeatAction:
+                if (repeatAction.Count is { } repeatCount)
+                {
+                    node["count"] = repeatCount;
+                }
+
+                node["actions"] = SaveActions(repeatAction.Actions);
+                break;
+
             case PlaySoundCutsceneActionData playSoundAction:
                 node["sound_asset_id"] = playSoundAction.SoundAssetId.ToString();
                 node["volume"] = playSoundAction.Volume;
@@ -149,6 +163,132 @@ public static class CutsceneAssetJsonSerializer
                 if (openScreenAction.Target != null)
                 {
                     node["target"] = openScreenAction.Target;
+                }
+
+                break;
+
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                if (showSpriteAction.EntityName != null)
+                {
+                    node["entity"] = showSpriteAction.EntityName;
+                }
+
+                if (showSpriteAction.Sprite != null)
+                {
+                    node["sprite"] = showSpriteAction.Sprite;
+                }
+
+                if (showSpriteAction.X is { } showX)
+                {
+                    node["x"] = showX;
+                }
+
+                if (showSpriteAction.Y is { } showY)
+                {
+                    node["y"] = showY;
+                }
+
+                if (showSpriteAction.Color is { } showColor)
+                {
+                    node["color"] = SaveColor(showColor);
+                }
+
+                if (showSpriteAction.BlendMode is { } showBlendMode)
+                {
+                    node["blend_mode"] = showBlendMode.ToString();
+                }
+
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                if (hideSpriteAction.EntityName != null)
+                {
+                    node["entity"] = hideSpriteAction.EntityName;
+                }
+
+                break;
+
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                if (playVideoSpriteAction.EntityName != null)
+                {
+                    node["entity"] = playVideoSpriteAction.EntityName;
+                }
+
+                break;
+
+            case StartVideoSpriteCutsceneActionData startVideoSpriteAction:
+                if (startVideoSpriteAction.EntityName != null)
+                {
+                    node["entity"] = startVideoSpriteAction.EntityName;
+                }
+
+                break;
+
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                if (moveSpriteAction.EntityName != null)
+                {
+                    node["entity"] = moveSpriteAction.EntityName;
+                }
+
+                if (moveSpriteAction.X is { } moveX)
+                {
+                    node["x"] = moveX;
+                }
+
+                if (moveSpriteAction.Y is { } moveY)
+                {
+                    node["y"] = moveY;
+                }
+
+                if (moveSpriteAction.Speed is { } moveSpeed)
+                {
+                    node["speed"] = moveSpeed;
+                }
+
+                break;
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                if (tintSpriteAction.EntityName != null)
+                {
+                    node["entity"] = tintSpriteAction.EntityName;
+                }
+
+                if (tintSpriteAction.Color is { } tintColor)
+                {
+                    node["color"] = SaveColor(tintColor);
+                }
+
+                if (tintSpriteAction.Duration is { } tintDuration)
+                {
+                    node["duration"] = tintDuration;
+                }
+
+                break;
+
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                if (exitOnInputAction.Mapping != null)
+                {
+                    node["mapping"] = exitOnInputAction.Mapping;
+                }
+
+                var exitInputs = new JArray();
+                for (int index = 0; index < exitOnInputAction.Inputs.Count; index++)
+                {
+                    exitInputs.Add(exitOnInputAction.Inputs[index]);
+                }
+
+                node["inputs"] = exitInputs;
+                if (exitOnInputAction.NextCutscene != null)
+                {
+                    node["next_cutscene"] = exitOnInputAction.NextCutscene;
+                }
+
+                break;
+
+            case PlayVideoCutsceneActionData playVideoAction:
+                if (playVideoAction.Target != null)
+                {
+                    node["target"] = playVideoAction.Target;
                 }
 
                 break;
@@ -231,9 +371,19 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.WaitFrames => LoadWaitFrames(node),
             CutsceneActionTypes.FadeScreenFrames => LoadFadeScreenFrames(node),
             CutsceneActionTypes.OpenScreen => new OpenScreenCutsceneActionData { Target = ReadTarget(node) },
+            CutsceneActionTypes.PlayVideo => new PlayVideoCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
+            CutsceneActionTypes.ShowSprite => LoadShowSprite(node),
+            CutsceneActionTypes.HideSprite => LoadHideSprite(node),
+            CutsceneActionTypes.PlayVideoSprite => LoadPlayVideoSprite(node),
+            CutsceneActionTypes.StartVideoSprite => LoadStartVideoSprite(node),
+            CutsceneActionTypes.MoveSprite => LoadMoveSprite(node),
+            CutsceneActionTypes.TintSprite => LoadTintSprite(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
+            CutsceneActionTypes.Repeat => LoadRepeat(node),
+            CutsceneActionTypes.At => LoadAt(node),
+            CutsceneActionTypes.ExitOnInput => LoadExitOnInput(node),
             _ => new UnknownCutsceneActionData(actionType)
         };
     }
@@ -256,24 +406,121 @@ public static class CutsceneAssetJsonSerializer
         return action;
     }
 
+    private static ShowSpriteCutsceneActionData LoadShowSprite(JObject node)
+    {
+        var action = new ShowSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.Sprite = ReadString(node, "sprite", action.FormatErrors);
+        action.X = ReadNumber(node, "x", action.FormatErrors);
+        action.Y = ReadNumber(node, "y", action.FormatErrors);
+        action.Color = ReadColor(node, "color", action.FormatErrors);
+        action.BlendMode = ReadEnum<SpriteBlendMode>(node, "blend_mode", action.FormatErrors);
+        return action;
+    }
+
+    private static HideSpriteCutsceneActionData LoadHideSprite(JObject node)
+    {
+        var action = new HideSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    private static PlayVideoSpriteCutsceneActionData LoadPlayVideoSprite(JObject node)
+    {
+        var action = new PlayVideoSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    private static StartVideoSpriteCutsceneActionData LoadStartVideoSprite(JObject node)
+    {
+        var action = new StartVideoSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    private static MoveSpriteCutsceneActionData LoadMoveSprite(JObject node)
+    {
+        var action = new MoveSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.X = ReadNumber(node, "x", action.FormatErrors);
+        action.Y = ReadNumber(node, "y", action.FormatErrors);
+        action.Speed = ReadNumber(node, "speed", action.FormatErrors);
+        return action;
+    }
+
+    private static TintSpriteCutsceneActionData LoadTintSprite(JObject node)
+    {
+        var action = new TintSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.Color = ReadColor(node, "color", action.FormatErrors);
+        action.Duration = ReadNumber(node, "duration", action.FormatErrors);
+        return action;
+    }
+
+    /// <summary>A non-empty string; anything else is a format error, a missing key reads as absent.</summary>
+    private static string ReadString(JObject node, string key, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is { Type: JTokenType.String } && !string.IsNullOrWhiteSpace(value.GetString()))
+        {
+            return value.GetString();
+        }
+
+        errors[key] = $"{key} must be a non-empty string, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
+    /// <summary>A number, integer or decimal.</summary>
+    private static float? ReadNumber(JObject node, string key, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is { Type: JTokenType.Integer or JTokenType.Float })
+        {
+            float number = value.GetSingle();
+            if (float.IsFinite(number))
+            {
+                return number;
+            }
+
+            errors[key] = $"{key} must be a finite number, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+            return null;
+        }
+
+        errors[key] = $"{key} must be a number, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
     /// <summary>The target text; anything but a string reads as absent, which the validator refuses.</summary>
     private static string ReadTarget(JObject node)
         => node["target"] is { Type: JTokenType.String } value ? value.GetString() : null;
 
     /// <summary>An integer. A negative one is kept, the validator refuses it.</summary>
     private static int? ReadFrames(JObject node, Dictionary<string, string> errors)
+        => ReadInteger(node, "frames", errors);
+
+    /// <summary>An integer, not a decimal number. A negative one is kept, the validator refuses it.</summary>
+    private static int? ReadInteger(JObject node, string key, Dictionary<string, string> errors)
     {
-        if (node["frames"] is not { } value)
+        if (node[key] is not { } value)
         {
             return null;
         }
 
-        if (TryGetInteger(value, out long frames) && frames is >= int.MinValue and <= int.MaxValue)
+        if (TryGetInteger(value, out long integer) && integer is >= int.MinValue and <= int.MaxValue)
         {
-            return (int)frames;
+            return (int)integer;
         }
 
-        errors["frames"] = $"frames must be an integer, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        errors[key] = $"{key} must be an integer, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
         return null;
     }
 
@@ -366,6 +613,60 @@ public static class CutsceneAssetJsonSerializer
         var action = new ParallelCutsceneActionData();
         LoadActions(node, action.Actions);
         return action;
+    }
+
+    private static RepeatCutsceneActionData LoadRepeat(JObject node)
+    {
+        var action = new RepeatCutsceneActionData();
+        action.Count = ReadInteger(node, "count", action.FormatErrors);
+        LoadActions(node, action.Actions);
+        return action;
+    }
+
+    private static AtCutsceneActionData LoadAt(JObject node)
+    {
+        var action = new AtCutsceneActionData();
+        action.Seconds = ReadNumber(node, "seconds", action.FormatErrors) ?? 0f;
+        LoadActions(node, action.Actions);
+        return action;
+    }
+
+    private static ExitOnInputCutsceneActionData LoadExitOnInput(JObject node)
+    {
+        var action = new ExitOnInputCutsceneActionData();
+        action.Mapping = ReadString(node, "mapping", action.FormatErrors);
+        action.NextCutscene = ReadString(node, "next_cutscene", action.FormatErrors);
+        ReadStringList(node, "inputs", action.Inputs, action.FormatErrors);
+        return action;
+    }
+
+    /// <summary>A list of non-empty strings; anything else is a format error, a missing key reads as an empty list.</summary>
+    private static void ReadStringList(JObject node, string key, List<string> values, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return;
+        }
+
+        if (value is not JArray array)
+        {
+            errors[key] = $"{key} must be a list of non-empty strings, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+            return;
+        }
+
+        for (int index = 0; index < array.Count; index++)
+        {
+            JToken item = array[index];
+            if (item is { Type: JTokenType.String } && !string.IsNullOrWhiteSpace(item.GetString()))
+            {
+                values.Add(item.GetString());
+            }
+            else
+            {
+                errors[key] = $"{key}[{index}] must be a non-empty string, but is {item.ToString(Newtonsoft.Json.Formatting.None)}.";
+                return;
+            }
+        }
     }
 
     private static void LoadActions(JObject node, List<CutsceneActionData> actions)

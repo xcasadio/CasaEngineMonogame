@@ -15,6 +15,7 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI.MGUI;
+using CasaEngine.Framework.Video;
 
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -58,5 +59,6 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(SoundAsset), new SoundAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(AudioMixerAsset), new AudioMixerAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(BitmapFont), new BitmapFontLoader());
+        assetContentManager.RegisterAssetLoader(typeof(MdecVideoAsset), new MdecVideoAssetLoader());
     }
 }

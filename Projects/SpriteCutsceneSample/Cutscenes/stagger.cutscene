@@ -1,0 +1,123 @@
+{
+  "id": "7d2f4b1e-6a93-5c08-8e51-3b9d0f27a4c6",
+  "name": "Sprite Stagger",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "ShowSprite",
+        "entity": "orb-left",
+        "x": -190,
+        "y": 35,
+        "color": [
+          128,
+          100,
+          35
+        ],
+        "blend_mode": "Additive"
+      },
+      {
+        "type": "ShowSprite",
+        "entity": "orb-right",
+        "sprite": "orb",
+        "x": 190,
+        "y": 35,
+        "color": [
+          35,
+          80,
+          128
+        ],
+        "blend_mode": "Additive"
+      },
+      {
+        "type": "ShowSprite",
+        "entity": "ring-left",
+        "sprite": "ring",
+        "x": -190,
+        "y": -35,
+        "color": [
+          128,
+          55,
+          15
+        ],
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ShowSprite",
+        "entity": "ring-right",
+        "x": 190,
+        "y": -35,
+        "color": [
+          15,
+          100,
+          55
+        ],
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "Parallel",
+        "actions": [
+          {
+            "type": "At",
+            "seconds": 0,
+            "actions": [
+              {
+                "type": "MoveSprite",
+                "entity": "orb-left",
+                "x": -60,
+                "y": 35,
+                "speed": 120
+              }
+            ]
+          },
+          {
+            "type": "At",
+            "seconds": 0.4,
+            "actions": [
+              {
+                "type": "MoveSprite",
+                "entity": "orb-right",
+                "x": 60,
+                "y": 35,
+                "speed": 120
+              }
+            ]
+          },
+          {
+            "type": "At",
+            "seconds": 0.8,
+            "actions": [
+              {
+                "type": "MoveSprite",
+                "entity": "ring-left",
+                "x": -60,
+                "y": -35,
+                "speed": 120
+              }
+            ]
+          },
+          {
+            "type": "At",
+            "seconds": 1.2,
+            "actions": [
+              {
+                "type": "MoveSprite",
+                "entity": "ring-right",
+                "x": 60,
+                "y": -35,
+                "speed": 120
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "seconds": 1
+      }
+    ]
+  }
+}

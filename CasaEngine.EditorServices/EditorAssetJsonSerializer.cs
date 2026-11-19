@@ -8,6 +8,8 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Spatial;
+using CasaEngine.Framework.Cutscenes;
+using CasaEngine.Framework.Cutscenes.Serialization;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
@@ -110,6 +112,10 @@ internal static class EditorAssetJsonSerializer
 
             case AudioMixerAsset audioMixerAsset:
                 EditorAudioMixerAssetJsonWriter.Save(audioMixerAsset, rootObject);
+                return true;
+
+            case CutsceneAsset cutsceneAsset:
+                CutsceneAssetJsonSerializer.Save(cutsceneAsset, rootObject);
                 return true;
 
             default:

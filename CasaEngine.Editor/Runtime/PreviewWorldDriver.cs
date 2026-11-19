@@ -60,6 +60,28 @@ internal sealed class PreviewWorldDriver : IDisposable
         return world;
     }
 
+    /// <summary>
+    /// Replaces the preview world by one the caller creates, for example a copy of a world asset. The driver loads its
+    /// content in the editor runtime, like it does for the world of <see cref="Rebuild(Action{World})"/>.
+    /// </summary>
+    public World Rebuild(Func<World> createWorld)
+    {
+        ArgumentNullException.ThrowIfNull(createWorld);
+
+        Clear();
+
+        var world = createWorld() ?? throw new InvalidOperationException("The preview world factory returned no world.");
+        world.LoadContent(_editorRuntime);
+
+        World = world;
+        if (_options.RefreshAfterRebuild)
+        {
+            RefreshNow();
+        }
+
+        return world;
+    }
+
     public void RefreshNow()
     {
         World?.Update(0f);
@@ -69,12 +91,18 @@ internal sealed class PreviewWorldDriver : IDisposable
     {
         ArgumentNullException.ThrowIfNull(gameTime);
 
+        Tick((float)gameTime.ElapsedGameTime.TotalSeconds);
+    }
+
+    /// <summary>Advances the world by <paramref name="seconds"/>. Creates no <see cref="GameTime"/>, so a loop of steps allocates nothing.</summary>
+    public void Tick(float seconds)
+    {
         if (_options.UpdateMode != PreviewWorldUpdateMode.Continuous || World == null)
         {
             return;
         }
 
-        World.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        World.Update(seconds);
     }
 
     public void Clear()

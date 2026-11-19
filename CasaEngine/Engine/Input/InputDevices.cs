@@ -6,4 +6,5 @@ public enum InputDevices
     Keyboard,
     GamePad,
     Mouse,
+    AnyKey,
 }

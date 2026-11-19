@@ -24,6 +24,7 @@ internal sealed class TimelineViewport : MGElement
     private DragMode _dragMode = DragMode.None;
     private float _dragStartTime;
     private float _dragDuration;
+    private float _dragGrabOffset;
     private bool _ignoreNextRelease;
 
     private enum DragMode
@@ -61,7 +62,7 @@ internal sealed class TimelineViewport : MGElement
     public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
     {
         sharedSize = new Thickness(0);
-        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
+        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetTrackCount() * _owner.TrackRowHeight);
         return new Thickness(availableSize.Width, desiredHeight, 0, 0);
     }
 
@@ -268,7 +269,7 @@ internal sealed class TimelineViewport : MGElement
         }
 
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
         {
@@ -302,7 +303,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
@@ -342,7 +343,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
@@ -399,6 +400,17 @@ internal sealed class TimelineViewport : MGElement
         _dragMode = mode;
         _dragStartTime = _pressedItem.StartTime;
         _dragDuration = _pressedItem.Duration;
+        _dragGrabOffset = 0f;
+        if (mode == DragMode.Move && _owner.KeepGrabOffsetEnabled)
+        {
+            // The event carries the position of the press, not the one the drag started to move at.
+            Rectangle layoutBounds = GetInputBounds();
+            Point pressLayoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
+            Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+            float pressTime = GetTimeAtPosition(Math.Max(pressLayoutPosition.X, timeAreaBounds.Left), timeAreaBounds.Left);
+            _dragGrabOffset = Math.Clamp(pressTime - _pressedItem.StartTime, 0f, Math.Max(0f, _pressedItem.Duration));
+        }
+
         _owner.Focus(KeyboardFocusSource.Pointer);
         e.SetHandledBy(this, false);
     }
@@ -410,11 +422,18 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
-        float cursorTime = _owner.SnapTime(GetTimeAtPosition(x, timeAreaBounds.Left), _draggedItem);
+        float rawTime = GetTimeAtPosition(x, timeAreaBounds.Left);
+        if (_dragGrabOffset > 0f)
+        {
+            // Only a move can have a grab offset: the item follows the cursor from where it was grabbed.
+            rawTime = Math.Max(0f, rawTime - _dragGrabOffset);
+        }
+
+        float cursorTime = _owner.SnapTime(rawTime, _draggedItem);
 
         switch (_dragMode)
         {
@@ -470,6 +489,7 @@ internal sealed class TimelineViewport : MGElement
         _draggedItem = null;
         _pressedItem = null;
         _dragMode = DragMode.None;
+        _dragGrabOffset = 0f;
         _ignoreNextRelease = true;
         _owner.InvalidateViewPresentation();
     }
@@ -482,7 +502,7 @@ internal sealed class TimelineViewport : MGElement
         }
 
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.CurrentPosition);
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         TimelineTrack? lane = timeAreaBounds.Contains(layoutPosition)
             ? _owner.GetTrackAtY(layoutBounds, layoutPosition.Y)
@@ -520,23 +540,38 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
-        if (!bounds.Contains(e.Position))
+        Rectangle bounds = GetInputBounds();
+        Point position = _owner.VerticalScrollEnabled
+            ? ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position)
+            : e.Position;
+        if (!bounds.Contains(position))
         {
             return;
         }
 
         int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
         int timeAreaRight = bounds.Right - TimelineControlMetrics.TimeAreaPaddingRight;
-        if (e.Position.X < timeAreaLeft || e.Position.X > timeAreaRight)
+        if (position.X < timeAreaLeft || position.X > timeAreaRight)
         {
             return;
         }
 
         float wheelSteps = e.ScrollWheelDelta / 120.0f;
-        float anchorViewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, GetVisibleTimeAreaWidth());
+        float anchorViewportX = Math.Clamp(position.X - timeAreaLeft, 0f, GetVisibleTimeAreaWidth());
         _owner.ApplyMouseWheelZoom(wheelSteps, anchorViewportX);
         e.SetHandledBy(this);
+    }
+
+    /// <summary>Bounds in layout space used by input. With vertical scrolling the unclipped layout bounds are the only ones that
+    /// stay consistent with the track rows once the content is scrolled.</summary>
+    private Rectangle GetInputBounds()
+    {
+        if (_owner.VerticalScrollEnabled)
+        {
+            return LayoutBounds;
+        }
+
+        return !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
     }
 
     private TimelineHitTestResult HitTestAt(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack track)
@@ -547,12 +582,26 @@ internal sealed class TimelineViewport : MGElement
             return new TimelineHitTestResult { Track = track, Area = TimelineHitTestArea.TrackBody };
         }
 
+        Rectangle trackBounds = _owner.GetTrackBounds(layoutBounds, trackIndex);
+        if (_owner.PreciseHitTestEnabled)
+        {
+            return TimelineHitTest.HitTestTrackPrecise(
+                _owner.Model!.Items,
+                _owner.ViewTransform,
+                timeAreaBounds.Left,
+                track,
+                trackBounds,
+                TimelineControlMetrics.ItemHitRadius,
+                TimelineControlMetrics.ResizeHandleWidth,
+                layoutPosition);
+        }
+
         return TimelineHitTest.HitTestTrack(
             _owner.Model!.Items,
             _owner.ViewTransform,
             timeAreaBounds.Left,
             track,
-            _owner.GetTrackBounds(layoutBounds, trackIndex),
+            trackBounds,
             TimelineControlMetrics.ItemHitRadius,
             TimelineControlMetrics.ResizeHandleWidth,
             layoutPosition);

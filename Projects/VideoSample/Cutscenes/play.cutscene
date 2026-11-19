@@ -1,0 +1,20 @@
+{
+  "id": "40214792-4faf-440f-8a90-4eaa7947fd59",
+  "name": "Play Clip",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "PlayVideo",
+        "target": "ClipScreen"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "VideoWorld.world"
+      }
+    ]
+  }
+}

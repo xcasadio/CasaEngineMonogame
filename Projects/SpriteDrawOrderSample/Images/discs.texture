@@ -1,0 +1,22 @@
+{
+  "id": "8b96280f-c45a-5328-8844-dc2d6bca16f6",
+  "name": "discs",
+  "texture_asset_id": "25b8cc50-ec93-574b-be39-bb154a6f6575",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

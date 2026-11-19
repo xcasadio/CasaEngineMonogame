@@ -1,0 +1,36 @@
+# ADR-0138: The cutscene preview pauses, steps and seeks by replay, driven by a transport of the editing services
+
+- **Status**: Accepted
+- **Date**: 2026-11-18
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-transport-tasks.md` (decisions D1 to D5, settled with the author, and choices P1 to P15, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Refines ADR-0135 and ADR-0137; replaces one point of each (see P7 and P10).
+- Renumbered from ADR-0099 on 2026-11-19 when origin/main was merged (its ADR-0099 is another decision)
+
+## Context
+
+- ADR-0135 decided that the preview plays the cutscene being edited in an isolated copy of a world, rebuilt from its asset by each play, and that `Stop` restores nothing: the world keeps the state left by the play. ADR-0137 decided that the timeline is a read-only projection and that a click in its ruler moves nothing, the playhead returning to the play time.
+- `CutsceneDirector` has no pause and no seek. Its coroutines advance only through `World.Update`, which the preview session calls once per editor frame; its play clock (`PlayElapsedSeconds`, `PlayElapsedFrames`) advances only during a running play and keeps its last value once the play has ended.
+- No test can build the preview session, because it needs a running game. A rule that lives in the session cannot be unit tested.
+- The generic timeline control listens to the release of the left button in the ruler, not to a drag. The viewport resets its camera whenever a different preview world is installed.
+- Actions counted in frames (`WaitFrames`, `FadeScreenFrames`) count updates, and the preview updates once per editor frame, whose duration varies.
+
+## Decision
+
+- **Pause is a freeze of the preview world, in the editor (P1).** Pausing stops the world of the preview from advancing. The runtime `CasaEngine/` gets no pause API and the director is not touched.
+- **Seeking is replaying (P2, P3, P4).** To go to an instant, the preview world is rebuilt from its asset, the copy of the cutscene is played, then the world advances by fixed steps of 1/60 s until the play clock reaches the target; the preview then pauses. When the target is after the current instant, the play is still running and the document has not changed since the play started, the advance resumes from the current state and nothing is rebuilt. The advance is spread over the editor frames: each frame spends at most 8 ms on it and makes at least one step, the state being "Seeking" meanwhile, so the editor stays responsive whatever the length of the cutscene. The target is a play time equal to the timeline time (the first round of an endless loop), clamped between 0 and the duration of the projection. If the play ends before the target (failure, refused change of world, shorter cutscene), the advance stops there.
+- **The transport logic lives in the editing services (P5).** A class of `CasaEngine.EditorServices`, testable without the editor, owns the modes Running, Paused and Seeking, the target, the fixed step, the per-frame budget and an injectable clock. The preview session only executes the steps it asks for. A pure function derives the displayed state (Seeking, Paused, Playing, Ended, Stopped) from whether a play is running, the transport mode, the end state of the play and the flag "ended by a change of world", so that the document and the diagnostics share one table.
+- **Buttons, Stop and the end of a play (P6, P7, P8).** The transport row has a `Play` / `Pause` button whose label follows the state, `Stop`, `Restart`, a previous-frame and a next-frame button. `Play` during a pause resumes; after an end or a `Stop` it starts again from the beginning. Next frame pauses, then makes one step of 1/60 s; previous frame seeks to the current instant minus 1/60 s. `Stop` returns the preview to its start state: the world is rebuilt from its asset and the playhead returns to 0. **This replaces the point of ADR-0135 where `Stop` restores nothing and the world keeps the state left by the play.** When a play ends by itself (normal end, failure, or a change of world refused by the preview), the world keeps its final state, the playhead stays at the end time and the transport shows "Ended"; "Stopped" is shown only before any play and after a `Stop`.
+- **Changes during a pause (P9).** A change of the document during a pause or a seek replays up to the same instant and stays paused. During a play it restarts the play from the beginning, as before. When no play runs, nothing is replayed.
+- **Scrubbing (P10).** A click in the ruler, or in the empty area of the tracks, moves the playhead by seeking the preview to that instant and leaves it paused. Dragging in the ruler moves the playhead continuously; it is an option of the generic control, off by default, so that Animation2D is unchanged. **This replaces the "Scrubbing" point of ADR-0137, where a click in the ruler moved nothing.**
+- **Camera (P11).** Seeking, going back one frame and `Stop` rebuild the world but keep the camera of the preview as the user left it: the viewport gets an editor-internal way to replace a preview world while keeping its camera. `Play` from the beginning and `Restart` keep the current framing behaviour.
+- **Measured durations are kept (P12).** Measured durations survive the replays of the same document: only `Play` from the beginning and `Restart` start from an empty measurement. Without this, measured bars would turn back to estimated at every step back.
+- **Automation (P13).** `--cutscene-preview-seek <seconds[,seconds...]>` goes to each instant in order, each one after the end of the previous one; `--cutscene-preview-step <n>` steps n frames forward after the seeks; `--cutscene-preview-stop` stops after the rest. The capture delay counts from the end of the last step.
+
+## Consequences
+
+- The playhead becomes usable: pause, frame stepping, click and drag to see the cutscene at an instant, and a modification made during a pause shows its result under the playhead.
+- The runtime is unchanged. The transport rules are unit tested through a fake step executor and a real `World` with its director, and the session stays thin.
+- Going back rebuilds the world from its asset. On a small world this is immediate; on a large one a drag toward the past rebuilds it at each mouse move. This cost is to be measured at acceptance, and a snapshot of the world state, which would avoid replays, is deferred.
+- Seek steps are fixed (1/60 s) while the steps of a play follow the editor frames (P15). An action counted in frames can therefore land at a slightly different instant in a play and in a seek. This is accepted and documented.
+- No keyboard shortcut (space, arrows) is added in this slice (P14): they need changes to the global input routing of the editor.
+- Saving the document during a pause replays up to the same instant, since saving goes through the same change notification. This is accepted.
+- Deferred: moving, resizing, adding and deleting on the timeline and free placement (next slices), keyboard shortcuts, play speed, looping a range, sound preview, and going back without replay.

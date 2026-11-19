@@ -1,0 +1,17 @@
+{
+  "id": "13251a02-d2c1-4ce1-a602-0bcea5b3487a",
+  "name": "orb",
+  "sprite_sheet_asset_id": "a8e32fd4-c6c7-4349-a183-32558cd90e0d",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 24,
+    "y": 24
+  },
+  "collisions": [],
+  "sockets": []
+}

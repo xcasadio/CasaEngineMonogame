@@ -1,0 +1,28 @@
+{
+  "id": "4c31f126-c210-5738-9cb1-edeae0cb4a32",
+  "name": "Sprite End",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 2
+      },
+      {
+        "type": "FadeScreen",
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "duration_seconds": 0,
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "SpriteWorld.world"
+      }
+    ]
+  }
+}

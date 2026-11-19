@@ -142,8 +142,67 @@ public static class CutsceneValidator
                 ValidateTarget(openScreenAction.Target, path, "OpenScreen", result);
                 break;
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                ValidateTarget(playVideoAction.Target, path, "PlayVideo", result);
+                break;
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 ValidateTarget(changeWorldAction.Target, path, "ChangeWorld", result);
+                break;
+
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                ValidateRequiredString(showSpriteAction.EntityName, "entity", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("sprite", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("x", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("y", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("color", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("blend_mode", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                if (showSpriteAction.X.HasValue != showSpriteAction.Y.HasValue
+                    && !showSpriteAction.FormatErrors.ContainsKey("x")
+                    && !showSpriteAction.FormatErrors.ContainsKey("y"))
+                {
+                    result.AddError(path, "ShowSprite.x and ShowSprite.y must be given together.");
+                }
+
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                ValidateRequiredString(hideSpriteAction.EntityName, "entity", hideSpriteAction.FormatErrors, path, "HideSprite", result);
+                break;
+
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                ValidateRequiredString(playVideoSpriteAction.EntityName, "entity", playVideoSpriteAction.FormatErrors, path, "PlayVideoSprite", result);
+                break;
+
+            case StartVideoSpriteCutsceneActionData startVideoSpriteAction:
+                ValidateRequiredString(startVideoSpriteAction.EntityName, "entity", startVideoSpriteAction.FormatErrors, path, "StartVideoSprite", result);
+                break;
+
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                ValidateRequiredString(moveSpriteAction.EntityName, "entity", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.X, "x", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.Y, "y", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.Speed, "speed", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                if (moveSpriteAction.Speed is <= 0f)
+                {
+                    result.AddError(path, "MoveSprite.speed must be greater than zero.");
+                }
+
+                break;
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                ValidateRequiredString(tintSpriteAction.EntityName, "entity", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                if (tintSpriteAction.Color == null)
+                {
+                    ReportMissing("color", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                }
+
+                ValidateRequiredNumber(tintSpriteAction.Duration, "duration", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                if (tintSpriteAction.Duration is < 0f)
+                {
+                    result.AddError(path, "TintSprite.duration must be greater than or equal to zero.");
+                }
+
                 break;
 
             case SequenceCutsceneActionData sequenceAction:
@@ -152,6 +211,40 @@ public static class CutsceneValidator
 
             case ParallelCutsceneActionData parallelAction:
                 ValidateActionList(parallelAction.Actions, path, "Parallel", result);
+                break;
+
+            case RepeatCutsceneActionData repeatAction:
+                ValidateRequired(repeatAction.Count, "count", repeatAction.FormatErrors, path, "Repeat", result);
+                if (repeatAction.Count is < 0)
+                {
+                    result.AddError(path, "Repeat.count must be greater than or equal to zero (0 repeats without end).");
+                }
+
+                ValidateActionList(repeatAction.Actions, path, "Repeat", result);
+                break;
+
+            case AtCutsceneActionData atAction:
+                ReportFormatError("seconds", atAction.FormatErrors, path, "At", result);
+                if (atAction.Seconds < 0f)
+                {
+                    result.AddError(path, "At.seconds must be greater than or equal to zero.");
+                }
+
+                ValidateActionList(atAction.Actions, path, "At", result);
+                break;
+
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                ValidateRequiredString(exitOnInputAction.Mapping, "mapping", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                ValidateRequiredString(exitOnInputAction.NextCutscene, "next_cutscene", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                if (exitOnInputAction.FormatErrors.ContainsKey("inputs"))
+                {
+                    ReportFormatError("inputs", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                }
+                else if (exitOnInputAction.Inputs.Count == 0)
+                {
+                    result.AddError(path, "ExitOnInput.inputs must name at least one input.");
+                }
+
                 break;
 
             case UnknownCutsceneActionData unknownAction:
@@ -190,6 +283,31 @@ public static class CutsceneValidator
         if (value == null)
         {
             ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    private static void ValidateRequiredString(string value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (value == null)
+        {
+            ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    private static void ValidateRequiredNumber(float? value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (value == null)
+        {
+            ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    /// <summary>Reports what the loader found malformed in an optional field.</summary>
+    private static void ReportFormatError(string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (formatErrors.TryGetValue(key, out string message))
+        {
+            result.AddError(path, $"{actionName}.{message}");
         }
     }
 

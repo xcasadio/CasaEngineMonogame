@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace CasaEngine.Editor.History;
 
 /// <summary>
-/// The asynchronous "save before quitting?" question of screen documents (ADR-0041, plan task T3.2). The game needs to know
+/// The asynchronous "save before quitting?" question of every modified document and the world (ADR-0041, ADR-0143; the
+/// name is kept, the "screens" are the modified documents). The game needs to know
 /// in <c>OnExiting</c> whether the exit goes on, but the answer to an MGUI message box arrives later: an exit that needs an
 /// answer is cancelled now, the question is asked once, and the exit is requested again once the answer lets it go - that
 /// second exit is let through without asking. Pure: the modified screens, the question, the save and the exit request are

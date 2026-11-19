@@ -9,6 +9,7 @@ public static class EditorPanelIds
     public const string ContentBrowser = "panel_content_browser";
     public const string Output = "panel_output";
     public const string Animation2dTimeline = "panel_animation2d_timeline";
+    public const string CutsceneTimeline = "panel_cutscene_timeline";
     public const string AudioProfiler = "panel_audio_profiler";
     public const string EditorPreferences = "panel_editor_preferences";
     public const string UIScreenDocumentPrefix = "panel_ui_screen_";

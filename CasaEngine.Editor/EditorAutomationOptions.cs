@@ -41,6 +41,52 @@ public sealed class EditorAutomationOptions
     public string ComponentName { get; private set; }
     public string DiagnosticsOutputPath { get; private set; }
     public bool PlaySmoke { get; private set; }
+    public bool CutscenePreviewPlay { get; private set; }
+    public string CutsceneSelectActionPath { get; private set; }
+    public string CutsceneAddActionType { get; private set; }
+    public bool CutsceneReactivate { get; private set; }
+
+    /// <summary>
+    /// Play times, in seconds, the cutscene preview goes to one after the other (<c>--cutscene-preview-seek</c>). Empty when
+    /// the option is absent or malformed: a list with an unreadable or negative value is ignored as a whole.
+    /// </summary>
+    public double[] CutscenePreviewSeekSeconds { get; private set; } = Array.Empty<double>();
+
+    /// <summary>
+    /// Frames the cutscene preview moves once its seeks are done (<c>--cutscene-preview-step</c>): forward when positive, back
+    /// (one previous-frame move each) when negative; 0 when absent or not an integer, which is ignored.
+    /// </summary>
+    public int CutscenePreviewStepFrames { get; private set; }
+
+    /// <summary>
+    /// True when the cutscene edits (<c>--cutscene-select-action</c>, <c>--cutscene-add-action</c>) are applied after the seeks
+    /// and steps of the preview instead of before (<c>--cutscene-edit-after-transport</c>).
+    /// </summary>
+    public bool CutsceneEditAfterTransport { get; private set; }
+
+    /// <summary>
+    /// The structure operations of the cutscene (<c>--cutscene-edit-ops "select:path;up;paste"</c>, ADR-0140 P14), applied one
+    /// per frame after the select and add edits. Empty when the option is absent.
+    /// </summary>
+    public CutsceneEditOperation[] CutsceneEditOperations { get; private set; } = Array.Empty<CutsceneEditOperation>();
+
+    /// <summary>
+    /// True when the cutscene preview play is resumed, as the Play button does during a pause, after the seeks, the steps and
+    /// the edits (<c>--cutscene-preview-resume</c>). Ignored when <see cref="CutscenePreviewStop"/> is set.
+    /// </summary>
+    public bool CutscenePreviewResume { get; private set; }
+
+    /// <summary>True when the cutscene preview is stopped after the seeks and steps (<c>--cutscene-preview-stop</c>).</summary>
+    public bool CutscenePreviewStop { get; private set; }
+
+    /// <summary>True when the sound of the cutscene preview is turned on before any play or seek (<c>--cutscene-preview-sound</c>).</summary>
+    public bool CutscenePreviewSound { get; private set; }
+
+    /// <summary>
+    /// The armed input the cutscene preview simulates once the other transport steps are done (<c>--cutscene-preview-input</c>),
+    /// or null when the option is absent or has no name. Ignored when <see cref="CutscenePreviewStop"/> is set, as the resume is.
+    /// </summary>
+    public string CutscenePreviewInput { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     /// <summary>Longest an automation run may take before it writes its diagnostics and stops with exit code 2.</summary>
@@ -75,6 +121,18 @@ public sealed class EditorAutomationOptions
         || SaveProject
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
         || PlaySmoke
+        || CutscenePreviewPlay
+        || !string.IsNullOrWhiteSpace(CutsceneSelectActionPath)
+        || !string.IsNullOrWhiteSpace(CutsceneAddActionType)
+        || CutsceneReactivate
+        || CutscenePreviewSeekSeconds.Length > 0
+        || CutscenePreviewStepFrames != 0
+        || CutscenePreviewStop
+        || CutsceneEditAfterTransport
+        || CutsceneEditOperations.Length > 0
+        || CutscenePreviewResume
+        || CutscenePreviewSound
+        || !string.IsNullOrWhiteSpace(CutscenePreviewInput)
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
@@ -243,6 +301,69 @@ public sealed class EditorAutomationOptions
                     options.PlaySmoke = true;
                     break;
 
+                case "--cutscene-preview-play":
+                    options.CutscenePreviewPlay = true;
+                    break;
+
+                case "--cutscene-select-action":
+                    options.CutsceneSelectActionPath = next;
+                    index++;
+                    break;
+
+                case "--cutscene-add-action":
+                    options.CutsceneAddActionType = next;
+                    index++;
+                    break;
+
+                case "--cutscene-reactivate":
+                    options.CutsceneReactivate = true;
+                    break;
+
+                case "--cutscene-preview-seek":
+                    options.CutscenePreviewSeekSeconds = ParseSeekSeconds(next);
+                    index++;
+                    break;
+
+                case "--cutscene-preview-step":
+                    if (int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stepFrames) && stepFrames != 0)
+                    {
+                        options.CutscenePreviewStepFrames = stepFrames;
+                    }
+
+                    index++;
+                    break;
+
+                case "--cutscene-preview-stop":
+                    options.CutscenePreviewStop = true;
+                    break;
+
+                case "--cutscene-edit-after-transport":
+                    options.CutsceneEditAfterTransport = true;
+                    break;
+
+                case "--cutscene-edit-ops":
+                    options.CutsceneEditOperations = CutsceneEditOperation.ParseList(next);
+                    index++;
+                    break;
+
+                case "--cutscene-preview-resume":
+                    options.CutscenePreviewResume = true;
+                    break;
+
+                case "--cutscene-preview-sound":
+                    options.CutscenePreviewSound = true;
+                    break;
+
+                case "--cutscene-preview-input":
+                    // A following option is not a name: it is left to its own case.
+                    if (!string.IsNullOrWhiteSpace(next) && !next.StartsWith("--", StringComparison.Ordinal))
+                    {
+                        options.CutscenePreviewInput = next;
+                        index++;
+                    }
+
+                    break;
+
                 case "--screenshot-out":
                     options.ScreenshotOutputPath = next;
                     index++;
@@ -278,5 +399,30 @@ public sealed class EditorAutomationOptions
         }
 
         return options;
+    }
+
+    private static double[] ParseSeekSeconds(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Array.Empty<double>();
+        }
+
+        string[] parts = value.Split(',');
+        var seconds = new double[parts.Length];
+        for (int index = 0; index < parts.Length; index++)
+        {
+            if (!double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed)
+                || double.IsNaN(parsed)
+                || double.IsInfinity(parsed)
+                || parsed < 0d)
+            {
+                return Array.Empty<double>();
+            }
+
+            seconds[index] = parsed;
+        }
+
+        return seconds;
     }
 }

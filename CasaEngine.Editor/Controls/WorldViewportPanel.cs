@@ -159,6 +159,7 @@ public class WorldViewportPanel : IDisposable
 
     private RenderTargetSurface _surface;
     private RenderView _renderView;
+    private IPostUIOverlay _postUiOverlay;
     private MguiViewportViewHost _renderViewHost;
     private GridComponent _grid;
     private AxisComponent _axis;
@@ -785,6 +786,30 @@ public class WorldViewportPanel : IDisposable
         _renderView?.Invalidate();
     }
 
+    /// <summary>
+    /// Replaces the preview world by another one and keeps the camera as the user left it: a world that is rebuilt from its
+    /// asset (a seek or a stop of the cutscene preview) must not reset the view. When no preview world was shown yet there
+    /// is no camera to keep, and this behaves like <see cref="SetWorldOverride"/>.
+    /// </summary>
+    internal void SetWorldOverrideKeepingCamera(World world)
+    {
+        if (!HasWorldOverride || world == null || ReferenceEquals(_renderWorldOverride, world))
+        {
+            SetWorldOverride(world);
+            return;
+        }
+
+        var cameraState = _cameraController.CaptureState();
+        SetWorldOverride(world);
+        _cameraController.RestoreState(cameraState);
+        if (_camera != null)
+        {
+            _cameraController.ApplyTo(_camera);
+        }
+
+        _renderView?.Invalidate();
+    }
+
     public void FocusEntity(Entity entity)
     {
         if (entity?.RootComponent == null || _camera == null)
@@ -1310,6 +1335,30 @@ public class WorldViewportPanel : IDisposable
         return basePosition + right * (dropIndex * 2.5f);
     }
 
+    /// <summary>
+    /// Sets the overlay drawn after the UI of the render view of this viewport, or removes it with null. It is registered at
+    /// once when the render view exists, otherwise when it is created, and removed when the panel is disposed. The panel
+    /// does not own the overlay: the caller disposes it.
+    /// </summary>
+    internal void SetPostUiOverlay(IPostUIOverlay overlay)
+    {
+        if (ReferenceEquals(_postUiOverlay, overlay))
+        {
+            return;
+        }
+
+        if (_postUiOverlay != null)
+        {
+            _renderView?.UnregisterPostUIOverlay(_postUiOverlay);
+        }
+
+        _postUiOverlay = overlay;
+        if (overlay != null)
+        {
+            _renderView?.RegisterPostUIOverlay(overlay);
+        }
+    }
+
     private void EnsureRenderViewCreated()
     {
         if (_renderView != null)
@@ -1346,6 +1395,10 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView = renderView;
+        if (_postUiOverlay != null)
+        {
+            _renderView.RegisterPostUIOverlay(_postUiOverlay);
+        }
 
         if (UsesCamera2d)
         {
@@ -2192,10 +2245,16 @@ public class WorldViewportPanel : IDisposable
 
         if (_renderView != null)
         {
+            if (_postUiOverlay != null)
+            {
+                _renderView.UnregisterPostUIOverlay(_postUiOverlay);
+            }
+
             _editorRuntime.GameManager.ViewManager.Remove(_renderView);
             _renderView = null;
         }
 
+        _postUiOverlay = null;
         _surface?.Dispose();
     }
 

@@ -1,0 +1,159 @@
+{
+  "id": "a9333d90-8e1e-4f9b-a57e-296c6d1eb305",
+  "name": "VideoSpriteWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "3a4080a5-696c-4566-a1e9-4841c03545a5",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera2dComponent",
+          "type": "Camera2dComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "view_distance": 0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 320,
+            "h": 180,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "zoom": 1,
+          "pixel_snap": false
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "3a29d0e4-88d9-4d4a-907f-ddbbaf753e0a",
+        "name": "orb",
+        "is_visible": false,
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "orb"
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "d19c749b-da2a-4c0e-bf3c-619c66e6dafd",
+        "name": "clip",
+        "is_visible": false,
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "VideoSpriteComponent",
+          "type": "VideoSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 1
+            },
+            "scale": {
+              "x": 1.5,
+              "y": 1.5,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "video": "clip"
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    }
+  },
+  "startup_cutscene_asset_id": "fe28463f-744b-4c46-a66c-9eed82f2b297"
+}

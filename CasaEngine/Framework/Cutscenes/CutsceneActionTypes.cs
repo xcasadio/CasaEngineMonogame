@@ -16,5 +16,15 @@ public static class CutsceneActionTypes
     public const string WaitFrames = "WaitFrames";
     public const string FadeScreenFrames = "FadeScreenFrames";
     public const string OpenScreen = "OpenScreen";
+    public const string PlayVideo = "PlayVideo";
     public const string ChangeWorld = "ChangeWorld";
+    public const string ShowSprite = "ShowSprite";
+    public const string HideSprite = "HideSprite";
+    public const string PlayVideoSprite = "PlayVideoSprite";
+    public const string StartVideoSprite = "StartVideoSprite";
+    public const string MoveSprite = "MoveSprite";
+    public const string TintSprite = "TintSprite";
+    public const string Repeat = "Repeat";
+    public const string At = "At";
+    public const string ExitOnInput = "ExitOnInput";
 }

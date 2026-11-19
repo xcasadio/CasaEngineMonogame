@@ -22,6 +22,7 @@ public class GameManager
     private const string SoundAssetType = "sound";
     private const string FontAssetType = "fnt";
     private const string ButtonsMappingAssetType = "buttonsmapping";
+    private const string CutsceneAssetType = "cutscene";
 
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
@@ -196,25 +197,58 @@ public class GameManager
     /// </summary>
     /// <returns>Null when the screen is open, or when nothing has to open under external view management; otherwise why it cannot open.</returns>
     internal string OpenScreenFromCutscene(GameplayExecutionPolicy policy, string screenName, Func<string, IUIViewRuntime, IUIScreen> createScreen)
+        => OpenScreenFromCutscene("OpenScreen", policy, screenName, createScreen, out _, out _);
+
+    /// <summary>
+    /// Opens a screen for the <c>PlayVideo</c> cutscene action, and gives back the screen and the view it went on so
+    /// that the action can wait on it and remove it. Same failures and same rule under external view management as
+    /// <see cref="OpenScreenFromCutscene(GameplayExecutionPolicy, string, Func{string, IUIViewRuntime, IUIScreen})"/>.
+    /// </summary>
+    /// <param name="screen">The screen that was opened, or null when nothing opened.</param>
+    /// <param name="view">The view the screen is on, or null when nothing opened.</param>
+    /// <returns>Null when the screen is open, or when nothing has to open under external view management; otherwise why it cannot open.</returns>
+    internal string OpenVideoScreenFromCutscene(GameplayExecutionPolicy policy, string screenName, Func<string, IUIViewRuntime, IUIScreen> createScreen, out IUIScreen screen, out IUIViewRuntime view)
+        => OpenScreenFromCutscene("PlayVideo", policy, screenName, createScreen, out screen, out view);
+
+    /// <summary>Opens a screen for the <c>PlayVideo</c> cutscene action on the running game.</summary>
+    internal string OpenVideoScreenFromCutscene(string screenName, out IUIScreen screen, out IUIViewRuntime view)
     {
+        if (_game == null)
+        {
+            screen = null;
+            view = null;
+            return "PlayVideo needs a running game, and this manager has none.";
+        }
+
+        return OpenVideoScreenFromCutscene(_game.ExecutionPolicy, screenName, CreateDataDrivenScreen, out screen, out view);
+    }
+
+    private string OpenScreenFromCutscene(string actionName, GameplayExecutionPolicy policy, string screenName, Func<string, IUIViewRuntime, IUIScreen> createScreen, out IUIScreen screen, out IUIViewRuntime view)
+    {
+        screen = null;
+        view = null;
+
         if (policy.UseExternalViewManagement)
         {
-            Logs.WriteInfo($"OpenScreen '{screenName}' skipped: the editor manages the views.");
+            Logs.WriteInfo($"{actionName} '{screenName}' skipped: the editor manages the views.");
             return null;
         }
 
         if (!IsScreenAsset(screenName))
         {
-            return $"OpenScreen: no screen asset '{screenName}' is registered in this project.";
+            return $"{actionName}: no screen asset '{screenName}' is registered in this project.";
         }
 
-        IUIViewRuntime view = ViewManager.GetActiveUIView();
-        if (view == null)
+        IUIViewRuntime activeView = ViewManager.GetActiveUIView();
+        if (activeView == null)
         {
-            return $"OpenScreen: screen '{screenName}' needs an active view that hosts a UI, and there is none.";
+            return $"{actionName}: screen '{screenName}' needs an active view that hosts a UI, and there is none.";
         }
 
-        PushNewScreen(view, createScreen(screenName, view));
+        IUIScreen opened = createScreen(screenName, activeView);
+        PushNewScreen(activeView, opened);
+        screen = opened;
+        view = activeView;
         return null;
     }
 
@@ -365,6 +399,17 @@ public class GameManager
         return IsCataloguedAs(assetInfo, ButtonsMappingAssetType)
             ? assetInfo
             : throw new InvalidOperationException($"No buttons mapping asset '{assetIdOrName}' is registered in this project.");
+    }
+
+    /// <summary>The cutscene the name or id designates.</summary>
+    /// <exception cref="InvalidOperationException">The project has no such cutscene.</exception>
+    internal static AssetInfo FindCutsceneAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, CutsceneAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No cutscene asset '{assetIdOrName}' is registered in this project.");
     }
 
     private static AssetInfo FindAsset(string assetIdOrName)

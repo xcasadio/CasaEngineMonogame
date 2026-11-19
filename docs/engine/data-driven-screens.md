@@ -208,6 +208,24 @@ The UI then reads that file instead of MGUI's tables. An entry whose name is tha
 - Tab, Home, End, PageUp and PageDown keep their usual meaning when the mapping does not bind them, Shift+Tab included.
 - While an editable text box has the focus, a key MGUI's tables do not know stays text: a letter bound to Cancel does not cancel. A key the focused text box reserves stays its own too: a space bound to Cancel is a space.
 
+### The `AnyKey` device
+
+[ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md) adds the value `AnyKey` to `input_device`. An entry that carries it reacts to a new press of any key of the keyboard. It is meant for `ExitOnInput` ([cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#exitoninput)) and other readers of a mapping that go through `InputMapping`. `Projects/VideoSpriteSample` has an example mapping.
+
+The JSON format of `key_button` does not change: its four fields stay required, and a missing one fails the load as before. For `AnyKey`, `key`, `game_pad_button` and `mouse_button` are read and ignored; write them like this:
+
+```json
+"key_button": { "key": "None", "game_pad_button": "None", "mouse_button": "LeftButton", "input_device": "AnyKey" }
+```
+
+- **Press, not hold.** The input is pressed on the frame a key is down that was up on the previous frame of the `KeyboardManager`. A key that stays down gives nothing more.
+- **Keys that do not count.** Shift, Control, Alt and Windows (left and right) alone never count. Shift+A and Ctrl+A count (the letter is a new press). **While an Alt or a Windows key is held, nothing counts**, so Alt+Tab, Alt+F4 or Windows+D do not trigger the input.
+- **One edge for two consecutive presses.** The entry reports a press, and a reader that reacts to the edge (`Pressed` and not `PressedPreviousFrame`, as `ExitOnInput` does) sees one edge when new keys go down on two consecutive frames. This is a known limit.
+- **The arming rule of `ExitOnInput` is unchanged**: a key held when the watch is armed does not trigger it.
+- **UI navigation ignores it.** `UINavigationInput` binds only the `Keyboard` and `GamePad` devices, so an `AnyKey` entry named like a UI action binds nothing.
+- Reading it does not allocate: the `KeyboardManager` uses `GetPressedKeyCount` and `GetPressedKeys` on a reused array.
+- Not done: an "any button" of the game pad or of the mouse.
+
 ### Repeat
 
 A direction moves when it is pressed, then repeats. `repeat_initial_delay_ms` is the wait before the first repeat, 350 by default, and `repeat_interval_ms` the time between two repeats, 120 by default. Each is written back only when set.
@@ -318,9 +336,63 @@ A handler may call `Play`:
 - An exception thrown by an action, for example `MoveTo` on a missing entity or a timeout, is caught by the coroutine manager, which stops the coroutine and logs it. When it comes from the root coroutine, including a `Sequence`, whose actions run inside it, the director stays `Playing` and `Ended` is not raised until a `Stop` or a world clear, which raise `Stopped`. A `Play` that replaces it raises nothing for it. When it comes from a branch of a `Parallel`, only that branch is stopped: the play goes on and can end `Completed`, with `Ended(Completed)`. This predates the actions above and is unchanged.
 - An `OpenScreen` whose screen cannot be built (an invalid envelope or XAML, see [Errors](#errors)) throws inside the action, so it falls under the limit above, not under `Failed`.
 - The screens' `fade_screen` stays in seconds, and the `FadeScreen` action in seconds is unchanged.
-- No action sets a sprite, waits for a key, loops or plays a video.
+- No action sets a sprite, waits for a key or loops. `PlayVideo` plays a video (see [Video element and PlayVideo](#video-element-and-playvideo)).
 
 Tests: `CasaEngine.Tests/Cutscenes/FrameCutsceneActionsTests.cs` proves the timing above update by update, `CasaEngine.Tests/Scene/WorldStartupCutsceneTests.cs` the world key, and `CasaEngine.Tests/UI/TimedScreenSampleDataTests.cs` the data of the sample.
+
+## Video element and PlayVideo
+
+A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvideo`), and a cutscene can open such a screen and wait for the video to finish. The decision is ADR-0128, the container, the player and the measures are in [video.md](video.md), and `Projects/VideoSample` is the working example (a 160x112 synthetic clip, no sound).
+
+### The `Video` tag
+
+```xml
+<Video SourceName="clip" IsSkippable="True" EndedCommandName="next" SkippedCommandName="next" />
+```
+
+| Attribute | Meaning |
+|---|---|
+| `SourceName` | The catalogue name or the id of an asset of type `mdecvideo`. |
+| `Stretch` | Like an `Image`; absent, the element's default (`Uniform`). |
+| `IsSkippable` | `True` lets a Submit or Cancel press skip the video (see below). Absent, the video cannot be skipped. |
+| `EndedCommandName` | A command of `ui_commands`, run once when the video reaches its end by playing. |
+| `SkippedCommandName` | A command of `ui_commands`, run once when the video is skipped. |
+
+- Each `Video` element gets its own player, which decodes into a texture of the clip's size. The container is described in [video.md](video.md).
+- A source the project cannot resolve (unknown name, an asset of another type, a file that cannot be opened) shows nothing and plays nothing; one warning per name is logged.
+- A collapsed `Video` does not advance. A `Video` that is collapsed, or that has no visible area (zero size, or fully clipped by its parent or the view), and that is not skippable therefore never ends: a `PlayVideo` on its screen keeps waiting. Nothing times the wait out.
+- The videos of a screen are disposed with it: when the screen is hidden or disposed, and when it fails to load, including when a later element of the XAML fails after a `Video` was built (with the engine's own `CasaUIAssetProvider`; another kind of provider keeps those videos until it is released itself). Each player's texture and open file are released then, so a looping `PlayVideo` does not accumulate them.
+- A `Video` that names a command `ui_commands` does not declare is refused when the screen opens, like a button (see [Errors](#errors)).
+
+### Skipping a video
+
+With a `UIInputMapping` (see [The input mapping](#the-input-mapping)), each Submit or Cancel press, not its repeats, asks the screen at the top of the stack to skip its playing videos that have `IsSkippable="True"`.
+
+- If at least one video was skipped, the press is consumed: no focused button is clicked and no `cancel_command` runs. The video raises its skip, and `SkippedCommandName` runs.
+- If none was skipped, nothing changes: Submit goes to the focused button, and a Cancel that nobody handled goes to the `cancel_command`.
+- Only the screen at the top is concerned. Without a mapping, no key skips a video.
+- No skip happens while the navigation is suspended (a command of the screen waits for a fade, [ADR-0081](../decisions/0081-screen-fades-and-waits-in-data-driven-commands.md)): the presses of that time are ignored.
+
+### The `PlayVideo` action
+
+```json
+{ "type": "PlayVideo", "target": "ClipScreen" }
+```
+
+| `type` | Fields | Fails validation when |
+|---|---|---|
+| `PlayVideo` | `target`: a screen asset name or id | `target` is missing, empty, blank or not text |
+
+At run time `PlayVideo`:
+
+- opens the screen like `OpenScreen`: same failures (no such screen, no active view that hosts a UI, no game), and under external view management it opens nothing, logs it and completes at once;
+- waits until every `Video` of the screen has ended or been skipped. A `Video` whose source could not be resolved is not playing, so it does not hold the action back;
+- removes the screen, then the next action runs;
+- fails the play, with the reason logged once, when the screen has no `Video` element;
+- stops waiting, and completes, when the screen leaves its view's stack by another path (a `close_screen` action, a pop) while a video still plays;
+- removes the screen too when the cutscene is stopped meanwhile, except when the world is cleared, whose views go with it.
+
+Chaining is plain data: `PlayVideo` then `OpenScreen` or `ChangeWorld`, as `Projects/VideoSample/Cutscenes/play.cutscene` does.
 
 ## Errors
 
@@ -332,6 +404,7 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a command with no name, or declared twice;
 - a `default_focus` that names nothing, or an element that cannot take the focus;
 - a button whose `CommandName` resolves to no command;
+- a `Video` whose `EndedCommandName` or `SkippedCommandName` names no entry of `ui_commands`;
 - a font the project does not have, a name or id that designates an asset of another type, which the message names, or a font that cannot be loaded, such as one whose page is missing;
 - a window placed by alignment under a design resolution;
 - a `focus_wrap` that is neither `vertical` nor `horizontal`;

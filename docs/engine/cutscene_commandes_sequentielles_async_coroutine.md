@@ -100,6 +100,133 @@ Conséquence importante : une cutscene peut déjà être chargée, validée, jou
 
 Ajout de l’ADR-0088 : un monde lance une cutscene au chargement (clé `.world` `startup_cutscene_asset_id`), quatre actions `WaitFrames`, `FadeScreenFrames`, `OpenScreen` et `ChangeWorld` (une image y est une mise à jour du jeu), et l’événement `CutsceneDirector.Ended`, levé au plus une fois par lecture démarrée (exceptions : voir la section) avec l’état final `Completed`, `Stopped` ou `Failed`. Le détail est dans la section « Timed screens from a cutscene » de [data-driven-screens.md](data-driven-screens.md#timed-screens-from-a-cutscene).
 
+Ajout de l’ADR-0129 : six actions de sprite, de boucle et de sortie sur une touche, décrites dans la section suivante (en anglais).
+
+---
+
+## Sprite, repeat and exit-on-input actions (ADR-0129)
+
+Six actions let a `.cutscene` play a 2D sprite sequence from data alone: `ShowSprite`, `HideSprite`, `MoveSprite`, `TintSprite`, `Repeat` and `ExitOnInput`. The decision is [ADR-0129](../decisions/0129-cutscene-actions-drive-named-sprite-entities-over-time.md), the working example is `Projects/SpriteCutsceneSample` (its README lists the controls and the files), and the sprite component they drive is described in [static-sprite-component.md](static-sprite-component.md). Fields are snake_case, like the other actions.
+
+### Fields
+
+Types read by the loader: `x`, `y`, `speed` and `duration` are JSON numbers, integer or decimal, read as `float`, and must be finite (`NaN`, an infinity or a literal out of the `float` range such as `1e39` is a format error naming the key). `count` is a JSON integer; a decimal such as `2.5`, a string or a boolean is refused. `entity`, `sprite`, `mapping`, `next_cutscene` and every element of `inputs` are strings that are not blank: an empty or whitespace-only string is refused.
+
+`color` in an action (`ShowSprite`, `TintSprite`) follows the cutscene convention of `FadeScreenFrames`: an array `[r, g, b]` (alpha 255) or `[r, g, b, a]`, each an integer from 0 to 255. An object such as `{"r": ...}`, an array of 2 or 5 entries, a decimal or a value out of 0..255 is refused. The saver always writes four entries, so a `[r, g, b]` that is read and saved comes back as `[r, g, b, 255]`. This differs from the `color` of a sprite component in a `.world`, which is an object (see the component doc).
+
+| Action | Field | Required | Meaning |
+|---|---|---|---|
+| `ShowSprite` | `entity` | yes | Name of a world entity whose root component is a `StaticSpriteComponent`. |
+| | `sprite` | no | Name of a catalogued `.sprite` asset to load into the component. |
+| | `x`, `y` | no, together | World position of the sprite. `x` without `y`, or the opposite, is a validation error. Z is kept. |
+| | `color` | no | Tint, array form above. |
+| | `blend_mode` | no | Exact name of `SpriteBlendMode`: `Opaque`, `AlphaBlend`, `Additive` or `Subtractive`. Any other value is a format error. |
+| `HideSprite` | `entity` | yes | |
+| `MoveSprite` | `entity`, `x`, `y`, `speed` | yes | Target position, and speed in world units (pixels) per second. `speed` must be greater than 0. |
+| `TintSprite` | `entity`, `color`, `duration` | yes | Target colour, and duration in seconds. `duration` must be at least 0. |
+| `Repeat` | `count`, `actions` | `count` yes | Integer of at least 0; 0 repeats without end. `actions` is a list, like the one of `Sequence`. |
+| `ExitOnInput` | `mapping`, `inputs`, `next_cutscene` | yes | Name or id of a catalogued `.buttonsMapping`; a list of entry names of that mapping, at least one; name or id of a catalogued cutscene. |
+
+An absent `ShowSprite` field keeps the value the sprite has. `ShowSprite` makes the entity visible (`Entity.IsVisible`) and stops the motion and the tint in progress; `HideSprite` makes it invisible and stops both too.
+
+Example, the sprite actions of one lap:
+
+```json
+{ "type": "Repeat", "count": 0, "actions": [
+  { "type": "ShowSprite", "entity": "orb-left", "sprite": "orb", "x": -200, "y": 35, "color": [128, 128, 128], "blend_mode": "Additive" },
+  { "type": "MoveSprite", "entity": "orb-left", "x": -60, "y": 35, "speed": 120 },
+  { "type": "TintSprite", "entity": "orb-left", "color": [255, 255, 255], "duration": 1 },
+  { "type": "Wait", "seconds": 1.2 },
+  { "type": "HideSprite", "entity": "orb-left" }
+] }
+```
+
+### Time rule
+
+- Motion and tint are counted in seconds and pixels per second, not in frames. A consumer that counts frames converts them.
+- The four sprite actions are instantaneous: they start the motion or the tint (or change the sprite) and the sequence continues in the same frame. Waiting is up to a following action such as `Wait`.
+- The state lives on the `StaticSpriteComponent` and advances in its `Update`, with the time the entity update receives (the scaled game time, like `Wait`). In `World.Update` the runtime systems, coroutines included, run before the entity loop. An action started in frame U therefore already advances in the entity update of the same frame U. A motion or tint advances only while the entity is updated.
+- A move follows the straight line to the target at constant speed and sets the target exactly on arrival; only X and Y change. A tint is linear per channel, rounded to the nearest integer, and sets the target exactly at the end; a duration 0 sets it at once. A new `MoveSprite` or `TintSprite` replaces the one in progress.
+
+### Repeat
+
+- Each lap plays the children in sequence. `count` N plays N laps; 0 plays without end until the cutscene stops. A finite `count` with an empty list ends at once. An empty list is a validation warning, as for `Sequence`.
+- **Zero-frame guard.** A lap of an endless `Repeat` that ends without any frame passing (only instant children, or an empty list) fails the play (`Failed`, the message names `Repeat`) instead of freezing the game. Add a `Wait` or another action that takes time.
+- A finite `Repeat` has no such guard: a huge `count` with only instant children plays every lap inside one update.
+- A child that fails, or a play that is replaced, ends the `Repeat`. Stopping the cutscene during a lap runs nothing more.
+
+### At
+
+- `{ "type": "At", "seconds": 1.5, "actions": [ ... ] }` waits `seconds` from the moment it starts, then plays its children in sequence. It is the same as `Sequence[Wait(seconds), ...]`, with the delay kept as one explicit number.
+- **Placement in a `Parallel`.** All the branches of a `Parallel` start together, so the `At` actions of a `Parallel` are clips placed at their own times: `seconds` is the time of the clip in that block. The branches of a `Parallel` start one update after the `Parallel` itself, as before.
+- `seconds` is a JSON number, integer or decimal, and must be finite; a missing key reads as 0. A negative value, or a value that is not a number, is a validation error naming `At.seconds`. An empty `actions` list is a validation warning, as for `Sequence`. A 0 or absent delay does not wait and loses no frame compared with a `Sequence`.
+- The saver writes `seconds`, then `actions`. The schema version does not change: an engine without `At` loads it as an unknown type and refuses the cutscene with an error, instead of playing it wrongly.
+- Observation: `ActionStarted` is raised for the `At` when it starts, then for each child as it starts, and `ActionEnded` for the `At` after its last child ended. Stopping the cutscene during the wait, or during a child, runs nothing more. A child that fails ends the `At`.
+- The editor edits `seconds` in the Inspector and the timeline shows the children of an `At` at `start + seconds` ([ADR-0141](../decisions/0141-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md)).
+
+### ExitOnInput
+
+- The action is instantaneous. It arms a watch (a coroutine owned by the director) for the rest of the play; a new `ExitOnInput` replaces the watch in progress.
+- The watch keeps its own `InputMappingManager`, limited to the listed entries, so it does not collide with the mappings of the game. It updates it once per frame with the keyboard, mouse and game pad managers of the game's `InputComponent`, and reacts to the press of the frame (`Pressed` and not `PressedPreviousFrame`), not to a held input.
+- **Arming rule.** The first update of the watch only records the state of the inputs and cannot trigger it. A key held when the watch is armed triggers only after a release and a new press, so the key that left a cutscene does not skip the next one.
+- On a press, the watch asks the director to play `next_cutscene`. `Play` first stops the play in progress (`Ended` with `Stopped`), the watch included, then starts the next cutscene.
+- **Lifetime.** The director keeps the handle of the watch and stops it before it raises `Ended`, on every end of a play: `Completed`, `Failed`, `Stopped`, and replacement by a new `Play`. No watch survives its play: a press after a `Completed` cutscene plays nothing.
+- **Frame order, measured** (`ExitOnInputCutsceneActionTests`). In `CasaEngineGame.Update` the UI update (`UINavigationInput` included) runs first, then `GameManager.UpdateWorld` (`World.Update`: coroutines, then entities), then the game components through `base.Update`, `InputComponent` among them. The watch therefore reads the device state of the previous frame. With the `InputComponent` reading the press in frame P, the cutscene stops in P+1 and the first step of the next cutscene runs in P+2. An action that arms in frame U has its watch's first step, which only records, in U+1.
+
+### Failures
+
+- **Validation.** A cutscene with a validation error does not play: the director goes to the `Invalid` state and no `Ended` is raised for it. The validator refuses a missing required field, a field of a wrong type (see Fields), `speed` not above 0, a negative `duration` or `count`, a `color` that is not 3 or 4 integers of 0..255, `x` without `y` (or the opposite), an unknown `blend_mode`, and an empty `inputs` list. Each message names the action and the field.
+- **At run time** the play ends `Failed` (`Ended` raised once, the reason logged with the action and, when there is one, the field and the value, like `OpenScreen`; the no-running-game case names only the action) when the entity is not found in the world, its root component is not a `StaticSpriteComponent`, the `sprite` is not in the asset catalogue, a mapping, an input of the mapping or a cutscene cannot be found, or the world has no running game for `ExitOnInput`.
+- **Catalogue entries and loading (`ShowSprite`).** A `sprite` whose catalogue entry is not a sprite asset fails the play, and the message gives the type it is catalogued as. A sprite that cannot be loaded also fails the play, and the entity keeps its current sprite: the component builds the new sprite before it gives the old one back. `ShowSprite` checks the entity, the component and the catalogue entry before it changes anything.
+
+### Limits
+
+- **Motion and tint outlive the cutscene (O2).** Their state is on the component: when the cutscene stops, a move or tint in progress continues until it ends. Nothing freezes them.
+- **The same press can reach the UI navigation (O4).** The watch reads the devices on its own and does not consume the press, so a screen that binds the same key, a skippable video for example, sees it too.
+- **The game pad is read without window focus (O5).** The engine reads the game pad even when the window has no focus, so a press in another application can trigger an `ExitOnInput` (seen at the Launcher with the sample).
+- **A finite `Repeat` with a huge `count` and only instant children** plays every lap in one update.
+- **The blend applies to the whole sprite (O1),** not per texel: the per-texel semi-transparency of `SpriteData.PsxSemiTransparency` ([sprite-psx-semi-transparency.md](sprite-psx-semi-transparency.md)) is not tied to the `blend_mode` of an action.
+- Editing these actions in the editor is not done: the read-only inspector shows them.
+
+## PlayVideoSprite (ADR-0130)
+
+`PlayVideoSprite` plays a film that is drawn as a sprite of the world, so other sprites can be shown over it (for example a `ShowSprite` that fades in above the film, in a `Parallel`). The decision is [ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md), the component, its JSON, its creation failures and the depth rule are in [video.md](video.md#9-the-world-video-component), and the working example is `Projects/VideoSpriteSample`.
+
+| Action | Field | Required | Meaning |
+|---|---|---|---|
+| `PlayVideoSprite` | `entity` | yes | Name of a world entity whose root component is a `VideoSpriteComponent`. A string that is not blank. |
+
+```json
+{ "type": "PlayVideoSprite", "entity": "clip" }
+```
+
+- **Wait.** The entity is made visible (`Entity.IsVisible`), the film starts from picture 0, and the action ends when the film has ended. The entity is then hidden. The wait is paced by the scaled game time, like the sprite actions.
+- **Cleanup.** If the play stops before the film ends (stop, replacement by `ExitOnInput`, failure), the film is stopped and the entity hidden, except when the component was already disposed or the entity removed from the world (the world is cleared). The cleanup of an interrupted play runs at the next update of the coroutine manager, one game frame later.
+- **Failures.** The play ends `Failed` (message naming the entity) when the entity is not in the world, when its root component is not a `VideoSpriteComponent`, or when the component has no player (it was never initialised in a world: an entity listed in the world before its `InitializeWithWorld` failed, as the editor's immediate entity reference `World.AddEntityReferenceImmediate` can leave it). An entity whose video could not be created is not in the world (see video.md, creation failures), so it fails as an unknown entity. The validator refuses a missing or blank `entity`.
+- **Measured frames** (`CasaEngine.Tests`, a film of 3 pictures at 10 pictures per second, so a step of 0.1 s; one game frame is the coroutines, then the `Update` of the entities). The film starts on picture 0 in the coroutine update of game frame 1, then the component `Update` of the same game frame advances it: it is on picture 1 at the end of game frame 1. The wait ends, and the entity is hidden, in game frame 4, the turn after the last picture of the film: the entity is visible during 3 game frames.
+- **Limits.** The only way out of the film is leaving the cut-scene, with `ExitOnInput`. Editing the action in the editor is not done: the read-only inspector shows it.
+
+## StartVideoSprite (ADR-0132)
+
+`StartVideoSprite` starts the film of a world video entity and returns at once. The film then belongs to its component, like a sprite movement or tint (ADR-0129): it runs to its end whatever happens to the cut-scene, and the component hides the entity in the update where it ends. Use it when leaving the cut-scene (for example with `ExitOnInput`) must let the film run on under the exit fade. The decision is [ADR-0132](../decisions/0132-a-world-video-can-run-to-its-end-after-its-cutscene.md), the component side is in [video.md](video.md#95-the-startvideosprite-cut-scene-action), and the working example is `Projects/VideoSpriteExitSample`.
+
+| Action | Field | Required | Meaning |
+|---|---|---|---|
+| `StartVideoSprite` | `entity` | yes | Name of a world entity whose root component is a `VideoSpriteComponent`. A string that is not blank. |
+
+```json
+{ "type": "StartVideoSprite", "entity": "clip" }
+```
+
+- **No wait.** The entity is made visible, the film starts from picture 0 with `Play(hideWhenEnded: true)`, and the action ends in the same update: it yields no frame, so the next action of a `Sequence` runs at once. In an endless `Repeat`, a lap that holds only this action lets no frame pass and fails the play: add a `Wait` (for example as long as the film, or longer).
+- **No cleanup.** Nothing of the cut-scene stays with the film: a stop, a replacement by another play (`ExitOnInput` among them), a failure or the normal end of the play leaves it running. Only clearing the world stops it.
+- **End.** The component hides the entity in the update where the film ends (a picture that cannot be decoded ends it too). The last picture is drawn exactly its duration, one game frame less than with `PlayVideoSprite`.
+- **Restart.** Another `StartVideoSprite` on the same entity, for example at the next lap of a `Repeat`, starts the film again from picture 0, even before its end, and shows the entity.
+- **With `PlayVideoSprite`.** A `StartVideoSprite` on a film a `PlayVideoSprite` waits for takes it over: the older action ends without stopping or hiding it. A `PlayVideoSprite` on a film started by `StartVideoSprite` owns it, and its cleanup applies.
+- **Failures.** Same as `PlayVideoSprite`, with messages that begin with `StartVideoSprite:`. The validator refuses a missing or blank `entity`.
+- **Measured frames** (`CasaEngine.Tests`, same film and steps as `PlayVideoSprite` above). Started in game frame 1, the film of 3 pictures ends, and the entity is hidden, in game frame 3: the entity is visible during 2 game frames.
+- **Limits.** No action stops or hides a film started this way from another cut-scene. Editing the action in the editor is not done: the read-only inspector shows it.
+
 ---
 
 ## Bindings d’entités actuels et limites V2
