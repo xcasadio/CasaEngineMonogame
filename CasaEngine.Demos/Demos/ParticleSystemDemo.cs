@@ -60,7 +60,7 @@ public sealed class ParticleSystemDemo : Demo
         _burstTimer = BurstIntervalSeconds;
     }
 
-    // The base Demo creates an arc-ball camera, which is why this cast is safe. The view is close to the fire; orbit to see
+    // The base Demo creates a camera posed by an orbit component. The view is close to the fire; orbit to see
     // that the particles are billboards.
     public override void InitializeCamera(CameraComponent camera)
     {

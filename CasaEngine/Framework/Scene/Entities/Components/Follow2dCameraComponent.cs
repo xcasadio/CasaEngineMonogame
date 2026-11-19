@@ -57,7 +57,8 @@ public class Follow2dCameraComponent : EntityComponent
     public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
     {
         base.InitializeWithWorld(world);
-        ResolveTarget(world);
+        //  No report here: a world initialises each entity before it lists it, so the target may not be listed yet.
+        ResolveTarget(world, reportMissing: false);
     }
 
     public override void Update(float elapsedTime)
@@ -116,7 +117,7 @@ public class Follow2dCameraComponent : EntityComponent
     }
 
     /// <summary>Finds the entity named <see cref="TargetEntityName"/> in <paramref name="world"/>, when no target is set.</summary>
-    internal void ResolveTarget(CasaEngine.Framework.Scene.World.World world)
+    internal void ResolveTarget(CasaEngine.Framework.Scene.World.World world, bool reportMissing = true)
     {
         if (Target != null || world == null || string.IsNullOrEmpty(TargetEntityName))
         {
@@ -135,7 +136,7 @@ public class Follow2dCameraComponent : EntityComponent
             }
         }
 
-        if (!_missingTargetReported)
+        if (reportMissing && !_missingTargetReported)
         {
             _missingTargetReported = true;
             Logs.WriteWarning($"Follow2dCameraComponent '{Name}' of entity '{Owner?.Name}': no entity named '{TargetEntityName}' in world '{world.Name}'. The camera does not follow anything.");

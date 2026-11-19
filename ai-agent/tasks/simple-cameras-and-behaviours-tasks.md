@@ -392,6 +392,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 
 - Un vérificateur neuf cherche à réfuter l'égalité des poses, l'absence de changement pour les données existantes et l'état des builds et des tests.
 - Recette de l'auteur : navigation de la vue 3D de l'éditeur, aperçus, démos.
+- Première vérification (2026-11-19, `baf21305`) : **REFUTED**, un point P2. Avec une distance négative, `OrbitCameraComponent` orientait la caméra le long de `Direction` au lieu de la tourner vers la cible, comme le fait `ArcBallCameraComponent` ; `WorldSpaceUIDemo`, qui part d'une distance de −18,25, aurait démarré dos à sa scène. Les neuf autres affirmations étaient confirmées. Corrigé : à distance négative, l'orientation fait un demi-tour autour de son axe vertical ; deux tests ajoutés (grille de 360 points à distances négatives, valeurs de départ de cette démo). Deux remarques P3 traitées au passage : le suivi 2D ne signale plus une cible manquante pendant l'initialisation du monde, où la cible peut ne pas être encore listée ; le commentaire de l'orbite dit maintenant qu'une caméra ajoutée après elle à une entité déjà initialisée n'est posée qu'à l'écriture suivante. Six commentaires de démos qui décrivaient l'ancienne caméra sont corrigés. `CasaEngine.Tests` : 8117 tests, 0 échec.
 
 ## Tranche 3 — Retrait et migration (cadrage)
 

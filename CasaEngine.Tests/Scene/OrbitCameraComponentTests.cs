@@ -99,6 +99,68 @@ public sealed class OrbitCameraComponentTests
         }
     }
 
+    [Fact]
+    public void WithANegativeDistance_TheCameraStillLooksAtTheTarget_LikeTheArcBall()
+    {
+        foreach (Vector3 target in Targets)
+        {
+            foreach (float distance in new[] { -1f, -5f, -40f })
+            {
+                for (int yawStep = 0; yawStep < 8; yawStep++)
+                {
+                    foreach (float pitchDegrees in Pitches)
+                    {
+                        float yaw = yawStep * MathHelper.TwoPi / 8f;
+                        float pitch = MathHelper.ToRadians(pitchDegrees);
+                        string context = $"(target {target}, distance {distance}, yaw {yaw}, pitch {pitch})";
+
+                        var arcBall = CreateArcBall();
+                        arcBall.Target = target;
+                        arcBall.Distance = distance;
+                        arcBall.Yaw = yaw;
+                        arcBall.Pitch = pitch;
+
+                        var (_, camera, orbit) = CreateOrbitCamera();
+                        orbit.Target = target;
+                        orbit.Distance = distance;
+                        orbit.Yaw = yaw;
+                        orbit.Pitch = pitch;
+
+                        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance, context);
+                        AssertVectorEqual(arcBall.Direction, orbit.Direction, Tolerance, context);
+                        AssertVectorEqual(arcBall.Right, orbit.Right, Tolerance, context);
+                        AssertVectorEqual(arcBall.Position, camera.LocalPosition, Tolerance, context);
+
+                        // The camera faces the target: the target is straight ahead, on the -Z axis of the view.
+                        Vector3 seen = Vector3.Transform(target, camera.ViewMatrix);
+                        Assert.True(MathF.Abs(seen.X) <= 1e-3f && MathF.Abs(seen.Y) <= 1e-3f && seen.Z < 0f, $"target seen at {seen} {context}");
+                    }
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void TheValuesADemoStartsWith_ANegativeDistanceIncluded_GiveTheArcBallView()
+    {
+        // The start values of the world-space UI demo: the camera stands in front of the screen, at (0, 7, 18).
+        var target = new Vector3(0f, 4f, 0f);
+        var arcBall = CreateArcBall();
+        arcBall.Target = target;
+        arcBall.Distance = -18.25f;
+        arcBall.Yaw = MathHelper.Pi;
+        arcBall.Pitch = 0.165f;
+        var (_, camera, orbit) = CreateOrbitCamera();
+
+        orbit.Target = target;
+        orbit.Distance = -18.25f;
+        orbit.Yaw = MathHelper.Pi;
+        orbit.Pitch = 0.165f;
+
+        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+        AssertVectorEqual(new Vector3(0f, 7f, 18f), camera.LocalPosition, 0.01f);
+    }
+
     public static TheoryData<float, float, float, float, float, float> CameraPlacements => new()
     {
         // The placements of ArcBallCameraComponentTests.

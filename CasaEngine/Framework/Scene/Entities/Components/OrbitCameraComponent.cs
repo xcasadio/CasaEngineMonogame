@@ -8,7 +8,8 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// <summary>
 /// Makes the camera of its entity orbit a target (ADR-0145): from a target, a distance, a yaw and a pitch it writes the
 /// local transform of the camera component, at <c>Target - Direction * Distance</c>, looking at the target, without roll.
-/// The conventions are those of <see cref="ArcBallCameraComponent"/>.
+/// The conventions are those of <see cref="ArcBallCameraComponent"/>, a negative distance included: the camera then
+/// stands beyond the target along <see cref="Direction"/> and still looks at the target.
 /// <para/>
 /// It writes at each change of one of its values, when its entity is initialised and when it joins a world, never per
 /// frame. It owns the pose: a pose written directly on the camera is overwritten at its next write.
@@ -137,8 +138,8 @@ public class OrbitCameraComponent : EntityComponent
         return Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
     }
 
-    //  The camera is looked up at each write: a clone must pose the camera of its own entity, and the component may be
-    //  added before or after the camera.
+    //  The camera is looked up at each write: a clone must pose the camera of its own entity. A camera added to an
+    //  initialised entity after the orbit is posed at the next write.
     private void ApplyToCamera()
     {
         CameraComponent camera = Owner?.GetComponent<CameraComponent>();
@@ -150,7 +151,11 @@ public class OrbitCameraComponent : EntityComponent
         Quaternion orientation = ComputeOrientation();
         Vector3 direction = Vector3.Transform(Vector3.Forward, orientation);
 
-        camera.LocalOrientation = orientation;
+        //  The camera always looks at the target. With a negative distance it stands on the other side of the target,
+        //  along Direction, and so looks back along -Direction: the orientation turned half a turn about its own up axis.
+        camera.LocalOrientation = _distance < 0f
+            ? orientation * Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi)
+            : orientation;
         camera.LocalPosition = _target - direction * _distance;
     }
 }

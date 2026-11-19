@@ -86,7 +86,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
         ApplyEnvironment(world.EnvironmentSettings);
     }
 
-    // The base Demo creates an arc-ball camera; this demo keeps it and only picks the start view: a position a little
+    // The base Demo creates a camera posed by an orbit component; this demo keeps it and only picks the start view: a position a little
     // above the ground and a target near the middle of the objects.
     public override void InitializeCamera(CameraComponent camera)
     {

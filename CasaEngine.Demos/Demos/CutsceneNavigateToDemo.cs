@@ -88,7 +88,7 @@ public sealed class CutsceneNavigateToDemo : Demo
         _autoPlayPending = true;
     }
 
-    // The base Demo creates an arc-ball camera and its InitializeCamera casts to that type, so a demo that wants another
+    // The base Demo creates a camera posed by an orbit component, so a demo that wants another
     // camera overrides both methods together.
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
