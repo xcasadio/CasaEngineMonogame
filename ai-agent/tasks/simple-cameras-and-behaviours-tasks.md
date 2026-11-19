@@ -234,6 +234,8 @@ Relecture de clôture de l'époque 2 : REVISE, deux points P2, repris dans cette
 
 Relecture de clôture de l'époque 3 : **READY**.
 
+**Approuvée par l'auteur le 2026-11-19 (« Approuvé en mode AUTO »), avec les propositions de O9 et de O10.**
+
 ### Décisions de la tranche (réponses de l'auteur du 2026-11-19)
 
 | Réf | Décision |
@@ -279,11 +281,12 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 
 - Fait le 2026-11-19 : section « État vérifié pour la tranche 2 ».
 
-### ⏳ T2.1 — ADR
+### ✅ T2.1 — ADR
 
 - Objectif : enregistrer D11, D12, D13, la forme du composant d'orbite, la spécification du suivi (O9) et la réponse à O10.
 - Fichiers : `docs/decisions/0145-<titre>.md`, `docs/decisions/README.md`.
 - Commit : `docs(decisions): record the camera behaviour components`
+- Validation (2026-11-19) : ADR-0145, listée dans l'index. O10 tranché par la lecture : un composant que `EntityPolicyResolver` ne liste pas laisse le constructeur intact, et celui-ci retombe sur `DynamicDefault` (`EntityPolicyResolver.cs:71-86`), la politique que demandait `CameraLookAtComponent`. `EntityPolicyResolver.cs` ne change donc pas.
 
 ### ⏳ T2.2 — Composant d'orbite
 
@@ -397,8 +400,8 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 | O4 | Le sample pilote le décalage au clavier (D6) sans action de cutscene (D5). Si un sample sans DLL ne peut pas lire le clavier pour agir sur un composant, il reçoit une DLL de jeu minimale | T1.4 |
 | O5 | Les sprites restent dans un plan parallèle à XY : une image fixe ne fait face à la caméra que si la caméra regarde le long de z. Le sample s'en tient à ce cas ; un sprite orientable est hors de ce chantier | T1.4 |
 | O6 | Tranche 3 : les données qui nomment une ancienne classe se lisent-elles encore (le chargeur les traduit en caméra simple plus composant de comportement), ou sont-elles migrées une fois pour toutes ? La règle du dépôt est la sérialisation additive. Proposition : le chargeur les traduit, et l'éditeur écrit la nouvelle forme | Tranche 3 |
-| O9 | Spécification du suivi 2D (D12), à neuf puisque l'ancienne classe ne suit rien. Proposition : `Follow2dCameraComponent`, posé sur l'entité d'une caméra simple. Réglages lus dans les données : `target_entity_name` (nom d'une entité du monde), `dead_zone` (largeur et hauteur en unités du monde, centrée sur la caméra), `limits` (rectangle du monde x, y, largeur, hauteur ; largeur ou hauteur nulle : pas de limite). À chaque `Update` : sur chaque axe, si la cible dépasse le bord de la zone morte, la caméra avance du dépassement ; puis sa position x, y est ramenée dans les limites ; son z ne change pas. Il écrit la position locale du composant caméra. Cible absente ou introuvable : il ne fait rien et le signale une fois. Il ne pilote pas `Camera2dComponent`, qui se place par sa propre cible (O7) | T2.1, T2.4 |
-| O10 | Politique d'entité. `EntityPolicyResolver` donne `DynamicDefault` à `CameraLookAtComponent`, et rien de propre à `ArcBallCameraComponent` ni à `PerspectiveCameraComponent`. Les usages de la visée passant sur la caméra simple (D11), leur politique changerait. Proposition : lire en T2.6 ce que vaut la politique d'un composant non listé ; si elle diffère de `DynamicDefault`, ajouter `PerspectiveCameraComponent` au même cas que `CameraLookAtComponent`, et le dire dans l'ADR | T2.1, T2.6 |
+| O9 | **Tranché le 2026-11-19, selon la proposition.** Spécification du suivi 2D (D12), à neuf puisque l'ancienne classe ne suit rien. Proposition : `Follow2dCameraComponent`, posé sur l'entité d'une caméra simple. Réglages lus dans les données : `target_entity_name` (nom d'une entité du monde), `dead_zone` (largeur et hauteur en unités du monde, centrée sur la caméra), `limits` (rectangle du monde x, y, largeur, hauteur ; largeur ou hauteur nulle : pas de limite). À chaque `Update` : sur chaque axe, si la cible dépasse le bord de la zone morte, la caméra avance du dépassement ; puis sa position x, y est ramenée dans les limites ; son z ne change pas. Il écrit la position locale du composant caméra. Cible absente ou introuvable : il ne fait rien et le signale une fois. Il ne pilote pas `Camera2dComponent`, qui se place par sa propre cible (O7) | T2.1, T2.4 |
+| O10 | **Tranché le 2026-11-19 : aucun changement, voir T2.1.** Politique d'entité. `EntityPolicyResolver` donne `DynamicDefault` à `CameraLookAtComponent`, et rien de propre à `ArcBallCameraComponent` ni à `PerspectiveCameraComponent`. Les usages de la visée passant sur la caméra simple (D11), leur politique changerait. Proposition : lire en T2.6 ce que vaut la politique d'un composant non listé ; si elle diffère de `DynamicDefault`, ajouter `PerspectiveCameraComponent` au même cas que `CameraLookAtComponent`, et le dire dans l'ADR | T2.1, T2.6 |
 | O7 | La caméra 2D. `Camera2dComponent` est déjà simple, mais se place d'après une cible et non d'après sa transformation. Faut-il l'aligner sur la caméra 3D en tranche 2, au prix d'un changement de ses clés ? Proposition : ne pas y toucher tant qu'aucun besoin ne le demande | Tranche 2 |
 
 ## Hors périmètre
