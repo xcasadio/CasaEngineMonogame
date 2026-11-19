@@ -116,4 +116,4 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 ## Points ouverts
 
-- O1 (auteur, après T2) : validation de l'ADR-0144 ; avance de `main` et push.
+- O1 (auteur, après T2) : **répondu le 2026-11-19** : l'ADR-0144 est acceptée par l'auteur ; `main` a été avancé et poussé avec l'intégration d'`origin/main` (`f82f213fc`). Texte d'origine : validation de l'ADR-0144 ; avance de `main` et push.
