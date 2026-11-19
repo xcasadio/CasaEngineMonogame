@@ -186,16 +186,17 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
   - Ce plan est ajouté au tableau de `ai-agent/README.md`.
   - Validation globale : deux solutions du moteur à 0 erreur et 8031 tests verts (T1.1, T2.1), MGUI à 0 erreur et 5301 verts, ancêtres vérifiés en T1.1, lancement de contrôle fait. Reste : T3.2 (avance de `main`, après la vérification indépendante), le clic réel de T2.1 par l'auteur, la confirmation de l'écart à P4 sur `.claude/settings.json`, O2 et O3.
 
-### ⏳ T3.2 — Avancer `main` sur la branche d'intégration
+### ✅ T3.2 — Avancer `main` sur la branche d'intégration
 
 - Objectif : D1 et P1. À faire seulement après la vérification indépendante de la branche, si elle confirme.
 - Fichiers : aucun fichier ; la référence `main` du moteur.
 - Étapes :
-  1. Préconditions : `git rev-parse main` rend encore `e4114c97` (sinon ⚠️ Blocked) ; l'arbre de travail est propre, hors les deux dossiers `.casaeditor/` non suivis ; la vérification indépendante a rendu CONFIRMED.
+  1. Préconditions : `main` est un ancêtre de la branche d'intégration (`git merge-base --is-ancestor main HEAD`, sinon ⚠️ Blocked) ; l'arbre de travail est propre, hors les deux dossiers `.casaeditor/` non suivis ; la vérification indépendante a rendu CONFIRMED.
   2. Avancer `main` par avance rapide seulement, sans commit sur `main` et sans push : `git fetch . chantier/integrate-origin-main:main`, qui refuse tout ce qui n'est pas une avance rapide. Puis `git checkout main`.
   3. Contrôles, à noter : `git rev-parse main` égale `git rev-parse chantier/integrate-origin-main` ; `git merge-base --is-ancestor origin/main main` rend vrai ; `git merge-base --is-ancestor e4114c97 main` rend vrai.
-  4. Retour arrière, si l'auteur le demande : `git branch -f main e4114c97` (depuis une autre branche), et dans MGUI `git branch -f develop e24cc710` pour défaire T0.2. Rien n'étant poussé, ces deux commandes suffisent.
+  4. Retour arrière, si l'auteur le demande : `git branch -f main e32ff241` (depuis une autre branche), et dans MGUI `git branch -f develop e24cc710` pour défaire T0.2. Rien n'étant poussé, ces deux commandes suffisent.
 - Validation : les trois contrôles de l'étape 3. Cette tâche ne fait pas de commit : sa note est écrite dans le plan par un commit sur la branche d'intégration avant l'étape 2 (`docs(plan): close the integration of origin/main`), la note disant que l'avance suit.
+> Note (2026-11-19) : le plan disait `main` à `e4114c97`. C'était faux au moment de créer la branche : le commit `e32ff241` avait été fait sur `main` le même jour, hors de cette session (retrait du hook qui interdisait le commit sur `main` et le push), et la branche part de ce commit. La vérification indépendante l'a relevé (seul point de son verdict REFUTED ; tous les autres contrôles tiennent : les deux histoires dans la branche, les trois builds à 0 erreur, 8031 tests du moteur et 5301 tests de MGUI verts, aucun test perdu sur 588 fichiers, index sans doublon). La précondition et le retour arrière sont corrigés ci-dessus : `main` (`e32ff241`) est bien un ancêtre de la branche, l'avance rapide reste possible. L'avance de `main` suit ce commit.
 
 ---
 
@@ -208,6 +209,8 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
 | O1 | Les plans et notes d'`origin/main` citent ses propres ADR 0089 à 0127 ; après la fusion, un même fichier ne mélange pas les deux séries, puisque les numéros locaux sont changés avant. À revérifier à la relecture de l'index. | T0.1, T3.1 |
 | O2 | Trois anciens commits du `main` local contiennent, dans un plan, quatre lignes qui citent un motif de recherche de noms de projets extérieurs (tête corrigée par `30ddab40`). L'historique n'est pas réécrit par ce plan ; à décider par l'auteur avant tout push. | Aucune |
 | O3 | Les fonctionnalités d'`origin/main` (rendu PBR, pilotage à distance, nouveaux documents) ne sont pas recettées par ce plan : il vérifie qu'elles compilent, que leurs tests passent et que l'éditeur démarre. | T3.1 |
+| O4 | À confirmer par l'auteur : `.claude/settings.json`. Le commit local `e32ff241` a retiré le hook qui interdisait le commit sur `main` et le push, son script et la règle de refus de `git push` ; `origin/main` les avait encore. La fusion garde le retrait local (sinon le hook pointerait sur un script supprimé) et ajoute les entrées d'`origin/main` (`mcp__codegraph__*`, `enabledMcpjsonServers`). `CLAUDE.md` et `AGENTS.md` §4 décrivent encore ce hook : à mettre d'accord avec les réglages. | T1.1 |
+| O5 | À noter : des textes historiques donnent encore à `CutsceneEditorPanel` la valeur 9 (ADR-0134, plan `cutscene-property-editing-tasks.md`) ; la valeur du code est 11 depuis la fusion (P5). Les ADR ne sont pas réécrites. | T1.1 |
 
 ## Hors périmètre
 
