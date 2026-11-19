@@ -349,7 +349,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Écart avec l'étape 1 : des six cas de `InfiniteFarPlaneTests`, seul celui de la projection est rejoué sur la nouvelle caméra (dans `EditorViewportCameraPoseTests`) ; les autres ne dépendent que de cette projection, qui est celle de `Camera3dComponent` quand le décalage est nul.
 - **Reste 🧪 : l'essai dans l'éditeur par l'auteur** (navigation de la vue 3D, dépôt d'un asset dans la vue, passage en Play et retour). Le test ne couvre pas un panneau qui n'appellerait pas la méthode de construction.
 
-### 🧪 T2.6 — Aperçus, vignettes et caméra par défaut
+### ✅ T2.6 — Aperçus, vignettes et caméra par défaut
 
 - Fichiers : les sept fichiers de l'éditeur listés plus haut ; `World.cs` (`CreateDefaultCamera`) ; `EntityPolicyResolver.cs` selon O10.
 - Étapes :
@@ -361,7 +361,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Validation (2026-11-19) : étape 1, les huit visées lues une à une : les deux aperçus de sprite visent le long de z depuis une distance d'au moins 2,5 ; les aperçus de particules, de modèle, de matériau et d'animation, les vignettes de particules et la caméra par défaut d'un monde ont tous un écart en z d'au moins 3 entre position et cible. Aucune ne peut viser à la verticale. Étape 2 : le nom de la classe construite change dans les huit fichiers, 15 lignes, rien d'autre. Fait en session principale et non par un `mech-executor` : un seul remplacement de nom par fichier ne justifiait pas une délégation. `EntityPolicyResolver.cs` inchangé (O10). Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8112 tests, 0 échec.
 - **Reste 🧪 : l'essai des aperçus et des vignettes dans l'éditeur par l'auteur.**
 
-### 🧪 T2.7 — Démos et bac à sable
+### ✅ T2.7 — Démos et bac à sable
 
 - Fichiers : `CasaEngine.Demos/Demo.cs`, `DemosGame.cs`, les 27 démos recensées, `Projects/SandBoxGame/SandBoxGame.cs`.
 - Objectif : `Demo.CreateCamera` crée une caméra simple, un composant d'orbite et le script ; les démos cadrent par l'orbite ; celles qui créaient une `CameraLookAtComponent` créent une caméra simple, sans orbite.
@@ -388,7 +388,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Commit : `docs(engine): describe the camera behaviour components`
 - Validation (2026-11-19) : `docs/engine/camera-behaviour-components.md`, lié depuis `docs/README.md` et depuis la doc de la caméra simple ; `docs/editor/viewport-camera-controls.md` et `docs/editor/editor-2d-viewport.md` nomment la nouvelle caméra de la vue 3D. `docs/engine/demos-main-menu.md` ne nomme que `ScriptArcBallCamera`, qui garde son nom : inchangé.
 
-### 🧪 T2.9 — Vérification indépendante et recette
+### ✅ T2.9 — Vérification indépendante et recette
 
 - Un vérificateur neuf cherche à réfuter l'égalité des poses, l'absence de changement pour les données existantes et l'état des builds et des tests.
 - Recette de l'auteur : navigation de la vue 3D de l'éditeur, aperçus, démos.
@@ -396,6 +396,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Contre-vérification par un vérificateur neuf (2026-11-19, `6ecb692a`) : **CONFIRMED**, aucun point P0 à P2. Distances négatives : sur 200 000 tirages, direction, droite et position égales à celles de l'ancienne caméra à moins de 5e-7 ; les valeurs de départ de `WorldSpaceUIDemo` donnent la même vue ; onze entrées de navigation appliquées aux deux caméras donnent le même état et la même vue à chaque pas. Distances positives non régressées. Builds à 0 erreur, 8117 tests verts. Remarque P4 sans suite : à moins d'un millième d'unité de la cible, la vue de l'ancienne caméra perd sa précision, celle de l'orbite non.
 - Recette de l'auteur sur `WorldSpaceUIDemo` (2026-11-19) : la molette fait sauter la caméra, et clic droit + flèches déplacent à l'envers. Cause lue dans le code : la démo part d'une distance négative, dont `ViewportCameraNavigation` ignore le signe (commandes en miroir) et que la molette ramène à `MinDistance` (demi-tour). La navigation et les valeurs de la démo sont les mêmes que sur `main` : défaut antérieur à la tranche, non rejoué à l'écran sur l'ancienne version. Corrigé sur accord de l'auteur : la démo part de la même pose écrite avec une distance positive (18,25, lacet 0, inclinaison −0,165) ; un test prouve que la vue est celle des anciennes valeurs. `CasaEngine.Tests` : 8118 tests, 0 échec. Reste à revoir à l'écran par l'auteur.
 - Recette de l'auteur (2026-11-19) : `WorldSpaceUIDemo` corrigée acceptée (« Recette OK ») ; vue 3D de l'éditeur acceptée, T2.5 passe en ✅. L'auteur n'a pas déclaré avoir essayé les aperçus et vignettes (T2.6) ni les autres démos (T2.7) : elles restent en 🧪, et T2.9 avec elles.
+- Recette de l'auteur (2026-11-19, « tout est OK ») : aperçus et vignettes de l'éditeur et autres démos acceptés. T2.6, T2.7 et T2.9 passent en ✅ : la tranche 2 est recettée. Elle n'est ni fusionnée ni poussée : la fusion attend la demande de l'auteur.
 - **Reste 🧪 : la recette de l'auteur.** Ni l'éditeur ni les démos n'ont été lancés.
 
 ## Tranche 3 — Retrait et migration (cadrage)
