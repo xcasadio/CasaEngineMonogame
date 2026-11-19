@@ -4,6 +4,8 @@ Suite des tranches A à G de l'éditeur de cutscenes, archivées le 2026-11-19 (
 Les décisions D1 → D4 ci-dessous ont été arbitrées avec l'auteur le 2026-11-19 : **ce plan les applique, il ne les rediscute pas**. Les arbitrages P1 → P19 sont ceux de l'agent : à confirmer par l'auteur avec le plan.
 Relectures neuves du 2026-11-19 avant approbation : une relecture de plan (REVISE, trois points P2), une vérification des faits (cinq imprécisions) et une revue d'impact (cinq points P2, six notes) ; tous les points sont repris dans cette version. Deuxième relecture neuve le même jour (REVISE : un point P1 et trois points P2 sur le sample et les lancements de validation ; une phrase fausse et cinq imprécisions de faits) : tous repris ici. Relecture de clôture le même jour : REVISE sur un seul point, de priorité P1 (un test existant compte les fichiers `.cutscene` du dépôt, et le sample en ajoute un) ; il est repris par l'exception nommée P19, **que l'auteur doit confirmer avec le plan**. Aucune relecture n'a été faite après cette dernière correction : le plan n'a donc pas reçu de verdict READY.
 
+**Plan approuvé par l'auteur le 2026-11-19 (« Approuvé en mode auto »), exception P19 comprise.** Exécution en mode autonome : arrêt au premier ⚠️ Blocked.
+
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
 ## Objectif
@@ -116,7 +118,7 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
 
 ## Phase 0 — Décision
 
-### ⏳ T0.1 — ADR-0146 et relevé de départ
+### ✅ T0.1 — ADR-0146 et relevé de départ
 
 - Objectif : écrire la décision avant le code, et relever l'état de départ des tests et des diagnostics.
 - Fichiers : `docs/decisions/0146-a-world-can-run-under-its-own-execution-policy.md`, `docs/decisions/README.md`, ce plan.
@@ -127,6 +129,15 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   4. Ajouter la ligne à l'index des ADR.
 - Validation : les deux lancements de référence sortent avec le code 0 ; après la suppression du fichier que chaque lancement crée (règle des lancements automatisés), `git status --short` est propre, et la note de la tâche le dit ; l'ADR ne contient que des faits de l'état vérifié et les arbitrages du plan ; le numéro 0146 est libre dans `main` et dans `chantier/camera-behaviours` (`git ls-tree --name-only <branche> docs/decisions/`).
 - Commit : `docs(adr): let a world run under its own execution policy (ADR-0146)`
+- Note de validation (2026-11-19) :
+  - Base de la branche, avant tout changement : `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur (461 avertissements). `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8064 réussis, 0 échec, 0 ignoré, total 8064** (c'est le nombre de départ pour la validation globale). La solution du moteur n'a pas été reconstruite : aucun code touché.
+  - Référence des diagnostics, ligne de commande exacte (lancée depuis `D:/development/repo/CasaEngineMonogame-cutscene`, éditeur construit dans `CasaEngine.Editor/bin/Debug/net9.0-windows`), `<dossier>` valant `C:/Users/casad/AppData/Local/Temp/claude/81be52a0b6a78573/e54c1193-6020-4aaf-9839-a7f6d363fb83/scratchpad/live-preview-runs/reference` :
+    `./CasaEngine.Editor/bin/Debug/net9.0-windows/CasaEngine.Editor.exe --project Projects/SpriteCutsceneSample/SpriteCutsceneSample.json --open-asset Cutscenes/loop.cutscene --cutscene-preview-seek 2 --capture-delay 2 --diagnostics-out <dossier>/ref1-diagnostics.txt --screenshot-out <dossier>/ref1.png`
+    (le second lancement : `ref2-diagnostics.txt` et `ref2.png`). `--project` prend le fichier `SpriteCutsceneSample.json` (forme relevée dans la note de validation de `cutscene-editor-preview-tasks.md`) ; `--capture-delay 2` laisse deux secondes après la recherche ; la capture est écrite sous le nom `<fichier>-final.png`.
+  - Fichiers de référence, à réutiliser par T2.3 et T2.4 : `<dossier>/ref1-diagnostics.txt` et `<dossier>/ref2-diagnostics.txt` (157 lignes chacun), captures `ref1-final.png` et `ref2-final.png`. Les deux lancements sortent avec le code 0.
+  - Comparaison des deux fichiers (`diff`) : les lignes de l'aperçu (de `Cutscene preview (play started: False):` à `Preview entity 'ring-right'`, lignes 52 à 70) sont **identiques**. Sont différentes, donc à sortir des comparaisons de T2.3 et de T2.4 : la ligne `Captured at:` (horodatage) ; la ligne `Current folder items:` (8 au premier lancement, 9 au second : le dossier `Projects/SpriteCutsceneSample/.casaeditor/` créé par le premier lancement existait encore, vide, quand j'ai lancé le second ; il n'existait pas avant ; une comparaison future doit partir d'un dossier absent) ; les lignes de journal de fin de fichier (horodatages, chemin de la capture). Le contenu de l'aperçu de référence : `Preview status line: Preview: Paused. Skipped: ExitOnInput -> SpriteExit. Sprite animations, physics and scripts are frozen in the preview.` ; `Preview world: SpriteWorld` ; temps 2,000 s, 120 images ; entités `camera` (0, 0, 10), `orb-left` (-60, 35, 0), `orb-right` (60, 35, 0), `ring-left` (-60, -35, 0), `ring-right` (60, -35, 0).
+  - Après chaque lancement : suppression de `Projects/SpriteCutsceneSample/.casaeditor/viewport.editor.json`, seul fichier non suivi apparu ; le dossier `.casaeditor/` vide a ensuite été supprimé. `git status --short` n'affichait ensuite que le fichier du plan. Captures non regardées (le relevé porte sur les diagnostics).
+  - ADR : `docs/decisions/0146-a-world-can-run-under-its-own-execution-policy.md`, statut `Proposed`, ligne ajoutée à l'index de `docs/decisions/README.md`. Le numéro 0146 est libre dans `main`, dans `chantier/camera-behaviours` (dernier : 0145) et dans la branche (`git ls-tree --name-only <branche> docs/decisions/` : aucun 0146). L'ADR ne reprend que des faits de l'état vérifié et les arbitrages P1 à P8, P13 à P16.
 
 ---
 
