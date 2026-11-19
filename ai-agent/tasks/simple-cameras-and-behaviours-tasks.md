@@ -130,12 +130,13 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - Validation (2026-11-19, `main` `9125b438`) : la section « État vérifié du dépôt » est réécrite d'après le code lu. Le champ de vision des données est respecté (étape 1). Les noms retenus sont libres (étape 2). La nouvelle classe apparaîtra dans le dialogue « Add Component » et dans l'inspecteur des caméras, sans décision à prendre (étape 3). `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8031 tests, 0 échec** ; c'est le compte attendu avant les tests de ce plan (étape 4).
 - Constat pour T1.3 : le dépôt a déjà un moyen d'écrire et de lire une propriété sans toucher `EditorEntityJsonSerializer`, l'attribut `[SerializedProperty]` (ADR-0118). Le décalage l'emploie avec la clé `picture_offset` décidée en O3 : même clé, même forme `x`, `y`, clé absente = valeur par défaut. `EditorEntityJsonSerializer.cs` ne change donc qu'en T1.2.
 
-### ⏳ T1.1 — ADR
+### ✅ T1.1 — ADR
 
 - Objectif : enregistrer D1, D3, D4, D7, D8, la forme retenue en O2, le nom de la clé (O3) et le sens du décalage (O8).
 - Fichiers : `docs/decisions/<numéro>-<titre>.md`, `docs/decisions/README.md`.
 - Validation : l'index liste l'ADR ; le numéro est le suivant de la série du dépôt à ce moment.
 - Commit : `docs(decisions): record the simple cameras and their behaviour components`
+- Validation (2026-11-19) : ADR-0144, numéro suivant de la série (dernière : 0143), listée dans l'index.
 
 ### ⏳ T1.2 — Caméra perspective posée par sa transformation
 

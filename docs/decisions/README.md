@@ -157,3 +157,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0141](0141-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md) | The cutscene format gains an At action, and the timeline places actions in time (numbered ADR-0102 until 2026-11-19) | Accepted | 2026-11-18 |
 | [ADR-0142](0142-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md) | The cutscene preview draws screen fades, simulates an input and plays sound on demand (numbered ADR-0103 until 2026-11-19) | Accepted | 2026-11-19 |
 | [ADR-0143](0143-every-modified-document-asks-before-its-changes-are-lost.md) | Every modified document asks before its changes are lost (numbered ADR-0104 until 2026-11-19) | Accepted | 2026-11-19 |
+| [ADR-0144](0144-simple-cameras-and-behaviour-components.md) | Cameras become simple, their behaviours become components | Accepted | 2026-11-19 |
