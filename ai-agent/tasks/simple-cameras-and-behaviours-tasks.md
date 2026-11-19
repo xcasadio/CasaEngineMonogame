@@ -197,11 +197,12 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - Validation (2026-11-19) : `Projects/PerspectiveCameraSample` (monde, image 640x240 générée, cube à matériau sans lumière) et `Projects/CasaEngine.PerspectiveCameraSample` (DLL minimale, ajoutée à `CasaEngine.MonoGame.sln`). Étape 1 : aucun sample sans DLL ne lit le clavier pour agir sur un composant (un script se cherche seulement dans une DLL de jeu enregistrée, ADR-0075) ; O4 s'applique, le script `PictureOffsetKeys` écrit `PictureOffset` aux flèches. `PerspectiveCameraSampleDataTests` : 8 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8064 tests, 0 échec.
 - **Reste 🧪 : le sample n'a pas été lancé.** L'agent n'a pas pu ouvrir le Launcher ; le dessin (sprite sous une caméra perspective, cube, défilement) n'est prouvé que par la lecture du code. Essai par l'auteur : voir le README du sample.
 
-### ⏳ T1.5 — Documentation
+### ✅ T1.5 — Documentation
 
 - Objectif : `docs/engine/` décrit la caméra, ses clés, le sens du décalage, l'écart mesuré en T1.3, le contrat de `SetPositionAndTarget` sous un parent, et ce que les tranches 2 et 3 changeront.
 - Validation : liens depuis l'index de `docs/`.
 - Commit : `docs(engine): describe the posed perspective camera`
+- Validation (2026-11-19) : `docs/engine/perspective-camera-component.md`, lié depuis `docs/README.md`. Limite constatée en l'écrivant : la section générique de l'inspecteur n'édite pas un `Vector2` (`ComponentEditorBase.CreatePropertyEditor`), donc le décalage ne s'y voit pas ; non corrigé, hors périmètre de la tranche.
 
 ### ⏳ T1.6 — Recette de l'auteur
 
