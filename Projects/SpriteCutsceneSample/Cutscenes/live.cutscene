@@ -1,0 +1,39 @@
+{
+  "id": "df7518fd-676d-4f50-ae69-d193c8fb5aad",
+  "name": "Sprite Live",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 0.5
+      },
+      {
+        "type": "ShowSprite",
+        "entity": "Marker",
+        "x": -190,
+        "y": -35,
+        "color": [
+          128,
+          55,
+          15
+        ],
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "MoveSprite",
+        "entity": "Marker",
+        "x": 60,
+        "y": -35,
+        "speed": 120
+      },
+      {
+        "type": "Wait",
+        "seconds": 0.5
+      }
+    ]
+  }
+}

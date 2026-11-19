@@ -1,0 +1,42 @@
+{
+  "animation_type": "Loop",
+  "id": "99295376-43f4-44d9-b08d-9c3aa822ada5",
+  "name": "OrbPulse",
+  "parts": [
+    {
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "d84df1ec-aed5-5458-9ff0-00adc2acd916",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
+    {
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "d84df1ec-aed5-5458-9ff0-00adc2acd916"
+        },
+        {
+          "time_seconds": 0.35,
+          "value": "500146de-7c47-5827-ba85-a47f19c51eca"
+        },
+        {
+          "time_seconds": 0.7,
+          "value": "d84df1ec-aed5-5458-9ff0-00adc2acd916"
+        }
+      ]
+    }
+  ],
+  "collision_keyframes": []
+}

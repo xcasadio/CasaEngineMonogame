@@ -13,6 +13,12 @@
       "asset_type": "world"
     },
     {
+      "id": "01833751-e1dd-4770-a2d5-4ae5ba68d80d",
+      "name": "LiveWorld",
+      "file_name": "LiveWorld.world",
+      "asset_type": "world"
+    },
+    {
       "id": "18086f73-c97d-5066-a58f-34a8253ead66",
       "name": "SpriteLoop",
       "file_name": "Cutscenes\\loop.cutscene",
@@ -34,6 +40,12 @@
       "id": "7d2f4b1e-6a93-5c08-8e51-3b9d0f27a4c6",
       "name": "SpriteStagger",
       "file_name": "Cutscenes\\stagger.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "df7518fd-676d-4f50-ae69-d193c8fb5aad",
+      "name": "SpriteLive",
+      "file_name": "Cutscenes\\live.cutscene",
       "asset_type": "cutscene"
     },
     {
@@ -59,6 +71,18 @@
       "name": "ring",
       "file_name": "Images\\ring.sprite",
       "asset_type": "sprite"
+    },
+    {
+      "id": "99295376-43f4-44d9-b08d-9c3aa822ada5",
+      "name": "OrbPulse",
+      "file_name": "Animations\\OrbPulse.anim2d",
+      "asset_type": "anim2d"
+    },
+    {
+      "id": "dd000551-e273-445d-a88e-6b8f397434b7",
+      "name": "Sparks",
+      "file_name": "Particles\\Sparks.particle",
+      "asset_type": "particle"
     },
     {
       "id": "f2c55cf2-76d5-5061-9883-6e62a9ad4977",

@@ -1,0 +1,413 @@
+{
+  "id": "01833751-e1dd-4770-a2d5-4ae5ba68d80d",
+  "name": "LiveWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "e2a1f6b0-3c4d-4e6f-8a9b-0c1d2e3f4a5b",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera2dComponent",
+          "type": "Camera2dComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "view_distance": 0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 320,
+            "h": 180,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "zoom": 1,
+          "pixel_snap": false
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "7583da58-a6df-45d9-bd9f-636e5eb815e7",
+        "name": "AnimatedOrb",
+        "root_component": {
+          "id": "f651f73d-90c8-4103-b87a-5019864cbd9b",
+          "name": "AnimatedSpriteComponent",
+          "type": "AnimatedSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": -100,
+              "y": 40,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "color": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          },
+          "sprite_effect": "None",
+          "animations": [
+            "99295376-43f4-44d9-b08d-9c3aa822ada5"
+          ]
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "30ac6e54-bff3-426e-8674-cdd5b9544fd0",
+        "name": "Sparks",
+        "root_component": {
+          "id": "2111d7f2-c309-4fc6-a941-41363d6b8951",
+          "name": "ParticleSystemComponent",
+          "type": "ParticleSystemComponent",
+          "coordinates": {
+            "position": {
+              "x": 100,
+              "y": -40,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "particle_effect_asset_id": "dd000551-e273-445d-a88e-6b8f397434b7",
+          "play_on_start": true,
+          "looping": true,
+          "simulate_in_editor": true,
+          "simulation_speed": 1.0,
+          "emission_scale": 1.0,
+          "color_tint": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          }
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "fa8c4356-826a-4288-8a24-5a44a44c8411",
+        "name": "FallingBox",
+        "root_component": {
+          "id": "4bffd9b6-085d-4933-a9a5-d0d88ef7886f",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 50,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [
+            {
+              "id": "165e382b-6d2b-41fb-90bc-7ead196a1285",
+              "name": "CollisionComponent",
+              "type": "CollisionComponent",
+              "coordinates": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0,
+                  "w": 1
+                }
+              },
+              "children_component": [],
+              "physics_definition": {
+                "physics_type": "Dynamic",
+                "angular_damping": 0.0,
+                "angular_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "friction": 0.5,
+                "linear_damping": 0.0,
+                "linear_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "mass": 1.0,
+                "restitution": 0.0,
+                "apply_gravity": true
+              },
+              "fixtures": [
+                {
+                  "shape": {
+                    "id": "324f4d02-73eb-4201-9fc7-7be1129e31ba",
+                    "name": "Object 324f4d02-73eb-4201-9fc7-7be1129e31ba",
+                    "shape_type": "Box",
+                    "w": 48.0,
+                    "h": 48.0,
+                    "l": 48.0
+                  },
+                  "local_position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "local_rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0
+                  },
+                  "collision_profile": null,
+                  "tag": null
+                }
+              ]
+            }
+          ],
+          "spriteDataName": "orb"
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "52a22ce2-6b20-494f-9865-52cac365eaf2",
+        "name": "Floor",
+        "root_component": {
+          "id": "9847f0e1-8176-4e2c-a247-4f26037ee39e",
+          "name": "CollisionComponent",
+          "type": "CollisionComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": -60,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "physics_definition": {
+            "physics_type": "Static",
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "mass": 0.0,
+            "restitution": 0.0,
+            "apply_gravity": true
+          },
+          "fixtures": [
+            {
+              "shape": {
+                "id": "c5dcd872-00ea-4f2f-92a4-343fb380d315",
+                "name": "Object c5dcd872-00ea-4f2f-92a4-343fb380d315",
+                "shape_type": "Box",
+                "w": 320.0,
+                "h": 20.0,
+                "l": 48.0
+              },
+              "local_position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "local_rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "collision_profile": null,
+              "tag": null
+            }
+          ]
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "f3ea1b68-cd1a-4f84-bc5b-6d9cea009dae",
+        "name": "Marker",
+        "is_visible": false,
+        "root_component": {
+          "id": "5dbdebbc-9304-40dd-8c5b-66f8592767f6",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": -190,
+              "y": -35,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "ring"
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 150,
+      "g": 170,
+      "b": 210,
+      "a": 255
+    }
+  },
+  "startup_cutscene_asset_id": "df7518fd-676d-4f50-ae69-d193c8fb5aad"
+}

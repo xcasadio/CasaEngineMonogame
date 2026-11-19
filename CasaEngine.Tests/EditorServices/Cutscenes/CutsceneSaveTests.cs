@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.EditorServices.Cutscenes;
 
 public sealed class CutsceneSaveTests
 {
-    private const int RepositoryCutsceneCount = 15;
+    private const int RepositoryCutsceneCount = 16;
 
     public static IEnumerable<object[]> RepositoryFiles()
     {
