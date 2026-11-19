@@ -208,12 +208,22 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 
 ## Phase 2 — Éditeur lancé
 
-### ⏳ T2.1 — Parcours, refus et smokes sur la tête intégrée
+### ✅ T2.1 — Parcours, refus et smokes sur la tête intégrée
 
 - Objectif : les commandes d'entité tiennent sur l'éditeur d'`origin/main` ; l'automatisation ne casse pas (P9).
 - Étapes : rebuild ; empreintes des fichiers de `%LOCALAPPDATA%/CasaEngine/` (hors `editor-remote/`) avant et après, identiques ; `t22_run.py` sur une copie neuve (`<scratchpad>/entity-asset-remote-2/`), complété : des refus de création de T1.4 pour `entity_asset.create` et `material.create` ; d'un **échec d'enregistrement** (S4-2) : le `.entity` de la copie mis en lecture seule, une édition, `entity_asset.save` répond `failed`, `panel.list` le montre toujours modifié, `panel.close` répond `unsaved_changes`, empreinte du fichier inchangée ; de la **réouverture d'un document modifié** (S4-3) : `asset.open` d'un matériau modifié puis d'un son modifié garde l'édition et l'état modifié ; `panel.close` d'un panneau d'entité non modifié ne montre aucune boîte de dialogue (capture de la fenêtre gardée) ; `casa-editor commands` comparé à `t22/commands-after.json` ; `Tools/automation-smokes.sh` vers `artifacts/entity-asset-remote/integration/smokes/` (chemin absolu), comparé selon P9.
 - Validation : tous les contrôles du script passent ; contrat des 54 commandes inchangé ; règle P9.
 - Commit : `docs(ai-agent): record the launched-editor run of the integrated editor`
+- Note de validation (2026-11-19), éditeur Debug construit sur `b47f0a552`, sorties dans `artifacts/entity-asset-remote/integration/` du dépôt du jeu (`t21b/`, `smokes/`), copies neuves de `Projects/SampleProject` sous `<scratchpad>/entity-asset-remote-2/sample/` :
+  - **Parcours et refus** (`t22_run.py` étendu, trois lancements) : 178 contrôles sur 179 ; le contrôle manquant est un défaut du script (il lisait le type d'une propriété de matériau comme un texte, alors que `material.get` rend un nombre), et son objet, la réouverture d'un matériau modifié, a été rejoué à part (`t21_material.py`, 9 contrôles sur 9). Un premier passage (`t21/`) avait deux échecs, tous deux du script : celui-là, et l'erreur attendue du fichier en lecture seule comptée comme une erreur de journal.
+  - Tout le parcours et tous les refus du plan précédent tiennent sur l'éditeur intégré : création, lecture, composants, propriété, annulation, rétablissement, enregistrement (`written` vrai puis faux, empreinte et date du fichier), fermeture, réouverture ; références refusées ; Play (le projet démarre : toute la famille et `asset.open` d'un `.entity` refusés) ; P13 (`BoxCopy`, `Loose`) ; jonction créée puis retirée seule.
+  - **T1.4** : pour `entity_asset.create` et `material.create`, les sept dossiers (`Entities/../Entities`, `Entities/./Models`, `Entities//Models`, `Entities.`, `Entities `, `Entities/...`, `Entities/ /Models`) sont refusés (`invalid_argument`), aucun asset catalogué, aucun fichier écrit.
+  - **T1.3, échec d'écriture (S4-2)** : le `.entity` mis en lecture seule, une édition, `entity_asset.save` répond `failed` ; `panel.list` le montre toujours modifié ; `panel.close` répond `unsaved_changes` ; empreinte du fichier inchangée ; aucune boîte de dialogue (l'appel a répondu aussitôt). Le journal porte une seule entrée d'erreur, celle de cet échec, attendue.
+  - **Fermeture par le code (S4-3 a)** : `panel.close` d'un panneau d'entité non modifié le ferme sans question ; capture gardée (`t21b/capture-after-close.png` : aucun dialogue, l'onglet a disparu).
+  - **Réouverture d'un document modifié (S4-3)** : matériau (`alpha_cutoff` posé à 0,5 : `asset.open` rend le même panneau, toujours modifié, la valeur est gardée, `panel.close` refusé, fichier inchangé, puis annulation et fermeture) ; son (`volume` modifié : `asset.open` le garde modifié, `panel.close` refusé, puis `sound.save` et fermeture).
+  - **Contrat** : `casa-editor commands` : 54 commandes, aucune ajoutée, retirée ni changée par rapport à `t22/commands-after.json` (descriptions à part).
+  - **Smokes d'automatisation** (P9) : S1 à S8 en sortie 0 ; les seize fichiers `sN-automation.txt` et `sN-hashes.txt` sont identiques octet pour octet à `smokes-after/` : aucune différence à lister.
+  - Réglages de l'utilisateur : empreintes de `%LOCALAPPDATA%/CasaEngine/` (hors `editor-remote/`) identiques avant et après. Chaque éditeur s'est fermé seul sur `taskkill /PID`.
 
 ## Phase 3 — Jeu
 
