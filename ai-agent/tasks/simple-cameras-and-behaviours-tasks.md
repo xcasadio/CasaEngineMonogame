@@ -399,12 +399,201 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Recette de l'auteur (2026-11-19, « tout est OK ») : aperçus et vignettes de l'éditeur et autres démos acceptés. T2.6, T2.7 et T2.9 passent en ✅ : la tranche 2 est recettée. Elle n'est ni fusionnée ni poussée : la fusion attend la demande de l'auteur.
 - **Reste 🧪 : la recette de l'auteur.** Ni l'éditeur ni les démos n'ont été lancés.
 
-## Tranche 3 — Retrait et migration (cadrage)
+## Tranches 3 et 4 — Enveloppe
 
-- Les trois anciennes classes sont retirées.
-- Les données qui les nomment sont traitées selon l'ADR de O6.
-- Un test par fichier de données du dépôt compare la vue obtenue avant et après.
-- Tâches détaillées à écrire au lancement de la tranche. Relecture indépendante du plan avant approbation, vérification indépendante du résultat avant de le dire fait.
+Écrite le 2026-11-19 à la demande de l'auteur (« Oui, écris le plan »), après ses trois réponses du même jour. **Soumise à l'auteur : aucun code avant son approbation.** L'auteur a demandé d'enchaîner les tâches en mode AUTO une fois le plan approuvé.
+
+Les réponses de l'auteur élargissent le cadrage d'origine : le travail restant se fait en **deux tranches**, chacune livrable et approuvable seule.
+
+| | Tranche 3 — retrait, migration, fusion | Tranche 4 — caméra 2D posée par sa transformation |
+|---|---|---|
+| Résultat | `ArcBallCameraComponent`, `CameraLookAtComponent`, `CameraTargeted2dComponent` et `Camera3dComponent` n'existent plus ; il reste une caméra 3D, `PerspectiveCameraComponent` ; les deux fichiers de données qui nommaient une ancienne caméra sont réécrits | `Camera2dComponent` se place par la transformation de son composant, comme la caméra 3D ; sa clé `target` disparaît ; les 14 mondes du dépôt sont réécrits |
+| Périmètre | Les quatre classes, leurs utilisateurs (runtime, éditeur, démos, tests), deux `camera.entity`, la doc | `Camera2dComponent`, ses utilisateurs (runtime, éditeur, démos, `Projects/CasaEngine.RPGDemo`, tests), l'écriture par l'éditeur, 14 mondes de `Projects/`, la doc |
+| Hors périmètre | `Camera2dComponent` ; `ScriptArcBallCamera` garde son nom (D13) ; aucun chemin de traduction dans le chargeur (D14) | La projection de la caméra 2D (`Zoom`, taille du viewport) ; le rendu ; les projets hors de ce dépôt |
+| Prérequis | Tranche 2 fusionnée dans `main` (fait, `851bfa93`) ; D14 et D15 | Tranche 3 terminée (sa branche sert de base si elle n'est pas fusionnée) ; D16 |
+| Branche | `chantier/camera-removal`, depuis `main` `851bfa93` | `chantier/camera-2d-pose`, depuis `main` si la tranche 3 y est fusionnée, sinon depuis la tête de `chantier/camera-removal` |
+| Acceptation | Plus aucune occurrence des quatre noms dans un `.cs` ; les deux `camera.entity` se chargent et donnent la vue et la projection d'avant, prouvé par un test par fichier écrit **avant** la migration ; les deux solutions à 0 erreur ; `CasaEngine.Tests` vert | Pour chacun des 14 mondes, la vue et la projection de la caméra chargée égalent celles d'avant, prouvé par un test par fichier écrit **avant** le changement et non modifié ensuite ; plus aucune clé `target` sous un nœud `Camera2dComponent` ; builds et tests verts |
+| Retour arrière | Annuler les commits de la branche ; les données sont restaurées par git | Annuler les commits de la branche ; les données sont restaurées par git |
+| Arrêts | Une vue ou une projection qui diffère de celle d'avant ; un usage d'une ancienne classe qui ne se convertit pas sans changer un comportement ; un test supprimé sans équivalent listé | Une vue qui diffère ; un utilisateur de `Target` dont le sens ne se déduit pas du code |
+| Risque | **Élevé : format de données et rupture d'API publique.** Relecture indépendante du plan avant approbation ; vérification indépendante du résultat avant de dire la tranche faite | **Élevé : format de données (14 mondes), rupture d'API publique.** Mêmes deux contrôles |
+| Budget | Un commit par tâche ; au plus cinq passes de correction après vérification | Idem |
+
+### Décisions des tranches 3 et 4 (réponses de l'auteur du 2026-11-19)
+
+| Réf | Décision |
+|---|---|
+| D14 | **Les données sont migrées une fois** (O6). Les fichiers du dépôt qui nomment une ancienne caméra sont réécrits ; le chargeur ne reçoit aucun chemin de traduction. C'est la posture de l'ADR-0008 (« replace, don't duplicate ») ; la proposition d'origine de O6 (le chargeur traduit) est abandonnée. Un fichier hors dépôt non migré se charge en composant non résolu, avec une erreur au journal (ADR-0119, `ElementFactory.LoadComponent`). |
+| D15 | **`Camera3dComponent` est fondue dans `PerspectiveCameraComponent`.** Le nom des données, `PerspectiveCameraComponent`, ne change pas (O2). |
+| D16 | **`Camera2dComponent` est alignée sur la caméra 3D** (O7) : sa pose est la transformation de son composant. Ses clés changent ; les 14 mondes du dépôt sont migrés une fois (D14). |
+| D17 | Mode AUTO pour l'exécution, après approbation du plan. Ni push, ni fusion dans `main` sans demande. |
+
+### État vérifié (relevé le 2026-11-19 sur `main` `851bfa93`)
+
+Relevé par `rg` sur les `.cs` hors `bin`, `obj`, `MGUI`, `NvgSharp`, puis lecture des fichiers cités.
+
+- **Données qui nomment une ancienne caméra : deux fichiers**, identiques octet pour octet dans leur nœud de caméra : `CasaEngine.Demos/Content/EditorWorld/Entities/camera.entity` et `Projects/SampleProject/Entities/camera.entity`. Composant racine `ArcBallCameraComponent`, `fieldOfView` 0,7853982, `target` (−8,128628 ; −1,9367545 ; −3,401419), `distance` 5, `yaw` 2,8729265, `pitch` −0,53685135, `components` vide, pas de script. Chacun est référencé par un monde (`EditorWorld.world`, `DefaultWorld.world`, `asset_id` `8abc0021-…`) et par `AssetInfos.json`. Aucune donnée ne nomme `CameraLookAtComponent` ni `CameraTargeted2dComponent`.
+- **`ArcBallCameraComponent` hors tests** : sa classe ; `ViewportCameraNavigation.cs` (`From` et `ApplyTo`, lignes 60-74, et deux commentaires) ; `ScriptArcBallCamera.cs` (chemin sans orbite) ; `EditorEntityJsonSerializer.cs` (cas ligne 226, `SaveArcBallCameraComponent` ligne 403) ; `EditorWorldDemo.cs:78-83` (teste le type, appelle `SetCamera`) ; un commentaire dans `OrbitCameraComponent.cs`.
+- **`CameraLookAtComponent` et `CameraTargeted2dComponent` hors tests** : leurs classes et `EntityPolicyResolver.cs:132-133`. Un composant non listé y reçoit déjà `DynamicDefault` (O10).
+- **Tests** : 27 fichiers de `CasaEngine.Tests` nomment une ancienne classe. Quatre s'en servent comme **référence** : `OrbitCameraComponentTests` (trois tests comparent la vue de l'orbite à celle de `ArcBallCameraComponent`), `ScriptArcBallCameraOrbitTests` (compare le script sur l'orbite au script sur l'ancienne caméra), `ViewportCameraNavigationTests` (`Eye_MatchesTheArcBallComponentPosition`, `ApplyTo_LeavesTheFieldOfViewUntouched`), `Camera3dFieldOfViewTests` (charge les deux `camera.entity` par `new ArcBallCameraComponent().Load`). `ArcBallCameraComponentTests` (cinq tests) teste la classe elle-même. `PerspectiveCameraComponentTests:194-198` cite les trois classes dans une théorie. `EditorViewportCameraPoseTests` ne les cite qu'en commentaire : ses références sont déjà des valeurs écrites en dur. Les autres fichiers prennent une ancienne caméra comme simple support.
+- **`Camera3dComponent`** : abstraite, 60 lignes (`FieldOfView`, `DefaultFieldOfView`, `InitializeWithWorld`, la projection, la lecture de `fieldOfView`). Nommée dans 13 `.cs` : les quatre classes dérivées, `ScriptArcBallCamera.cs`, `EditorEntityJsonSerializer.cs` (cas et `SaveCamera3dComponent`), `CameraComponentEditor.cs`, `EditorCameraFactory.cs`, `EditorViewportCameraController.cs`, trois fichiers de test. Aucune donnée ne la nomme (un type abstrait n'est pas chargeable).
+- **`Camera2dComponent`** (`Camera2dComponent.cs`) : `Target` (Vector3), `Zoom`, `PixelSnap`. Sa vue est `CreateLookAt(target + (0, 0, 500), target, Up)`, la cible étant arrondie à la grille `1 / Zoom` en x et y quand `PixelSnap` est vrai ; le calcul écrit `Position` au passage. `SetPositionAndTarget` n'écrit que la cible. `Load` lit `target`, `zoom`, `pixel_snap`. **La transformation enregistrée n'a aujourd'hui aucun effet sur la vue.**
+- **Les 14 mondes à caméra 2D** (`Projects/` : `RPGDemo`, `BufferedResolutionSample`, `PixelUiSample` ×2, `TimedScreenSample` ×2, `VideoSample`, `VideoSpriteSample` ×2, `VideoSpriteExitSample` ×2, `SpriteDrawOrderSample`, `SpriteCutsceneSample` ×2) : dans tous, la caméra est le composant racine d'une entité sans parent, `target` vaut (0, 0, 0), `zoom` 1, `pixel_snap` faux, rotation identité, profondeurs 1 et 1000. La position enregistrée vaut (0, 0, 10) dans treize mondes et (3,0748892 ; 0,5550308 ; 2,5794868) dans `RPGDemo/DefaultWorld.world` : sans effet aujourd'hui.
+- **Utilisateurs de `Camera2dComponent.Target` hors tests** : `ScreenEffectComponent.cs:72` et `:147` (lecture : x et y centrent le quad de l'effet, z donne sa profondeur) ; `EditorViewport2dCameraController.cs:87-102` (écriture) ; `Layers2dDemo.cs:208`, `TileMapDemo.cs:139`, `Projects/CasaEngine.RPGDemo/Scripts/ScriptWorld.cs:61` (écriture) ; `EditorEntityJsonSerializer.cs:386-394` (écrit `target`, `zoom`, `pixel_snap`). `VirtualResolutionRuntime`, `VirtualResolutionLayout`, `PixelPerfectDiagnostics` et `DebugOverlay` ne lisent que `Zoom`, `PixelSnap` ou le type.
+- `Follow2dCameraComponent` écrit `LocalPosition` de la caméra de son entité ; sa doc dit qu'il ne pilote pas une `Camera2dComponent`, qui se place par sa cible.
+- Dernière ADR : 0145. `CasaEngine.Tests` : 8118 tests verts sur `851bfa93`.
+
+---
+
+## Tranche 3 — Retrait, migration, fusion
+
+### Conception
+
+- **Références figées avant le retrait.** Tout test qui prouve aujourd'hui une égalité avec une ancienne classe reçoit d'abord une seconde référence, indépendante de cette classe, et passe au vert **avec les deux** (T3.2). L'ancienne référence n'est retirée qu'avec la classe (T3.5). Aucune preuve de non-régression ne disparaît donc sans avoir été doublée.
+  - Orbite : la formule de l'ancienne classe, écrite dans le test : `CreateLookAt(Target − Direction × Distance, Target, Up)`, avec `Direction` = (sin Yaw cos Pitch, sin Pitch, −cos Yaw cos Pitch).
+  - Script : `ViewportCameraNavigation.Update` appliqué directement à un `ViewportCameraState` de mêmes valeurs de départ et de mêmes entrées.
+  - Données : la vue et la projection de chaque `camera.entity`, écrites en dur dans le test (16 termes chacune, viewport 1280 × 720, profondeurs 1 et 1000), relevées sur l'ancienne classe.
+- **Forme migrée d'un `camera.entity`** : composant racine `PerspectiveCameraComponent` (mêmes `id`, `name`, `view_distance`, `viewport`, `fieldOfView`), sans `target`, `distance`, `yaw`, `pitch` ; un `OrbitCameraComponent` dans `components`, avec ces quatre clés et leurs valeurs. Le fichier est **celui que `EditorEntityJsonSerializer` écrit** pour cette entité : il est produit par l'éditeur de données, pas à la main, pour que la forme soit celle qu'un enregistrement donnera. `coordinates` y vaut la pose que l'orbite écrit (elle est de toute façon réécrite à l'initialisation de l'entité). L'`id` de l'entité et son nom de fichier ne changent pas : les mondes et `AssetInfos.json` ne bougent pas.
+- **Fusion.** Les membres de `Camera3dComponent` passent dans `PerspectiveCameraComponent`, sans changement de comportement ; `Camera3dComponent.cs` est supprimé ; chaque référence à `Camera3dComponent` devient `PerspectiveCameraComponent`.
+- **Ruptures d'API publique** (demandées par l'auteur, dites dans l'ADR et le rapport) : les quatre classes ; `ViewportCameraState.From(ArcBallCameraComponent)` et `ApplyTo(ArcBallCameraComponent)`.
+
+### Validation globale de la tranche
+
+- `rg "\b(ArcBallCameraComponent|CameraLookAtComponent|CameraTargeted2dComponent|Camera3dComponent)\b" --glob "*.cs"` hors `bin`, `obj`, `MGUI`, `NvgSharp` : aucun résultat.
+- `rg "ArcBallCameraComponent|CameraLookAtComponent|CameraTargeted2dComponent"` sur les données (`*.entity`, `*.world`, `*.json` de `Projects/` et de `CasaEngine.Demos/Content/`) : aucun résultat.
+- Les tests de données de T3.2 verts, sans changement de leurs valeurs attendues entre T3.2 et la fin.
+- Les deux solutions à 0 erreur ; `CasaEngine.Tests` vert ; le nombre de tests ne baisse que des suppressions listées dans les notes de T3.4 et T3.5.
+- Recette de l'auteur : la démo « World made in the editor » de `CasaEngine.Demos`, et `Projects/SampleProject`.
+
+### ✅ T3.0 — Recenser les usages
+
+Fait à l'écriture de ces tâches : voir « État vérifié » ci-dessus.
+
+### ⏳ T3.1 — ADR
+
+- ADR-0149, en anglais, avec le skill `adr`, indexé dans `docs/decisions/README.md` : retrait des trois anciennes caméras ; données migrées une fois, sans traduction dans le chargeur, en application de l'ADR-0008 (D14) ; fusion de `Camera3dComponent` dans `PerspectiveCameraComponent` (D15) ; ruptures d'API listées ; ce qui arrive à un fichier non migré (ADR-0119). Il cite l'ADR-0089 pour dire que `ViewportCameraState` ne se lit plus que dans une orbite.
+- Validation : relecture ; aucun nom de projet extérieur.
+
+### ⏳ T3.2 — Figer les références
+
+Tests seulement, aucun code du moteur.
+
+1. `OrbitCameraComponentTests` : une méthode du test calcule la vue par la formule ; les trois tests qui comparent à `ArcBallCameraComponent` affirment en plus l'égalité avec la formule.
+2. `ScriptArcBallCameraOrbitTests` : chaque geste affirme en plus que l'état de l'orbite égale celui que donne `ViewportCameraNavigation.Update` sur un `ViewportCameraState`.
+3. `ViewportCameraNavigationTests` : `Eye_MatchesTheArcBallComponentPosition` reçoit un jumeau sur `OrbitCameraComponent` + `PerspectiveCameraComponent` (position et direction de l'orbite) ; `ApplyTo_LeavesTheFieldOfViewUntouched` un jumeau sur l'orbite.
+4. Nouveau `LegacyCameraEntityDataTests` (nom libre) : une théorie à deux lignes, une par `camera.entity`. Elle charge l'entité **par `Entity.Load`** puis l'initialise comme le fait le test existant `AnEntityLoadedFromData_IsPosedAtItsInitialisation_WithNoPropertyWrite`, prend le composant caméra de l'entité, lui donne un viewport de 1280 × 720 et les profondeurs 1 et 1000, et compare sa vue et sa projection aux 32 termes écrits en dur. Les termes sont relevés par ce même test sur les fichiers d'origine. Le test ne nomme aucune classe de caméra concrète : il reste inchangé après la migration.
+5. Validation : tests verts ; la note de la tâche donne les 32 termes relevés et le compte de tests.
+
+### ⏳ T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
+
+1. Produire la forme migrée par `EditorEntityJsonSerializer` (test jetable non committé, ou l'éditeur piloté) ; l'écrire dans les deux fichiers. Le diff ne montre que : le type du composant racine, les quatre clés déplacées dans le nouveau composant, `coordinates`.
+2. `EditorWorldDemo.InitializeCamera` : cadrer par `DemoCameraFraming.Frame(camera, (0, 14, 30), Vector3.Zero)`, mêmes arguments qu'aujourd'hui, et garder la pose du script.
+3. `Camera3dFieldOfViewTests.TheSavedCameras_LoadWithFortyFiveDegrees` : charge le nœud par `ElementFactory.LoadComponent`, mêmes affirmations.
+4. Validation : les tests de T3.2.4 verts **sans modification** ; builds ; tests. Si `Projects/SampleProject` se lance par `tools/run-launcher.ps1` du dépôt hôte, une capture avant (sur `main`) et une après sont jointes au rapport comme indice, pas comme preuve ; sinon la note le dit. 🧪 jusqu'à la recette de la démo par l'auteur.
+
+### ⏳ T3.4 — Convertir les tests qui prennent une ancienne caméra comme support
+
+Travail répétitif à jugement borné : confié à un `executor`, relu par la session principale.
+
+- Règle : `new ArcBallCameraComponent()` ou `new CameraLookAtComponent()` devient `new PerspectiveCameraComponent()`. Une pose donnée par `Target`, `Distance`, `Yaw`, `Pitch`, `SetCamera` ou `Position` + `Target` devient `SetPositionAndTarget(position, cible)` avec la même position et la même cible ; si le test a besoin des valeurs d'orbite elles-mêmes, il pose un `OrbitCameraComponent` sur l'entité. Aucune affirmation n'est affaiblie ni retirée.
+- `ArcBallCameraComponentTests` : chaque test est rapproché d'un test de `OrbitCameraComponentTests` qui affirme la même chose ; ce qui manque y est ajouté ; le fichier est ensuite supprimé. La note de la tâche donne la correspondance, test par test.
+- `PerspectiveCameraComponentTests:194-198` : les trois lignes des anciennes classes sortent de la théorie.
+- Ne sont pas touchés ici : les quatre fichiers de référence de T3.2.
+- Arrêt : un test dont le sens dépend d'un comportement propre à l'ancienne classe et que la caméra simple n'a pas.
+- Validation : builds ; tests verts ; la note liste les tests supprimés et leur équivalent ; `rg` ne trouve plus les trois noms dans `CasaEngine.Tests` hors des quatre fichiers de T3.2.
+
+### ⏳ T3.5 — Retirer les trois anciennes classes
+
+1. Supprimer `ArcBallCameraComponent.cs`, `CameraLookAtComponent.cs`, `CameraTargeted2dComponent.cs`.
+2. `ViewportCameraNavigation.cs` : retirer `From(ArcBallCameraComponent)` et `ApplyTo(ArcBallCameraComponent)` ; corriger les deux commentaires.
+3. `ScriptArcBallCamera.cs` : retirer le chemin sans orbite ; sans orbite sur l'entité, le script ne fait rien, comme aujourd'hui sans caméra. Sa doc le dit.
+4. `EditorEntityJsonSerializer.cs` : retirer le cas et `SaveArcBallCameraComponent`. `EntityPolicyResolver.cs` : retirer les deux cas (aucun effet : O10).
+5. Tests de T3.2 : retirer la référence à l'ancienne classe, garder la seconde. Corriger les commentaires qui décrivent l'ancienne caméra (`OrbitCameraComponent.cs`, `WorldViewportPanel.cs:1946`, `TileMap3dDemo.cs:13`).
+6. Validation : le premier `rg` de la validation globale, restreint aux trois noms, ne trouve rien ; builds ; tests ; la note liste les tests retirés.
+
+### ⏳ T3.6 — Fondre `Camera3dComponent` dans `PerspectiveCameraComponent`
+
+1. Déplacer `DefaultFieldOfView`, `FieldOfView`, le constructeur de copie, `InitializeWithWorld`, la projection par défaut et la lecture de `fieldOfView` dans `PerspectiveCameraComponent`, qui dérive alors de `CameraComponent`. Supprimer `Camera3dComponent.cs`.
+2. Remplacer `Camera3dComponent` par `PerspectiveCameraComponent` dans `ScriptArcBallCamera.cs`, `EditorEntityJsonSerializer.cs` (un seul cas, une seule méthode d'écriture, mêmes clés dans le même ordre), `CameraComponentEditor.cs`, `EditorCameraFactory.cs`, `EditorViewportCameraController.cs` et les tests.
+3. Validation : `rg "\bCamera3dComponent\b" --glob "*.cs"` ne trouve rien ; `Camera3dFieldOfViewTests` et `PerspectiveCameraComponentTests` verts sans changement d'affirmation ; un test relit un `PerspectiveCameraComponent` écrit par l'éditeur et retrouve les mêmes clés qu'avant la fusion ; builds ; tests.
+
+### ⏳ T3.7 — Documentation
+
+- `docs/engine/perspective-camera-component.md`, `docs/engine/camera-behaviour-components.md`, `docs/editor/viewport-camera-controls.md`, `docs/editor/editor-2d-viewport.md`, `docs/README.md` : plus de mention des classes retirées comme existantes ; comment migrer un fichier à la main (les deux formes côte à côte).
+- `ai-agent/README.md` : la ligne du plan dit l'état réel (elle dit encore que la tranche 2 attend sa fusion).
+- Validation : relecture ; liens vérifiés.
+
+### ⏳ T3.8 — Vérification indépendante et recette
+
+- Un `verifier` neuf reçoit les affirmations de la « Validation globale », le diff de la branche et les notes des tâches ; il relance builds et tests et cherche à réfuter. Un point P0 à P2 est corrigé puis revérifié.
+- Recette de l'auteur (🧪 jusque-là) : « World made in the editor » dans `CasaEngine.Demos`, `Projects/SampleProject`, et un enregistrement d'entité à caméra dans l'éditeur.
+
+---
+
+## Tranche 4 — Caméra 2D posée par sa transformation
+
+### Conception
+
+- **Pose.** La vue de `Camera2dComponent` est l'inverse de `WorldMatrixNoScale`, parents compris, comme `PerspectiveCameraComponent` (même crochet `IsViewOutOfDate`, qui compare la matrice du monde à celle du dernier calcul). Elle regarde le long de son −Z local ; un roulis fait tourner l'image. `Target` et son champ disparaissent. Le calcul de la vue n'écrit plus `Position`.
+- **`PixelSnap`.** Quand il est vrai, la translation x et y de la matrice du monde est arrondie à la grille `1 / Zoom` pour le calcul de la vue ; la transformation enregistrée n'est pas modifiée. Pour une caméra sans rotation, c'est le calcul d'aujourd'hui.
+- **Distance par défaut.** `public const float DefaultDistance = 500f` (la constante privée d'aujourd'hui). Le constructeur sans paramètre pose `LocalPosition` à (0, 0, 500) : une caméra créée par code voit le plan z = 0 comme aujourd'hui avec une cible nulle.
+- **Cadrage par code.** `CentreOn(Vector3 point)` pose `LocalPosition` à (point.X, point.Y, point.Z + `DefaultDistance`) : c'est ce que faisait l'écriture de `Target`. `SetPositionAndTarget(position, cible)` appelle `CentreOn(cible)`, comme aujourd'hui où seule la cible compte.
+- **Données.** `Load` ne lit plus `target`. Si la clé est présente, une erreur est écrite une fois au journal, avec le nom et l'identifiant du composant : la clé n'est plus lue, la pose vient de `coordinates` (O11). L'éditeur n'écrit plus `target`.
+- **Forme migrée d'un monde** : `coordinates.position` = (cible.x, cible.y, cible.z + 500), soit (0, 0, 500) dans les 14 mondes ; la clé `target` est retirée. Édition ciblée du nœud de la caméra : le reste de chaque fichier reste identique octet pour octet.
+- **Ordre qui garde chaque commit vert** : d'abord la position dans les données (sans effet sur l'ancien code, qui ne la lit pas), puis le code, puis le retrait de la clé `target`.
+- **Effets d'écran.** `ScreenEffectComponent` centre son quad sur la position du monde de la caméra, à la profondeur z − `DefaultDistance` : les valeurs d'aujourd'hui pour une caméra sans rotation.
+- **Suivi 2D.** `Follow2dCameraComponent` écrit `LocalPosition` : il pilote désormais aussi une `Camera2dComponent`. Sa doc et sa limite sont corrigées, un test le prouve.
+- **Rupture d'API publique** (demandée par l'auteur) : `Camera2dComponent.Target`.
+
+### Validation globale de la tranche
+
+- Le test par monde de T4.1 vert du début à la fin, **sans modification**.
+- `rg` ne trouve plus de clé `target` sous un nœud `Camera2dComponent` dans les données du dépôt (test de T4.4).
+- Pour une grille de positions, de zooms et de `PixelSnap`, la vue d'une caméra 2D posée en (x, y, z + 500) égale `CreateLookAt` de l'ancienne formule pour la cible (x, y, z), arrondi compris.
+- Les deux solutions à 0 erreur ; `CasaEngine.Tests` vert ; aucune affirmation retirée hors de celles qui portaient sur `Target`, listées dans la note de T4.3.
+- Recette de l'auteur : la vue 2D de l'éditeur, les démos 2D, `RPGDemo`, un sample à sprites.
+
+### ⏳ T4.0 — ADR
+
+- ADR-0150, en anglais, skill `adr`, indexé : la caméra 2D est posée par sa transformation ; la distance par défaut ; `PixelSnap` ; le sort de la clé `target` ; les 14 mondes migrés une fois (ADR-0008) ; la rupture d'API ; comment migrer un fichier à la main.
+- Validation : relecture.
+
+### ⏳ T4.1 — Figer la vue des 14 mondes
+
+Tests seulement.
+
+- Nouveau test, une théorie à 14 lignes, une par monde. Elle lit le fichier, prend le nœud dont `type` vaut `Camera2dComponent`, le charge par `ElementFactory.LoadComponent`, lui donne un viewport de 1280 × 720 et les profondeurs 1 et 1000, et compare sa vue et sa projection à des termes écrits en dur. Tous les mondes ayant une cible nulle, un zoom de 1 et pas d'arrondi, la vue attendue est `CreateLookAt((0, 0, 500), (0, 0, 0), Up)` et la projection `CreateOrthographic(1280, 720, 1, 1000)` : la note le vérifie sur les 14 relevés avant de les réduire à ces deux matrices.
+- Nouveau test de grille (validation globale, troisième point), d'abord écrit sur l'ancienne classe par `Target`, avec la vue attendue calculée par la formule dans le test ; il passera sur `CentreOn` en T4.3 sans changer la formule.
+- Validation : tests verts sur le code d'aujourd'hui ; la note donne les relevés.
+
+### ⏳ T4.2 — Écrire la position dans les 14 mondes
+
+- Dans chaque monde, `coordinates.position` du nœud de la caméra devient (0, 0, 500). La clé `target` reste.
+- Validation : `git diff --stat` montre trois lignes au plus par fichier ; le test de T4.1 vert ; builds ; tests.
+
+### ⏳ T4.3 — La caméra 2D et tous ses utilisateurs
+
+Un seul commit : le dépôt ne compile pas entre les deux.
+
+1. `Camera2dComponent` selon la conception. `EditorEntityJsonSerializer.SaveCamera2dComponent` n'écrit plus `target`.
+2. Utilisateurs : `ScreenEffectComponent.cs:72` et `:147` ; `EditorViewport2dCameraController` (`CreateCameraComponent`, `ApplyTo` : `CentreOn` de sa propre cible, qu'il garde) ; `Layers2dDemo.cs`, `TileMapDemo.cs`, `ScriptWorld.cs` (`CentreOn` du même point) ; `Follow2dCameraComponent` (doc).
+3. Tests : `Camera2dComponentTests` réécrit sur la pose (projection, zoom, redimensionnement : inchangés ; `PixelSnap` : mêmes cas, la transformation n'est pas modifiée ; clone : zoom, arrondi et transformation ; `SetPositionAndTarget` et `CentreOn` ; roulis ; parent ; le point du plan cible projeté comme avant). `PerspectiveCameraComponentTests` : `Camera2dComponent` sort de la théorie des caméras qui ne redéfinissent pas le crochet. Les autres tests qui écrivent `Target` passent sur `CentreOn` du même point. Un test de chargement : la clé `target` présente donne une erreur au journal et une pose lue dans `coordinates`. Un test : `Follow2dCameraComponent` déplace la vue d'une `Camera2dComponent`.
+4. Validation : le test de T4.1 et le test de grille verts ; builds ; tests ; la note liste les affirmations retirées parce qu'elles portaient sur `Target`.
+
+### ⏳ T4.4 — Retirer la clé `target` des 14 mondes
+
+- La ligne `target` (et son objet) sort du nœud de la caméra de chaque monde.
+- Nouveau test : aucun fichier `*.world` ni `*.entity` de `Projects/` et de `CasaEngine.Demos/Content/` n'a de clé `target` sous un nœud `Camera2dComponent`.
+- Validation : le test de T4.1 vert ; aucune erreur de clé `target` au chargement des 14 mondes (test) ; builds ; tests. Indice joint au rapport, pas preuve : une capture de `Projects/SpriteDrawOrderSample` avant (sur la base de la tranche) et après, par `tools/run-launcher.ps1` du dépôt hôte, si le projet se lance.
+
+### ⏳ T4.5 — Documentation
+
+- `docs/engine/rendering-2d-3d-spaces.md`, `docs/engine/camera-behaviour-components.md`, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, `docs/editor/editor-2d-viewport.md`, `docs/README.md`, là où ils décrivent la cible de la caméra 2D ; `ai-agent/README.md`.
+- Validation : relecture ; liens vérifiés.
+
+### ⏳ T4.6 — Vérification indépendante et recette
+
+- Un `verifier` neuf, comme en T3.8, sur la « Validation globale » de la tranche 4.
+- Recette de l'auteur (🧪 jusque-là) : la vue 2D de l'éditeur (déplacement, zoom, enregistrement d'un monde, rechargement), `TileMapDemo` et `Layers2dDemo`, `RPGDemo`, un sample à sprites.
 
 ---
 
@@ -418,10 +607,12 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 | O8 | **Tranché le 2026-11-19** : sens du décalage, qui devient un sens de donnée enregistrée : fraction de la largeur et de la hauteur entières du viewport ; x positif déplace l'image vers la droite, y positif vers le bas ; clé absente : (0, 0) | T1.1, T1.3 |
 | O4 | Le sample pilote le décalage au clavier (D6) sans action de cutscene (D5). Si un sample sans DLL ne peut pas lire le clavier pour agir sur un composant, il reçoit une DLL de jeu minimale | T1.4 |
 | O5 | Les sprites restent dans un plan parallèle à XY : une image fixe ne fait face à la caméra que si la caméra regarde le long de z. Le sample s'en tient à ce cas ; un sprite orientable est hors de ce chantier | T1.4 |
-| O6 | Tranche 3 : les données qui nomment une ancienne classe se lisent-elles encore (le chargeur les traduit en caméra simple plus composant de comportement), ou sont-elles migrées une fois pour toutes ? La règle du dépôt est la sérialisation additive. Proposition : le chargeur les traduit, et l'éditeur écrit la nouvelle forme | Tranche 3 |
+| O6 | **Tranché le 2026-11-19 : migrer une fois, sans traduction dans le chargeur (D14, ADR-0008).** Question d'origine : tranche 3 : les données qui nomment une ancienne classe se lisent-elles encore (le chargeur les traduit en caméra simple plus composant de comportement), ou sont-elles migrées une fois pour toutes ? La règle du dépôt est la sérialisation additive. Proposition : le chargeur les traduit, et l'éditeur écrit la nouvelle forme | Tranche 3 |
 | O9 | **Tranché le 2026-11-19, selon la proposition.** Spécification du suivi 2D (D12), à neuf puisque l'ancienne classe ne suit rien. Proposition : `Follow2dCameraComponent`, posé sur l'entité d'une caméra simple. Réglages lus dans les données : `target_entity_name` (nom d'une entité du monde), `dead_zone` (largeur et hauteur en unités du monde, centrée sur la caméra), `limits` (rectangle du monde x, y, largeur, hauteur ; largeur ou hauteur nulle : pas de limite). À chaque `Update` : sur chaque axe, si la cible dépasse le bord de la zone morte, la caméra avance du dépassement ; puis sa position x, y est ramenée dans les limites ; son z ne change pas. Il écrit la position locale du composant caméra. Cible absente ou introuvable : il ne fait rien et le signale une fois. Il ne pilote pas `Camera2dComponent`, qui se place par sa propre cible (O7) | T2.1, T2.4 |
 | O10 | **Tranché le 2026-11-19 : aucun changement, voir T2.1.** Politique d'entité. `EntityPolicyResolver` donne `DynamicDefault` à `CameraLookAtComponent`, et rien de propre à `ArcBallCameraComponent` ni à `PerspectiveCameraComponent`. Les usages de la visée passant sur la caméra simple (D11), leur politique changerait. Proposition : lire en T2.6 ce que vaut la politique d'un composant non listé ; si elle diffère de `DynamicDefault`, ajouter `PerspectiveCameraComponent` au même cas que `CameraLookAtComponent`, et le dire dans l'ADR | T2.1, T2.6 |
-| O7 | La caméra 2D. `Camera2dComponent` est déjà simple, mais se place d'après une cible et non d'après sa transformation. Faut-il l'aligner sur la caméra 3D en tranche 2, au prix d'un changement de ses clés ? Proposition : ne pas y toucher tant qu'aucun besoin ne le demande | Tranche 2 |
+| O7 | **Tranché le 2026-11-19 : l'aligner (D16, tranche 4).** Question d'origine : la caméra 2D. `Camera2dComponent` est déjà simple, mais se place d'après une cible et non d'après sa transformation. Faut-il l'aligner sur la caméra 3D en tranche 2, au prix d'un changement de ses clés ? Proposition : ne pas y toucher tant qu'aucun besoin ne le demande | Tranche 2 |
+| O11 | Tranche 4 : une clé `target` restée sous une caméra 2D dans un fichier non migré. Proposition : erreur au journal, une fois par chargement, et pose lue dans `coordinates` ; pas d'exception, pour qu'un monde ancien s'ouvre encore dans l'éditeur | T4.0, T4.3 |
+| O12 | Tranche 4 : un projet hors de ce dépôt qui écrit des mondes à caméra 2D doit écrire la nouvelle forme avant de passer sur ce moteur. Hors périmètre de ce plan : à traiter dans le projet concerné | — |
 
 ## Hors périmètre
 
