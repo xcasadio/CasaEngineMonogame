@@ -93,7 +93,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private Texture2D _boundTexture;
     private StaticModelSubMeshComponent _previewMeshComponent;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
     private MaterialAsset _materialAsset;
     private MaterialBase _runtimeMaterial;
     private PreviewPrimitiveKind _activeShape = PreviewPrimitiveKind.Sphere;
@@ -316,7 +316,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity = EditorCameraFactory.CreateCameraEntity("MaterialPreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);

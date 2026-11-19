@@ -102,7 +102,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private Entity _previewEntity;
     private SkinnedMeshComponent _skinnedMeshComponent;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
 
     private AnimationClipAsset _animationClipAsset;
     private string _loadedRelativePath;
@@ -523,7 +523,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity = EditorCameraFactory.CreateCameraEntity("AnimationClipPreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);

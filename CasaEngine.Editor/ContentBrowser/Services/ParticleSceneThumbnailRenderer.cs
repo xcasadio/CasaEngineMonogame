@@ -66,7 +66,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
     private Entity _previewEntity;
     private ParticleSystemComponent _particleComponent;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
     private PendingThumbnailRequest _activeRequest;
     private bool _disposed;
 
@@ -277,7 +277,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
             IsVisible = false,
         };
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity.AddComponent(_camera);
         _cameraEntity.Initialize();
         _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);

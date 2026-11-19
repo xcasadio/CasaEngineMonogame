@@ -95,7 +95,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private ParticleSystemComponent _particleComponent;
     private EditorParticleWireOverlayRenderer _particleWireOverlayRenderer;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
 
     private ParticleEffectAsset _particleAsset;
     private string _loadedRelativePath;
@@ -475,7 +475,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity = EditorCameraFactory.CreateCameraEntity("ParticlePreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);

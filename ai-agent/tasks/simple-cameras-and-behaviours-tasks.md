@@ -349,7 +349,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Écart avec l'étape 1 : des six cas de `InfiniteFarPlaneTests`, seul celui de la projection est rejoué sur la nouvelle caméra (dans `EditorViewportCameraPoseTests`) ; les autres ne dépendent que de cette projection, qui est celle de `Camera3dComponent` quand le décalage est nul.
 - **Reste 🧪 : l'essai dans l'éditeur par l'auteur** (navigation de la vue 3D, dépôt d'un asset dans la vue, passage en Play et retour). Le test ne couvre pas un panneau qui n'appellerait pas la méthode de construction.
 
-### ⏳ T2.6 — Aperçus, vignettes et caméra par défaut
+### 🧪 T2.6 — Aperçus, vignettes et caméra par défaut
 
 - Fichiers : les sept fichiers de l'éditeur listés plus haut ; `World.cs` (`CreateDefaultCamera`) ; `EntityPolicyResolver.cs` selon O10.
 - Étapes :
@@ -358,6 +358,8 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Délégation : éditions de même forme sur huit fichiers, à un `mech-executor`, après l'étape 1 faite en session principale.
 - Validation : build ; tests ; essai des aperçus par l'auteur.
 - Commit : `refactor(editor): pose the preview cameras by their transform`
+- Validation (2026-11-19) : étape 1, les huit visées lues une à une : les deux aperçus de sprite visent le long de z depuis une distance d'au moins 2,5 ; les aperçus de particules, de modèle, de matériau et d'animation, les vignettes de particules et la caméra par défaut d'un monde ont tous un écart en z d'au moins 3 entre position et cible. Aucune ne peut viser à la verticale. Étape 2 : le nom de la classe construite change dans les huit fichiers, 15 lignes, rien d'autre. Fait en session principale et non par un `mech-executor` : un seul remplacement de nom par fichier ne justifiait pas une délégation. `EntityPolicyResolver.cs` inchangé (O10). Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8112 tests, 0 échec.
+- **Reste 🧪 : l'essai des aperçus et des vignettes dans l'éditeur par l'auteur.**
 
 ### ⏳ T2.7 — Démos et bac à sable
 
