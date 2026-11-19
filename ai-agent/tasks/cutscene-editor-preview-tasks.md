@@ -134,7 +134,7 @@ Décisions antérieures concernées :
 
 ### ✅ T0.1 — ADR-0096 et clôture de la recette précédente
 
-> Validation (2026-11-18) : ADR-0096 écrit selon le modèle et ajouté à l'index ; mention de P9 sur ADR-0014 (fichier et index) ; note de recette sous T3.2 de `cutscene-property-editing-tasks.md` ; ligne ajoutée à `ai-agent/README.md`. `rg -n -i "ff7|decomp"` sur les fichiers de l'ADR, de l'index et des deux plans hors lignes qui citent la commande elle-même : aucun résultat ; le lien de l'index pointe sur un fichier existant.
+> Validation (2026-11-18) : ADR-0096 écrit selon le modèle et ajouté à l'index ; mention de P9 sur ADR-0014 (fichier et index) ; note de recette sous T3.2 de `cutscene-property-editing-tasks.md` ; ligne ajoutée à `ai-agent/README.md`. la recherche des noms de projets extérieurs sur les fichiers de l'ADR, de l'index et des deux plans hors lignes qui citent la commande elle-même : aucun résultat ; le lien de l'index pointe sur un fichier existant.
 
 - Objectif : enregistrer D1 → D5 et P1 → P4, et noter le résultat de la recette de la tranche « propriétés ».
 - Fichiers : `docs/decisions/0096-<short-title>.md` (créé), `docs/decisions/README.md`, `docs/decisions/0014-generic-timeline-base-for-the-editor.md` (ligne `Status` seule, P9), `ai-agent/tasks/cutscene-property-editing-tasks.md` (note sous T3.2), `ai-agent/README.md` (ligne de ce plan), ce plan.
@@ -143,7 +143,7 @@ Décisions antérieures concernées :
   2. Ajouter la ligne d'index, et la mention de P9 sur ADR-0014.
   3. Sous T3.2 du plan `cutscene-property-editing-tasks.md`, noter : recette de l'auteur du 2026-11-18, refusée sur l'ergonomie (pas de monde, champs texte), suite dans ce plan. Le statut reste 🧪.
   4. Ajouter ce plan au tableau de `ai-agent/README.md`.
-- Validation : `rg -n -i "ff7|decomp"` sur les fichiers touchés ne renvoie rien ; les liens de l'index pointent sur des fichiers existants.
+- Validation : la recherche des noms de projets extérieurs sur les fichiers touchés ne renvoie rien ; les liens de l'index pointent sur des fichiers existants.
 - Commit : `docs(decisions): record the cutscene editor preview and timeline direction`
 
 ---
@@ -258,11 +258,11 @@ Décisions antérieures concernées :
 
 ### ✅ T3.1 — Documentation
 
-> Validation (2026-11-18) : `docs/editor/cutscene-editor.md` décrit l'aperçu, la barre de transport, le choix du monde, les effets signalés, les limites et l'automatisation ; le contenu valide sur l'édition des propriétés et la sauvegarde est conservé. `rg -n -i "ff7|decomp"` sur le diff : aucun résultat.
+> Validation (2026-11-18) : `docs/editor/cutscene-editor.md` décrit l'aperçu, la barre de transport, le choix du monde, les effets signalés, les limites et l'automatisation ; le contenu valide sur l'édition des propriétés et la sauvegarde est conservé. la recherche des noms de projets extérieurs sur le diff : aucun résultat.
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit l'aperçu, ses commandes, le choix du monde, les effets signalés et les limites.
 - Fichiers : `docs/editor/cutscene-editor.md`, ce plan, `ai-agent/README.md`.
-- Validation : relecture ; `rg -n -i "ff7|decomp"` sur le diff de la branche ne renvoie rien.
+- Validation : relecture ; la recherche des noms de projets extérieurs sur le diff de la branche ne renvoie rien.
 - Commit : `docs(editor): document the cutscene preview`
 
 ### 🧪 T3.2 — Recette de l'auteur
