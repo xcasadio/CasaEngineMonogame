@@ -558,10 +558,12 @@ Travail répétitif à jugement borné : confié à un `executor`, relu par la s
 - Validation : relecture ; liens vérifiés.
 - **Fait (2026-11-19).** `perspective-camera-component.md` (la caméra 3D du moteur ; section de migration d'un fichier à la main, les deux formes côte à côte), `camera-behaviour-components.md`, `editor-2d-viewport.md`, `docs/README.md`, `ai-agent/README.md`. `viewport-camera-controls.md` ne nommait aucune classe retirée : inchangé. Documentation seule.
 
-### ⏳ T3.8 — Vérification indépendante et recette
+### 🧪 T3.8 — Vérification indépendante et recette
 
 - Un `verifier` neuf reçoit les affirmations de la « Validation globale », le diff de la branche et les notes des tâches ; il relance builds et tests et cherche à réfuter. Un point P0 à P2 est corrigé puis revérifié.
 - Recette de l'auteur (🧪 jusque-là) : « World made in the editor » dans `CasaEngine.Demos`, `Projects/SampleProject`, et un enregistrement d'entité à caméra dans l'éditeur.
+- **Vérification indépendante (2026-11-19, `18dd6ec3`) : CONFIRMED**, aucun point P0 à P2. Les huit affirmations confirmées : plus aucun usage des quatre noms ; les 32 termes du test de données recalculés en double précision à partir du fichier d'origine et de la formule de l'ancienne classe (écart maximal 7,6e-7 pour la vue, 2,9e-8 pour la projection), valeurs attendues inchangées depuis `5056bb54` ; aucune preuve perdue (noms de tous les tests comparés entre `851bfa93` et la tête) ; fusion sans changement de comportement ; script et démo ; politique d'entité ; builds à 0 erreur, 8119 tests verts ; aucun utilisateur non couvert. Deux remarques P4, reportées sans changement du candidat : la comparaison des vues de départ du test du script n'a pas été doublée (couverte ailleurs par formule) ; aucun test n'exerce le script sur une entité qui a une caméra mais pas d'orbite (déduit du code).
+- **Reste 🧪 : la recette de l'auteur** (« World made in the editor » dans `CasaEngine.Demos`, `Projects/SampleProject`, un enregistrement d'entité à caméra dans l'éditeur). Ni l'éditeur ni les démos n'ont été lancés.
 
 ---
 
