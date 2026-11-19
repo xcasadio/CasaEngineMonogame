@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Cutscenes.Serialization;
@@ -115,6 +116,30 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
     /// <summary>True when the user turned the sound of the preview on (ADR-0103). It is off for a new session.</summary>
     public bool IsSoundOn => _host.IsSoundOn;
+
+    /// <summary>True when the editor has an audio service the preview can lend. Read by the automation.</summary>
+    public bool HasEditorAudio => _host.EditorAudio != null;
+
+    /// <summary>
+    /// True when the Master bus of the editor mixer is muted, as the project settings can make it (ADR-0040): the sound stays
+    /// inaudible even when it is on. False without an editor audio service. Read by the automation.
+    /// </summary>
+    public bool IsEditorMasterMuted
+        => _host.EditorAudio != null
+           && _host.EditorAudio.Mixer.TryGetBus(AudioBusNames.Master, out var master)
+           && master.IsMuted;
+
+    /// <summary>True once the preview lent the editor audio service since the launch. Read by the automation.</summary>
+    public bool EditorAudioLent => _host.EditorAudioLent;
+
+    /// <summary>Steps of the launch that were normal play steps. Read by the automation.</summary>
+    public int NormalPlayStepCount => _host.NormalPlayStepCount;
+
+    /// <summary>Steps of the launch that were not normal play steps: seeks, frame steps, the first instant. Read by the automation.</summary>
+    public int OtherStepCount => _host.OtherStepCount;
+
+    /// <summary>True when the last step of the launch was a normal play step. Read by the automation.</summary>
+    public bool LastStepWasNormalPlay => _host.LastStepWasNormalPlay;
 
     /// <summary>The requests to the game that the play made and the preview refused.</summary>
     public IReadOnlyList<CutscenePreviewRequest> Requests => _host.Requests;

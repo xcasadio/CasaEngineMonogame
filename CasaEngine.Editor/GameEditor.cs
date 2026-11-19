@@ -303,6 +303,11 @@ public class GameEditor : Game, IObservableUpdate
     private int _automationCutsceneBackSteps;
     private bool _automationCutsceneEditSettled;
     private bool _automationCutsceneResumeDone;
+    private bool _automationCutsceneSoundDone;
+    private string _automationCutsceneSoundResult;
+    private bool _automationCutsceneInputDone;
+    private int _automationCutsceneInputWaitFrames;
+    private string _automationCutsceneInputResult;
     private TimeSpan _automationCutsceneTransportAt;
     private string _automationCutsceneTransportResult;
     private TimeSpan _automationAssetOpenedAt;
@@ -658,6 +663,11 @@ public class GameEditor : Game, IObservableUpdate
         _automationCutsceneBackSteps = 0;
         _automationCutsceneEditSettled = false;
         _automationCutsceneResumeDone = false;
+        _automationCutsceneSoundDone = false;
+        _automationCutsceneSoundResult = null;
+        _automationCutsceneInputDone = false;
+        _automationCutsceneInputWaitFrames = 0;
+        _automationCutsceneInputResult = null;
         _automationCutsceneTransportAt = TimeSpan.Zero;
         _automationCutsceneTransportResult = null;
         _automationParticleCreateAttempted = false;
@@ -7161,6 +7171,7 @@ public class GameEditor : Game, IObservableUpdate
 
         TryApplyAutomationParticleAssetCreate(totalGameTime);
         TryApplyAutomationAssetOpen(totalGameTime);
+        TryApplyAutomationCutscenePreviewSound(totalGameTime);
         TryApplyAutomationCutscenePreviewPlay(totalGameTime);
         TryApplyAutomationCutsceneEdits(totalGameTime);
         TryApplyAutomationCutscenePreviewTransport(totalGameTime);
@@ -7342,6 +7353,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationPlaySmokeCompleted && _automationPlaySmokeCompletedAt > readyAt)
         {
             readyAt = _automationPlaySmokeCompletedAt;
+        }
+
+        if (IsAutomationCutsceneSoundPending())
+        {
+            return;
         }
 
         if (_automationOptions.CutscenePreviewPlay)
@@ -7938,9 +7954,40 @@ public class GameEditor : Game, IObservableUpdate
             $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
     }
 
+    private bool IsAutomationCutsceneSoundPending()
+        => _automationOptions.CutscenePreviewSound && !_automationCutsceneSoundDone;
+
+    /// <summary>
+    /// Turns the sound of the cutscene preview on, once, before any play, seek, step or edit: those steps wait for it.
+    /// </summary>
+    private void TryApplyAutomationCutscenePreviewSound(TimeSpan totalGameTime)
+    {
+        if (!IsAutomationCutsceneSoundPending() || !_automationAssetOpened)
+        {
+            return;
+        }
+
+        string documentPanelId = _automationCutscenePanelId ?? GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(documentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(documentPanelId, out var cutscenePanel)
+            || !cutscenePanel.HasPreview)
+        {
+            return;
+        }
+
+        bool done = cutscenePanel.SetPreviewSound(true);
+        _automationCutsceneSoundDone = true;
+        _automationCutsceneSoundResult = done ? "sound on: done" : "sound on: refused";
+        EditorDiagnosticsBuffer.Append(done ? LogVerbosity.Info : LogVerbosity.Warning,
+            $"[Automation] Cutscene preview {_automationCutsceneSoundResult}");
+    }
+
     private void TryApplyAutomationCutscenePreviewPlay(TimeSpan totalGameTime)
     {
-        if (!_automationOptions.CutscenePreviewPlay || _automationCutscenePlayStarted || !_automationAssetOpened)
+        if (!_automationOptions.CutscenePreviewPlay
+            || _automationCutscenePlayStarted
+            || !_automationAssetOpened
+            || IsAutomationCutsceneSoundPending())
         {
             return;
         }
@@ -7993,6 +8040,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (!_automationAssetOpened
             || !IsAutomationCutsceneEditRequested()
+            || IsAutomationCutsceneSoundPending()
             || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted)
             || (_automationOptions.CutsceneEditAfterTransport && !IsAutomationCutsceneMainTransportCompleted()))
         {
@@ -8334,27 +8382,34 @@ public class GameEditor : Game, IObservableUpdate
     private bool IsAutomationCutscenePreviewResumeRequested()
         => _automationOptions.CutscenePreviewResume && !_automationOptions.CutscenePreviewStop;
 
+    // The simulated input is dropped when a stop is requested, as the resume is: a stopped preview has no play to press an input in.
+    private bool IsAutomationCutscenePreviewInputRequested()
+        => !string.IsNullOrWhiteSpace(_automationOptions.CutscenePreviewInput) && !_automationOptions.CutscenePreviewStop;
+
     private bool IsAutomationCutscenePreviewTransportRequested()
         => _automationOptions.CutscenePreviewSeekSeconds.Length > 0
            || _automationOptions.CutscenePreviewStepFrames != 0
            || _automationOptions.CutscenePreviewStop
-           || IsAutomationCutscenePreviewResumeRequested();
+           || IsAutomationCutscenePreviewResumeRequested()
+           || IsAutomationCutscenePreviewInputRequested();
 
     private bool IsAutomationCutscenePreviewTransportCompleted()
         => IsAutomationCutsceneMainTransportCompleted()
-           && (!IsAutomationCutscenePreviewResumeRequested() || _automationCutsceneResumeDone);
+           && (!IsAutomationCutscenePreviewResumeRequested() || _automationCutsceneResumeDone)
+           && (!IsAutomationCutscenePreviewInputRequested() || _automationCutsceneInputDone);
 
     /// <summary>
     /// Applies the cutscene preview transport options after the play and the edits (before them with
     /// <c>--cutscene-edit-after-transport</c>): each seek (the next one starts when the previous one is over), then the
     /// frame steps (previous-frame moves when negative, each one starting when the previous seek is over), then the stop,
-    /// then the resume. One step per frame. The capture delay counts from the end of the last step.
+    /// then the resume, then the simulated input. One step per frame. The capture delay counts from the end of the last step.
     /// </summary>
     private void TryApplyAutomationCutscenePreviewTransport(TimeSpan totalGameTime)
     {
         if (!_automationAssetOpened
             || !IsAutomationCutscenePreviewTransportRequested()
             || IsAutomationCutscenePreviewTransportCompleted()
+            || IsAutomationCutsceneSoundPending()
             || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted)
             || (!_automationOptions.CutsceneEditAfterTransport
                 && IsAutomationCutsceneEditRequested()
@@ -8480,7 +8535,68 @@ public class GameEditor : Game, IObservableUpdate
             _automationCutsceneTransportResult = resumed ? "resume: done" : $"resume: refused (status is {status}, not Paused)";
             EditorDiagnosticsBuffer.Append(resumed ? LogVerbosity.Info : LogVerbosity.Warning,
                 $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+            return;
         }
+
+        // The simulated input comes last, after the resume and once the edits are over.
+        if (IsAutomationCutscenePreviewInputRequested()
+            && !_automationCutsceneInputDone
+            && (!IsAutomationCutscenePreviewResumeRequested() || _automationCutsceneResumeDone)
+            && (!IsAutomationCutsceneEditRequested() || (IsAutomationCutsceneEditCompleted() && IsAutomationCutsceneEditSettled())))
+        {
+            ApplyAutomationCutscenePreviewInput(cutscenePanel, totalGameTime);
+        }
+    }
+
+    private const int AutomationInputMaxWaitFrames = 120;
+
+    /// <summary>
+    /// Presses the armed input of <c>--cutscene-preview-input</c>. With no play running it is refused at once. With a play
+    /// running it waits, for 120 editor frames at most, until the preview made a step and an input is armed; a seek in
+    /// progress is waited for without counting. Past the delay without an armed input it is refused.
+    /// </summary>
+    private void ApplyAutomationCutscenePreviewInput(CutsceneAssetInspectorPanel cutscenePanel, TimeSpan totalGameTime)
+    {
+        string inputName = _automationOptions.CutscenePreviewInput;
+        if (cutscenePanel.PreviewStatus == CutscenePreviewStatus.Seeking)
+        {
+            return;
+        }
+
+        bool refused = false;
+        string result;
+        if (!cutscenePanel.IsPreviewPlayActive)
+        {
+            refused = true;
+            result = $"input '{inputName}': refused (no play runs)";
+        }
+        else if (cutscenePanel.PreviewStepCount == 0 || cutscenePanel.PreviewArmedInputCount == 0)
+        {
+            _automationCutsceneInputWaitFrames++;
+            if (_automationCutsceneInputWaitFrames <= AutomationInputMaxWaitFrames)
+            {
+                return;
+            }
+
+            refused = true;
+            result = $"input '{inputName}': refused (no input was armed after {AutomationInputMaxWaitFrames} frames)";
+        }
+        else if (cutscenePanel.SimulatePreviewInput(inputName))
+        {
+            result = $"input '{inputName}': done";
+        }
+        else
+        {
+            refused = true;
+            result = $"input '{inputName}': refused (not armed, or no play to press it in)";
+        }
+
+        _automationCutsceneInputDone = true;
+        _automationCutsceneTransportAt = totalGameTime;
+        _automationCutsceneInputResult = result;
+        _automationCutsceneTransportResult = result;
+        EditorDiagnosticsBuffer.Append(refused ? LogVerbosity.Warning : LogVerbosity.Info,
+            $"[Automation] Cutscene preview {result}");
     }
 
     private void AppendCutsceneEditorDiagnostics(StringBuilder builder)
@@ -8563,7 +8679,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Cutscene preview (play started: {_automationCutscenePlayStarted}):");
         builder.AppendLine(string.Create(
             CultureInfo.InvariantCulture,
-            $"  - Transport options: seek [{string.Join(", ", Array.ConvertAll(_automationOptions.CutscenePreviewSeekSeconds, value => value.ToString(CultureInfo.InvariantCulture)))}]; step {_automationOptions.CutscenePreviewStepFrames}; stop {_automationOptions.CutscenePreviewStop}; resume {_automationOptions.CutscenePreviewResume}{(_automationOptions.CutscenePreviewResume && _automationOptions.CutscenePreviewStop ? " (ignored: stop is requested)" : string.Empty)}; edit after transport {_automationOptions.CutsceneEditAfterTransport}; last: {_automationCutsceneTransportResult ?? "<none>"}"));
+            $"  - Transport options: seek [{string.Join(", ", Array.ConvertAll(_automationOptions.CutscenePreviewSeekSeconds, value => value.ToString(CultureInfo.InvariantCulture)))}]; step {_automationOptions.CutscenePreviewStepFrames}; stop {_automationOptions.CutscenePreviewStop}; resume {_automationOptions.CutscenePreviewResume}{(_automationOptions.CutscenePreviewResume && _automationOptions.CutscenePreviewStop ? " (ignored: stop is requested)" : string.Empty)}; sound {_automationOptions.CutscenePreviewSound} ({_automationCutsceneSoundResult ?? "<none>"}); input '{_automationOptions.CutscenePreviewInput ?? "<none>"}'{(_automationOptions.CutscenePreviewInput != null && _automationOptions.CutscenePreviewStop ? " (ignored: stop is requested)" : string.Empty)} ({_automationCutsceneInputResult ?? "<none>"}); edit after transport {_automationOptions.CutsceneEditAfterTransport}; last: {_automationCutsceneTransportResult ?? "<none>"}"));
         var state = cutscenePanel.GetAutomationStateSnapshot();
         for (int index = 0; index < state.Count; index++)
         {

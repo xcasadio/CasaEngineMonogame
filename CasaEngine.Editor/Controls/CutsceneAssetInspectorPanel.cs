@@ -1447,6 +1447,15 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     /// <summary>What the status word under the transport row shows; <see cref="CutscenePreviewStatus.Stopped"/> without a preview.</summary>
     public CutscenePreviewStatus PreviewStatus => _preview?.Status ?? CutscenePreviewStatus.Stopped;
 
+    /// <summary>True while a play runs or is paused in the preview; false without a preview or once the play is over.</summary>
+    public bool IsPreviewPlayActive => _preview?.IsPlaying ?? false;
+
+    /// <summary>How many inputs the play has armed: the buttons of the input row. 0 without a preview.</summary>
+    public int PreviewArmedInputCount => _preview?.ArmedInputNames.Count ?? 0;
+
+    /// <summary>Steps of any kind the preview made since its last launch. 0 without a preview.</summary>
+    public int PreviewStepCount => _preview == null ? 0 : _preview.NormalPlayStepCount + _preview.OtherStepCount;
+
     /// <summary>Frame steps requested by <see cref="StepPreviewFrames"/> that the preview has not done yet.</summary>
     public int PreviewPendingFrameSteps => _preview?.PendingFrameSteps ?? 0;
 
@@ -1472,6 +1481,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             CultureInfo.InvariantCulture,
             $"Preview time: {_preview.ElapsedSeconds:0.000} s, {_preview.ElapsedFrames} frames; play/pause button label='{_playPauseText?.Text}'"));
         lines.Add($"Preview play launches: {_preview.LaunchCount}");
+        var fade = _preview.ScreenEffects;
+        lines.Add($"Preview screen fade: active={fade.Active}, rgba({fade.R},{fade.G},{fade.B},{fade.A}), blend={fade.Blend}, fading={fade.IsFading}");
+        var armedNames = _preview.ArmedInputNames;
+        lines.Add($"Preview armed input: [{string.Join(", ", armedNames)}] -> '{_preview.ArmedNextCutscene}'");
+        lines.Add($"Preview simulated input: '{_preview.SimulatedInput}' -> '{_preview.SimulatedNextCutscene}', endedByInput={_preview.EndedByInput}");
+        lines.Add($"Preview sound: button='{_soundText?.Text}', on={_preview.IsSoundOn}, editor audio service present={_preview.HasEditorAudio}, master bus muted={_preview.IsEditorMasterMuted}, editor audio service lent since the launch={_preview.EditorAudioLent}");
+        lines.Add($"Preview steps since the launch: normal play={_preview.NormalPlayStepCount}, other={_preview.OtherStepCount}, last step normal play={_preview.LastStepWasNormalPlay}");
         for (int index = 0; index < _preview.Requests.Count; index++)
         {
             var request = _preview.Requests[index];

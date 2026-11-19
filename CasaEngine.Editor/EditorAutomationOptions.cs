@@ -68,6 +68,15 @@ public sealed class EditorAutomationOptions
 
     /// <summary>True when the cutscene preview is stopped after the seeks and steps (<c>--cutscene-preview-stop</c>).</summary>
     public bool CutscenePreviewStop { get; private set; }
+
+    /// <summary>True when the sound of the cutscene preview is turned on before any play or seek (<c>--cutscene-preview-sound</c>).</summary>
+    public bool CutscenePreviewSound { get; private set; }
+
+    /// <summary>
+    /// The armed input the cutscene preview simulates once the other transport steps are done (<c>--cutscene-preview-input</c>),
+    /// or null when the option is absent or has no name. Ignored when <see cref="CutscenePreviewStop"/> is set, as the resume is.
+    /// </summary>
+    public string CutscenePreviewInput { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
@@ -103,6 +112,8 @@ public sealed class EditorAutomationOptions
         || CutsceneEditAfterTransport
         || CutsceneEditOperations.Length > 0
         || CutscenePreviewResume
+        || CutscenePreviewSound
+        || !string.IsNullOrWhiteSpace(CutscenePreviewInput)
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
@@ -291,6 +302,20 @@ public sealed class EditorAutomationOptions
 
                 case "--cutscene-preview-resume":
                     options.CutscenePreviewResume = true;
+                    break;
+
+                case "--cutscene-preview-sound":
+                    options.CutscenePreviewSound = true;
+                    break;
+
+                case "--cutscene-preview-input":
+                    // A following option is not a name: it is left to its own case.
+                    if (!string.IsNullOrWhiteSpace(next) && !next.StartsWith("--", StringComparison.Ordinal))
+                    {
+                        options.CutscenePreviewInput = next;
+                        index++;
+                    }
+
                     break;
 
                 case "--screenshot-out":

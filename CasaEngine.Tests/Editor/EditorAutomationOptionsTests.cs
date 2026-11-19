@@ -263,6 +263,72 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_CutscenePreviewSound_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-sound" });
+
+        Assert.True(options.CutscenePreviewSound);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewInput_ReadsTheName_AndEnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Cutscenes/loop.cutscene",
+            "--cutscene-preview-play",
+            "--cutscene-preview-input", "exit",
+            "--capture-delay", "1",
+        });
+
+        Assert.Equal("exit", options.CutscenePreviewInput);
+        Assert.True(options.CutscenePreviewPlay);
+        Assert.Equal(1d, options.CaptureDelaySeconds);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("--cutscene-preview-resume")]
+    public void Parse_CutscenePreviewInput_WithoutAName_IsIgnored_AndDoesNotSwallowTheNextOption(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-input", value, "--cutscene-preview-stop" });
+
+        Assert.Null(options.CutscenePreviewInput);
+        Assert.True(options.CutscenePreviewStop);
+        Assert.Equal(value == "--cutscene-preview-resume", options.CutscenePreviewResume);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewInput_AtTheEndOfTheArguments_IsIgnored()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-input" });
+
+        Assert.Null(options.CutscenePreviewInput);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewInput_KeepsTheStop_ForTheEditorToApplyOnly()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-input", "exit", "--cutscene-preview-stop" });
+
+        Assert.Equal("exit", options.CutscenePreviewInput);
+        Assert.True(options.CutscenePreviewStop);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewSoundAndInput_AreAbsentByDefault()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" });
+
+        Assert.False(options.CutscenePreviewSound);
+        Assert.Null(options.CutscenePreviewInput);
+    }
+
+    [Fact]
     public void Parse_CutscenePreviewTransportOptions_AreAbsentByDefault()
     {
         var options = EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" });
