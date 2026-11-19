@@ -386,9 +386,6 @@ internal static class EditorEntityJsonSerializer
     {
         SaveCameraComponent(component, node);
 
-        var targetNode = new JObject();
-        component.Target.Save(targetNode);
-        node.Add("target", targetNode);
         node.Add("zoom", component.Zoom);
         node.Add("pixel_snap", component.PixelSnap);
     }

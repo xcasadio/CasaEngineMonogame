@@ -12,8 +12,8 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// excess on that axis. The x, y position of the camera is then brought back inside <see cref="Limits"/>. Its z is
 /// never changed.
 /// <para/>
-/// It writes the local position of the camera component: the camera is expected to have no parent. It does not drive a
-/// <see cref="Camera2dComponent"/>, which places itself from its own target.
+/// It writes the local position of the camera component: the camera is expected to have no parent. It drives a
+/// <see cref="Camera2dComponent"/> as well as a perspective camera, both being posed by their transform (ADR-0150).
 /// </summary>
 [DisplayName("Follow Camera 2d")]
 public class Follow2dCameraComponent : EntityComponent

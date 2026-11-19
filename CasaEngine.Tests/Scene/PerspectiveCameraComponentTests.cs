@@ -206,14 +206,13 @@ public sealed class PerspectiveCameraComponentTests
     private static readonly string[] ExpectedCameraKeys =
         ["id", "name", "type", "local_transform", "children_component", "view_distance", "viewport", "fieldOfView", "picture_offset"];
 
-    [Theory]
-    [InlineData(typeof(Camera2dComponent))]
-    public void TheOtherCameras_DoNotOverrideTheViewRefreshHook(Type cameraType)
+    [Fact]
+    public void TheCamera2d_OverridesTheViewRefreshHook_SinceItIsPosedByItsTransform()
     {
-        var method = cameraType.GetMethod("IsViewOutOfDate", BindingFlags.Instance | BindingFlags.NonPublic);
+        // ADR-0150. Before it, the 2d camera placed itself from a target and left the hook alone.
+        var method = typeof(Camera2dComponent).GetMethod("IsViewOutOfDate", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        Assert.NotNull(method);
-        Assert.Equal(typeof(CameraComponent), method!.DeclaringType);
+        Assert.Equal(typeof(Camera2dComponent), method!.DeclaringType);
     }
 
     [Fact]

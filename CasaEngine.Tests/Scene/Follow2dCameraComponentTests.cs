@@ -47,6 +47,31 @@ public sealed class Follow2dCameraComponentTests
         }
     }
 
+    [Fact]
+    public void TheFollow_DrivesA2dCamera_PosedByItsTransform()
+    {
+        // ADR-0150: the 2d camera is posed by its transform, which is what the follow component writes.
+        var camera = new Camera2dComponent();
+        camera.FarPlane = 1000f;
+        camera.NearPlane = 1f;
+        camera.OnScreenResized(1280, 720);
+        var follow = new Follow2dCameraComponent { DeadZone = new Vector2(100f, 60f) };
+        var cameraEntity = new Entity { Name = "camera", RootComponent = camera };
+        cameraEntity.AddComponent(follow);
+        var targetRoot = new TransformComponent();
+        follow.Target = new Entity { Name = "hero", RootComponent = targetRoot };
+        Matrix before = camera.ViewMatrix;
+
+        targetRoot.LocalPosition = new Vector3(80f, -45f, 0f);
+        follow.Update(1f / 60f);
+
+        Assert.Equal(new Vector3(30f, -15f, Camera2dComponent.DefaultDistance), camera.LocalPosition);
+        Assert.NotEqual(before, camera.ViewMatrix);
+        Vector3 seen = Vector3.Transform(new Vector3(30f, -15f, 0f), camera.ViewMatrix);
+        Assert.Equal(0f, seen.X, 3);
+        Assert.Equal(0f, seen.Y, 3);
+    }
+
     [Theory]
     [InlineData(0f, 0f)]
     [InlineData(50f, 30f)]

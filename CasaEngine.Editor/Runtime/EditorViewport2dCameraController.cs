@@ -86,17 +86,18 @@ internal sealed class EditorViewport2dCameraController
 
     public Camera2dComponent CreateCameraComponent()
     {
-        return new Camera2dComponent
+        var camera = new Camera2dComponent
         {
-            Target = Target,
             Zoom = Zoom,
             PixelSnap = PixelSnap,
         };
+        camera.CentreOn(Target);
+        return camera;
     }
 
     public void ApplyTo(Camera2dComponent camera)
     {
-        camera.Target = Target;
+        camera.CentreOn(Target);
         camera.Zoom = Zoom;
         camera.PixelSnap = PixelSnap;
     }

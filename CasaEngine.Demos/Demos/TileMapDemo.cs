@@ -136,7 +136,7 @@ public class TileMapDemo : Demo
     {
         var entity = new Entity();
         var camera = new Camera2dComponent();
-        camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
+        camera.CentreOn(new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f));
         entity.AddComponent(camera);
         entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);

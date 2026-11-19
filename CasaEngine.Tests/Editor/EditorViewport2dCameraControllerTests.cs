@@ -110,7 +110,8 @@ public sealed class EditorViewport2dCameraControllerTests
         Update(controller, camera, CreateMouseState(30, 30, ButtonState.Pressed));
 
         Assert.Equal(-10f, controller.Target.X, 5);
-        Assert.Equal(controller.Target, camera.Target);
+        // The camera stands the default distance in front of the point the controller is centred on (ADR-0150).
+        Assert.Equal(controller.Target + new Vector3(0f, 0f, Framework.Scene.Entities.Components.Camera2dComponent.DefaultDistance), camera.LocalPosition);
     }
 
     [Fact]
@@ -235,7 +236,7 @@ public sealed class EditorViewport2dCameraControllerTests
     {
         // Depth of the target plane, so that the unprojected point lies on the plane being edited.
         float depth = camera.Viewport.Project(
-            camera.Target,
+            camera.LocalPosition - new Vector3(0f, 0f, Framework.Scene.Entities.Components.Camera2dComponent.DefaultDistance),
             camera.ProjectionMatrix,
             camera.ViewMatrix,
             Matrix.Identity).Z;

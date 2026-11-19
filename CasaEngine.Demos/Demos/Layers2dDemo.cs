@@ -205,7 +205,7 @@ public class Layers2dDemo : Demo
         // A 2D camera on the centre of the window, zoomed so that the 320 x 240 picture fills the height.
         var entity = new Entity { Name = "2D camera" };
         var camera = new Camera2dComponent();
-        camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0f);
+        camera.CentreOn(new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0f));
         camera.Zoom = game.Window.ClientBounds.Size.Y / (float)ViewHeight;
         entity.AddComponent(camera);
         entity.Initialize();

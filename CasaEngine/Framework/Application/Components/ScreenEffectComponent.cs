@@ -69,7 +69,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
         if (Service.Layer == ScreenEffectLayer.BelowUI && _game?.SpriteRendererComponent != null)
         {
             var camera = _game.GameManager?.ViewManager?.ActiveView?.Camera as Camera2dComponent;
-            var cameraPosition = camera?.Target ?? Vector3.Zero;
+            var cameraPosition = ResolveOverlayCentre(camera);
 
             int viewportWidth;
             int viewportHeight;
@@ -144,7 +144,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
         }
 
         var camera = view.Camera as Camera2dComponent;
-        var cameraPosition = camera?.Target ?? Vector3.Zero;
+        var cameraPosition = ResolveOverlayCentre(camera);
 
         int viewportWidth;
         int viewportHeight;
@@ -170,6 +170,18 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
     /// <c>_game</c> or any device - testable with a bare <see cref="Camera2dComponent"/> and no game
     /// at all.
     /// </summary>
+    internal static Vector3 ResolveOverlayCentre(Camera2dComponent camera)
+    {
+        if (camera == null)
+        {
+            return Vector3.Zero;
+        }
+
+        //  The point the camera is centred on (ADR-0150): its world position, the default distance in front of it.
+        Vector3 position = camera.WorldMatrixNoScale.Translation;
+        return new Vector3(position.X, position.Y, position.Z - Camera2dComponent.DefaultDistance);
+    }
+
     internal static bool TryGetCameraViewSize(Camera2dComponent camera, out int width, out int height)
     {
         if (camera == null || camera.Viewport.Width <= 0 || camera.Viewport.Height <= 0)

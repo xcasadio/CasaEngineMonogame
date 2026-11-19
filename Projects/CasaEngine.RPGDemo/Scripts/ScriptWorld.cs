@@ -58,10 +58,10 @@ public class ScriptWorld : GameplayProxy
     {
         var camera = world.Entities.First(x => x.Name == "camera");
         var camera2dComponent = camera.GetComponent<Camera2dComponent>();
-        camera2dComponent.Target = new Vector3(
+        camera2dComponent.CentreOn(new Vector3(
             world.Game.Window.ClientBounds.Size.X / 2f,
             world.Game.Window.ClientBounds.Size.Y / 2f,
-            0.0f);
+            0.0f));
 
         // Get player character reference
         var entity       = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
