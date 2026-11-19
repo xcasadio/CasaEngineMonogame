@@ -196,7 +196,7 @@ Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed
 - Commit : `feat(camera): shift the picture of the posed perspective camera`
 - Validation (2026-11-19) : 11 cas ajoutés à `PerspectiveCameraComponentTests` (25 en tout), verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8056 tests, 0 échec, aucun test existant modifié. Sur 320x240, tout décalage de −320 à 320 pixels entiers déplace l'image du nombre de pixels demandé à moins de 0,01 pixel. La clé est écrite et lue par `[SerializedProperty]` : `EditorEntityJsonSerializer.cs` n'est pas touché. Avec un décalage nul, la classe appelle la projection de `Camera3dComponent` : la matrice est alors identique bit à bit à celle des autres caméras 3D.
 
-### 🧪 T1.4 — Sample
+### ✅ T1.4 — Sample
 
 - Objectif : un projet de `Projects/` qui montre la caméra et son décalage (D6).
 - Fichiers : le projet, son `README.md`, un test de données comme les autres samples en ont.
@@ -217,9 +217,10 @@ Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed
 - Commit : `docs(engine): describe the posed perspective camera`
 - Validation (2026-11-19) : `docs/engine/perspective-camera-component.md`, lié depuis `docs/README.md`. Limite constatée en l'écrivant : la section générique de l'inspecteur n'édite pas un `Vector2` (`ComponentEditorBase.CreatePropertyEditor`), donc le décalage ne s'y voit pas ; non corrigé, hors périmètre de la tranche.
 
-### ⏳ T1.6 — Recette de l'auteur
+### ✅ T1.6 — Recette de l'auteur
 
 - Validation : « Recette OK » de l'auteur sur le sample.
+- Fait le 2026-11-19 : « Recette ok » de l'auteur, sur les quatre captures du Launcher décrites en T1.4. Le script clavier `PictureOffsetKeys` n'a été exercé par personne : l'auteur a validé en le sachant.
 
 ---
 
