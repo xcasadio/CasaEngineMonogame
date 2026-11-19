@@ -32,7 +32,7 @@
       },
       {
         "type": "Wait",
-        "seconds": 0.5
+        "seconds": 2.5
       }
     ]
   }
