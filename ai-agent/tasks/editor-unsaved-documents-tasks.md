@@ -182,7 +182,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 
 ## Phase 2 — Les trois chemins
 
-### ⏳ T2.1 — Fermeture d'un onglet : toutes les sortes
+### 🧪 T2.1 — Fermeture d'un onglet : toutes les sortes
 
 - Objectif : D1 sur le chemin de fermeture.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Editor/History/ModifiedScreenCloseCoordinator.cs` (commentaires seulement).
@@ -193,6 +193,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   4. Vérifier par lecture que, pour chaque sorte, la réponse `Don't Save` suivie de la fermeture par le code passe bien par `OnDockHostPanelRemoved`, qui libère le panneau et son état modifié.
 - Validation : build à 0 erreur ; tests verts (les 13 tests du coordinateur inchangés). Statut 🧪 (P13) : le clic réel n'est pas essayé.
 - Commit : `feat(editor): ask to save any modified document before its tab closes`
+- Validation faite (2026-11-19) : `IsDocumentAskedBeforeClose`, `IsDocumentModifiedBeforeClose`, `AskSaveBeforeClosingDocument` et `TrySaveDocumentBeforeClose` s'appuient sur `TryGetSavableDocument`, sans branche par sorte (titre `Close <Kind>`, message `Save changes to '<title>' before closing?`) ; le `CommitPendingText` dupliqué de `IsDocumentModifiedBeforeClose` est retiré (il reste dans `CreateCutsceneSavableDocument`). `CloseScreenPanelAfterAnswer` renommée `CloseDocumentPanelAfterAnswer`, avertissement « Cannot close document ». Commentaires de `OnDockHostPanelClosing`, du champ et de `ModifiedScreenCloseCoordinator` mis à jour. Étape 4, par lecture : `ClosePanel` lève `PanelRemoved`, donc `OnDockHostPanelRemoved` libère table, titre, historique et état modifié de chaque sorte (écran, matériau, entité, sprite, particules, son, cutscene, Animation2D ; mixeur audio par `CloseAudioMixerPanel`). Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts, les 13 tests du coordinateur inchangés. Statut 🧪 (P13) : le clic réel n'est pas essayé.
 
 ### ⏳ T2.2 — Sortie de l'éditeur : tous les documents et le monde
 

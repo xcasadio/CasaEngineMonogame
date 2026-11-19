@@ -135,8 +135,7 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0041).</summary>
     private EditorMessageBoxes _messageBoxes;
 
-    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0041, D4, D5) and of cutscene
-    /// documents.</summary>
+    /// <summary>The asynchronous "save before closing?" question of every modifiable document (ADR-0041, ADR-0104).</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
     /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0041).</summary>
@@ -2910,13 +2909,13 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save a modified screen document before a USER close
+    /// T4.5 (D17), made asynchronous by ADR-0041 and generalised to every modifiable document by ADR-0104: asks whether to save a modified document before a USER close
     /// removes its panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close button,
     /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
     /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
     /// application code). The MGUI question answers later, so <see cref="_modifiedScreenCloseCoordinator"/> refuses the
-    /// close now and redoes it by code once the answer lets it go. Only screen panels and cutscene documents are
-    /// considered; every other kind of panel closes unconditionally, exactly as before this event existed.
+    /// close now and redoes it by code once the answer lets it go. Every open document of a modifiable kind is
+    /// considered (see <see cref="TryGetSavableDocument"/>); every other panel closes unconditionally.
     /// </summary>
     private void OnDockHostPanelClosing(object sender, CancelEventArgs<DockPanelNode> e)
     {
@@ -2929,69 +2928,45 @@ public class GameEditor : Game, IObservableUpdate
         MGFloatingDockWindow closingWindow = (e as DockPanelClosingEventArgs)?.ClosingFloatingWindow;
         Action retryWindowClose = closingWindow == null ? null : () => RetryFloatingWindowClose(closingWindow);
 
-        if (_modifiedScreenCloseCoordinator.OnClosing(panel.Id, () => CloseScreenPanelAfterAnswer(panel), retryWindowClose))
+        if (_modifiedScreenCloseCoordinator.OnClosing(panel.Id, () => CloseDocumentPanelAfterAnswer(panel), retryWindowClose))
         {
             e.Cancel = true;
         }
     }
 
-    /// <summary>The documents whose user close asks "save before closing?" when they are modified.</summary>
+    /// <summary>The documents whose user close asks "save before closing?" when they are modified: every open document of a
+    /// modifiable kind (the tile map and the animation clip have nothing to modify).</summary>
     private bool IsDocumentAskedBeforeClose(string panelId)
-        => TryGetUIScreenPreviewPanel(panelId, out _) || TryGetCutsceneAssetInspectorPanel(panelId, out _);
+        => TryGetSavableDocument(panelId, out _);
 
     private bool IsDocumentModifiedBeforeClose(string panelId)
-    {
-        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
-        {
-            if (ReferenceEquals(_cutsceneDetailsPanel?.Document, cutsceneInspectorPanel))
-            {
-                // Text typed and not yet validated counts as a change: it is written before the document is asked.
-                _cutsceneDetailsPanel.CommitPendingText();
-            }
-
-            return cutsceneInspectorPanel.IsDirty;
-        }
-
-        return _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
-    }
+        => TryGetSavableDocument(panelId, out var document) && document.IsModified();
 
     private void AskSaveBeforeClosingDocument(string panelId, Action<ModifiedScreenCloseDecision.Answer> answered)
     {
-        if (TryGetCutsceneAssetInspectorPanel(panelId, out _))
+        if (!TryGetSavableDocument(panelId, out var document))
         {
-            string cutsceneTitle = _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var cutsceneValue) ? cutsceneValue : "Cutscene";
-            _messageBoxes.AskSave("Close Cutscene", $"Save changes to '{cutsceneTitle}' before closing?",
-                answer => answered(ToModifiedScreenCloseAnswer(answer)));
             return;
         }
 
-        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
-        _messageBoxes.AskSave("Close Screen", $"Save changes to '{title}' before closing?",
+        _messageBoxes.AskSave($"Close {document.Kind}", $"Save changes to '{document.Title}' before closing?",
             answer => answered(ToModifiedScreenCloseAnswer(answer)));
     }
 
     private bool TrySaveDocumentBeforeClose(string panelId)
-    {
-        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
-        {
-            return TrySaveCutsceneDocument(panelId, cutsceneInspectorPanel);
-        }
+        => TryGetSavableDocument(panelId, out var document) && document.TrySave();
 
-        return TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
-               && TrySaveScreenDocument(panelId, previewPanel);
-    }
-
-    /// <summary>Closes a screen panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
+    /// <summary>Closes a document panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
     /// finds the panel wherever it is, floating windows included; its <see cref="MGDockHost.PanelRemoved"/> runs
     /// <see cref="OnDockHostPanelRemoved"/>, as the user's close did.</summary>
-    private bool CloseScreenPanelAfterAnswer(DockPanelNode panel)
+    private bool CloseDocumentPanelAfterAnswer(DockPanelNode panel)
     {
         if (_dockHost?.ClosePanel(panel) == true)
         {
             return true;
         }
 
-        Logs.WriteWarning($"Cannot close screen '{panel.Title}': the dock host no longer holds its panel.");
+        Logs.WriteWarning($"Cannot close document '{panel.Title}': the dock host no longer holds its panel.");
         return false;
     }
 
