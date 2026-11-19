@@ -158,6 +158,7 @@ public class WorldViewportPanel : IDisposable
 
     private RenderTargetSurface _surface;
     private RenderView _renderView;
+    private IPostUIOverlay _postUiOverlay;
     private MguiViewportViewHost _renderViewHost;
     private GridComponent _grid;
     private AxisComponent _axis;
@@ -1282,6 +1283,30 @@ public class WorldViewportPanel : IDisposable
         return basePosition + right * (dropIndex * 2.5f);
     }
 
+    /// <summary>
+    /// Sets the overlay drawn after the UI of the render view of this viewport, or removes it with null. It is registered at
+    /// once when the render view exists, otherwise when it is created, and removed when the panel is disposed. The panel
+    /// does not own the overlay: the caller disposes it.
+    /// </summary>
+    internal void SetPostUiOverlay(IPostUIOverlay overlay)
+    {
+        if (ReferenceEquals(_postUiOverlay, overlay))
+        {
+            return;
+        }
+
+        if (_postUiOverlay != null)
+        {
+            _renderView?.UnregisterPostUIOverlay(_postUiOverlay);
+        }
+
+        _postUiOverlay = overlay;
+        if (overlay != null)
+        {
+            _renderView?.RegisterPostUIOverlay(overlay);
+        }
+    }
+
     private void EnsureRenderViewCreated()
     {
         if (_renderView != null)
@@ -1327,6 +1352,10 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView = renderView;
+        if (_postUiOverlay != null)
+        {
+            _renderView.RegisterPostUIOverlay(_postUiOverlay);
+        }
 
         if (UsesCamera2d)
         {
@@ -2164,10 +2193,16 @@ public class WorldViewportPanel : IDisposable
 
         if (_renderView != null)
         {
+            if (_postUiOverlay != null)
+            {
+                _renderView.UnregisterPostUIOverlay(_postUiOverlay);
+            }
+
             _editorRuntime.GameManager.ViewManager.Remove(_renderView);
             _renderView = null;
         }
 
+        _postUiOverlay = null;
         _surface?.Dispose();
     }
 

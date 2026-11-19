@@ -7,6 +7,7 @@ using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Cutscenes;
@@ -48,6 +49,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private readonly IWindowInputSource? _windowInputSource;
     private readonly CutscenePreviewSession? _preview;
     private WorldViewportPanel? _previewViewport;
+    private CutsceneScreenFadeOverlay? _screenFadeOverlay;
     private MGComboBox<string>? _worldCombo;
     private MGTextBlock? _previewStatusText;
     private MGTextBlock? _timeText;
@@ -1005,6 +1007,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _disposed = true;
         EditorHistoryService.Current.HistoryChanged -= OnHistoryChanged;
         _previewViewport?.Dispose();
+        _screenFadeOverlay?.Dispose();
+        _screenFadeOverlay = null;
         _preview?.Dispose();
     }
 
@@ -1092,6 +1096,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             ShowEditorOverlays = false,
             UseFront2dCamera = true,
         };
+
+        if (_preview != null)
+        {
+            // The veil of a fade is drawn over the image of the preview, from the screen effect of the play (ADR-0103).
+            _screenFadeOverlay = new CutsceneScreenFadeOverlay(_preview.ScreenEffects);
+            _previewViewport.SetPostUiOverlay(_screenFadeOverlay);
+        }
 
         var documentRoot = new MGDockPanel(_window)
         {
