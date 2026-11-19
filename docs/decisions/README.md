@@ -162,5 +162,6 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0146](0146-a-world-can-run-under-its-own-execution-policy.md) | A world can run under its own execution policy, and the cutscene preview runs sprite animations, particles and physics | Proposed | 2026-11-19 |
 | [ADR-0147](0147-simple-cameras-and-behaviour-components.md) | Cameras become simple, their behaviours become components (numbered ADR-0144 until 2026-11-20) | Accepted | 2026-11-19 |
 | [ADR-0148](0148-camera-behaviours-are-components-that-pose-a-simple-camera.md) | Camera behaviours are components that pose a simple camera (numbered ADR-0145 until 2026-11-20) | Accepted | 2026-11-19 |
+| [ADR-0149](0149-the-old-camera-classes-are-removed-and-their-data-is-migrated-once.md) | The old camera classes are removed and their data is migrated once | Accepted | 2026-11-19 |
 
 Renumbering of 2026-11-20: the two local camera records were numbered ADR-0144 and ADR-0145 until origin/main, which had published other decisions under those numbers, was merged. A camera record still written on an unmerged branch follows the same shift of three (0146 becomes 0149, 0147 becomes 0150).

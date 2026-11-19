@@ -478,10 +478,11 @@ Relevé par `rg` sur les `.cs` hors `bin`, `obj`, `MGUI`, `NvgSharp`, puis lectu
 
 Fait à l'écriture de ces tâches : voir « État vérifié » ci-dessus.
 
-### ⏳ T3.1 — ADR
+### ✅ T3.1 — ADR
 
 - ADR-0149, en anglais, avec le skill `adr`, indexé dans `docs/decisions/README.md` : retrait des trois anciennes caméras ; données migrées une fois, sans traduction dans le chargeur, en application de l'ADR-0008 (D14) ; fusion de `Camera3dComponent` dans `PerspectiveCameraComponent` (D15) ; ruptures d'API listées ; ce qui arrive à un fichier non migré (ADR-0119). Il cite l'ADR-0089 pour dire que `ViewportCameraState` ne se lit plus que dans une orbite.
 - Validation : relecture ; aucun nom de projet extérieur.
+- **Fait (2026-11-19).** Plan approuvé par l'auteur le 2026-11-19 (« Approuvé, lance »), tranches 3 et 4, en mode AUTO. ADR-0149 écrit et indexé. Documentation seule : ni build ni test.
 
 ### ⏳ T3.2 — Figer les références
 
