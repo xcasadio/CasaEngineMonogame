@@ -276,7 +276,7 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : dire ce que l'aperçu fait maintenant, et ce que le moteur permet.
 - Fichiers : `docs/editor/cutscene-editor.md`, la page de `docs/engine/` qui décrit la règle d'exécution si elle existe (sinon une courte page nouvelle, ajoutée à `docs/README.md`), `ai-agent/README.md`, ce plan.
@@ -286,6 +286,10 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   3. Mettre à jour la ligne du plan dans `ai-agent/README.md`.
 - Validation : chaque phrase de la documentation correspond à du code livré ; aucun fichier ne nomme autre chose que le moteur et ses samples.
 - Commit : `docs(editor): describe the live cutscene preview and the per-world execution policy`
+- Note de validation (2026-11-19) :
+  - `docs/editor/cutscene-editor.md` : nouvelle section « A live preview world » (ce qui vit, règle `EditorLivePreview` et sa mise en place par la session, particules même sans `SimulateInEditor`, scripts non mis à jour et ce qu'ils font déjà, aucun appel de code de jeu par les collisions et les événements d'animation, animation squelettique non couverte, état hors lecture, coût d'une recherche relevé en nombre de pas sans chiffre de temps, les trois limites de P8) ; la limite « frozen » est remplacée par celle des scripts ; la limite du cadrage est gardée et renvoyée à un changement ultérieur ; la ligne « Next » sur la règle par monde est retirée ; la section Automation décrit les valeurs d'animation et de particules ajoutées aux lignes d'entité.
+  - Nouvelle page `docs/engine/world-execution-policy.md` (aucune page ne décrivait la règle d'exécution) : `World.ExecutionPolicyOverride` et `World.ExecutionPolicy`, la règle `EditorLivePreview`, `RaiseGameplayNotifications`, le sens de `UpdatePhysicsEngine` par monde, un extrait d'usage, les limites ; ligne ajoutée à `docs/README.md`. Ligne du plan mise à jour dans `ai-agent/README.md`.
+  - Chaque phrase a été relue contre le code livré (`World.cs`, `GameplayExecutionPolicy.cs`, `PhysicsSystemComponent.cs`, `CutscenePreviewSession.cs:610`, `CutsceneAssetInspectorPanel.DescribeLiveComponent`) et les notes de T2.4. Recherche, sans tenir compte de la casse, de noms de jeux ou de projets extérieurs dans les deux fichiers : aucun résultat. Aucun code touché : ni build ni test relancés. Non vérifié : le rendu des tableaux Markdown dans un lecteur.
 
 ### ⏳ T3.2 — Recette de l'auteur
 

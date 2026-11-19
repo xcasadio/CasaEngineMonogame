@@ -241,6 +241,24 @@ The document shows a transport bar (a world choice, `Play` / `Pause`, `Stop`, `R
 - **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself. `Play` from the start and `Restart` frame the entities again; going to a time, `-1 frame`, `Stop`, and a `Play` or `+1 frame` that leaves the first instant (see "Time 0") rebuild the world but keep the camera as you left it.
 - **Status line.** While a play runs, the preview status line starts with the word of the transport bar (`Preview: Playing.`, `Preview: Paused.` or `Preview: Seeking.`); when no play runs it starts with the state of the last play (`Completed`, `Failed`, `Stopped`...). It is rewritten only when what it shows changes.
 
+### A live preview world
+
+The preview world is alive: while it advances, **sprite animations play, particle systems simulate and physics runs**. A pause freezes all three, and going back in time rebuilds the world and replays them. `Projects/SpriteCutsceneSample` has a world for this, `LiveWorld.world`, with the cutscene `Cutscenes/live.cutscene` (see its README).
+
+- **How.** The preview world runs under its own execution policy, `GameplayExecutionPolicies.EditorLivePreview`, set on the copy before it is loaded; the policy of the editor game is not changed, and no other world of the editor is affected (see `docs/engine/world-execution-policy.md`). The preview itself steps the physics of its world after each update of the world, with the same step as the update (the time of the transport step, without the game `TimeScale`). As in the game, an entity shows the pose of its body with one step of delay.
+- **Particles.** They simulate even when the `SimulateInEditor` box of a particle system is unchecked.
+- **Scripts.** Gameplay scripts are not updated, `BeginPlay` does not run and no player controller is created: the status line says `Gameplay scripts are not updated in the preview.` What a script already did in the preview is unchanged: it is initialised when its entity is, its `OnEndPlay` runs when the world is cleared and its `Draw` runs.
+- **No game code is called by the simulation.** A collision does not call `OnHit` or `OnHitEnded` of the entity script, and a sprite animation does not raise `AnimationFinished`, `AnimationLooped` or `AnimationEventTriggered`; the collision lists of the components are still kept up to date. So a script cannot be reached through the physics or the animations, even though its update is off.
+- **Not covered.** The skeletal animation of 3D models: its behaviour in the preview was not read and has not changed. Other previews of the editor (material, sprite, particles, Animation2D, model) and the world being edited are not given this policy.
+- **Outside a play.** The world lives whenever no play runs (see "After the end" in "Transport"): after `Stop`, which rebuilds the world, the start state is shown and then lives (an animation loops, a body falls). `Play`, `Stop`, a move backwards and any seek started while no play runs rebuild the world from its asset, so the state of a play does not depend on the time spent stopped. A seek forward during a play that has not been edited goes on from the current state, as before, except from the start state of time 0, where it launches the play again.
+- **Cost of a seek.** Each replayed step now also steps the physics, so the cost of a seek is proportional to the number of steps. On the sample, a seek to 1 s makes 60 steps (30 for 0.5 s, 1 for 0), each one an update of the world plus one physics step of 1/60 s, on a world of six entities and one dynamic body. The duration of a seek was not measured (the diagnostics give a step count, not a time), and nothing was measured on a large world; no cap was added.
+
+Limits of the live world:
+
+- A play advances at the time of the editor frames and a seek by fixed steps of 1/60 s, so the state of an animated sprite, of a particle or of a body at a given instant can differ between a play and a seek.
+- Only a seek that launches the play again (a move backwards, a changed document, no play running) gives a reproducible state: two such seeks to the same instant give the same state. A seek forward during a play continues from the state of that play and is not reproducible in that sense.
+- The physics advances by fixed steps of 1/60 s, one per update, as in the game: an editor frame that lasts two steps or more makes one step and the physics falls behind the clock of the cutscene. The first step after a rebuild, bounded to 1/30 s, is in that case. A seek does not have this defect: each of its steps is one physics step.
+
 ### Transport
 
 The state word and the label of the `Play` / `Pause` button follow this table, read from top to bottom, first true line:
@@ -315,7 +333,7 @@ Limits of the sound:
 
 ### Limits
 
-- Sprite animations, physics and gameplay scripts are frozen in the preview, because the editor execution policy is shared by all the worlds of the editor; changing it for the preview world alone is a separate decision. The status line says so. A video played on a sprite does play.
+- Gameplay scripts are not updated in the preview (see "A live preview world"). A video played on a sprite does play.
 - No keyboard shortcut for the transport (space, arrows): the buttons and the timeline are the only way.
 - Going back in time replays from the start, so each move backwards rebuilds the world from its asset. On a large world a drag backwards in the ruler rebuilds it at every mouse move; this cost has not been measured on a large world.
 - A seek advances by fixed steps of 1/60 s, a play by the editor frames. An action counted in frames (`WaitFrames`, `FadeScreenFrames`) can therefore fall at a slightly different time in a play and in a seek: the same cutscene can end one step later when reached by a seek (for example 61 frames instead of 60 for a one-second fade).
@@ -323,13 +341,15 @@ Limits of the sound:
 - An effect that outlives the last action (a sprite move still running) goes on after the end in the preview whatever the way the end was reached, since the world is live again.
 - The cutscene that an `ExitOnInput` or a `ChangeWorld` leads to is announced, never played.
 - Pausing the sound and resuming it is not offered: a pause stops it (see "Sound").
-- The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
+- The preview does not use the camera of the world nor its virtual resolution, so the framing can differ from the game; a view of the game is left to a later change.
 - Editing the cutscene is disabled while a play session of the editor is running.
 - The state of the editor's own world in play mode is shown in the Inspector cutscene view under "Editor play mode"; it is not the state of the preview.
 
 ### Automation
 
 For remote validation the editor can play the preview without any input: `--project <project.json> --open-asset <Cutscenes/name.cutscene> --cutscene-preview-play --screenshot-out <file.png> --capture-delay <seconds>`. With this switch the capture delay counts from the start of the playback, and the diagnostics file gets the preview state, the skipped actions, the name and position of each preview entity and the name of the editor's current world.
+
+The line of each entity of the preview world, `Preview entity '<name>': x= y= z=`, also ends with `animation '<component>' time=<seconds> s` for each animated sprite of the entity (the time of its current animation) and `particles '<component>' alive=<n>` for each particle system (its living particles); an entity with neither has the same line as before. A seek list such as `--cutscene-preview-seek 1,0.5` replays from the start for the backward move, so its final values equal those of `--cutscene-preview-seek 0.5`.
 
 Three more switches drive the transport, after the play and the edits above, one step per frame; the capture delay counts from the end of the last step:
 
@@ -447,6 +467,6 @@ An empty text sets a nullable property that is not a string back to "no value".
 
 - Multiple selection; automatic scroll and expansion during a drag; keyboard moves; dragging a type from a palette.
 - Picking an entity by clicking it in the preview.
-- A per-world execution policy for the preview (sprite animations, physics and scripts); playing the cutscene an input or a world change leads to.
+- A view of the game in the preview (camera of the world, virtual resolution); playing the cutscene an input or a world change leads to.
 - Keyboard shortcuts for the transport, a playback speed, and going back in time without a replay.
 - Editing on the timeline: resizing a bar, snapping to other items, moving a clip from a row to another, multiple selection.

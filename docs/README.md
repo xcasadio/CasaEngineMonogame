@@ -52,6 +52,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### Gameplay et scripting
 
 - [gameplay-mode.md](engine/gameplay-mode.md) — concept `GameplayMode` (règles de gameplay par `World`).
+- [world-execution-policy.md](engine/world-execution-policy.md) — règle d'exécution propre à un `World` (`ExecutionPolicyOverride`, règle `EditorLivePreview`, `RaiseGameplayNotifications`, `UpdatePhysicsEngine` par monde) (ADR-0146).
 - [character-controller-features.md](engine/character-controller-features.md) — spécification du Character Controller.
 - [navigation-engine-features.md](engine/navigation-engine-features.md) — navigation des personnages.
 - [coroutines_specifications.md](engine/coroutines_specifications.md) — spécification du système de coroutines.
