@@ -12,7 +12,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > - `FIX`, remarques non bloquantes : `casa-editor call` partout où un id passe d'une étape à l'autre (T2.2, validation globale, M9) ; empreintes de la copie hors `.casaeditor/` et par lancement ; raison de refus d'`asset.open` d'un `.entity` en Play nommée dans P15 ; source de la validation de T2.1 ; lancements du vérificateur en une exécution bornée ; résidu de S3-4 complété.
 > Relecture de clôture de l'enveloppe (2026-11-19, relecteur frais, sur `deea59cd4`) : **READY**.
 > Relecture de la première tranche, T0.1 et T1.1 (2026-11-19, relecteur frais, sur `deea59cd4`) : **READY**.
-> **En attente de l'approbation explicite de l'auteur** : aucun code n'est modifié avant.
+> **Approuvé par l'auteur le 2026-11-19** : « Approuvé et en mode auto », réponse écrite par lui dans la session principale et transmise mot pour mot à la session du chantier, sur le plan `8865bbb5c` (P1 à P15, tranche M9 du jeu comprise). Exécution en mode `AUTO` (D4) ; cette réponse ne donne ni push ni avance de `main`, `master` ou `remaster`.
 
 > **Quand écrire un plan** : dès que le travail demande plus d'un commit. En dessous, exécution directe avec le rapport de fin de tâche d'`AGENTS.md`.
 > **Avant d'écrire le plan** : poser toutes les questions en une seule fois ; ne rien inventer, ne rien supposer.
@@ -166,16 +166,17 @@ Non contrôlé par la passe, gardé comme risque (R3) : un éditeur de l'inspect
 
 ## Phase 0 — Décision et référence
 
-### ⏳ T0.1 — ADR-0129 et référence avant modification
+### ✅ T0.1 — ADR-0129 et référence avant modification
 
 - Objectif : la décision est écrite, et l'état de départ est mesuré avant tout changement de code.
-- Fichiers : `docs/decisions/0129-<titre>.md` (nouveau, statut `Proposed`, skill `adr`), `docs/decisions/README.md`, ce plan.
+- Fichiers : `docs/decisions/0129-editor-remote-control-edits-entity-assets.md` (nouveau, statut `Proposed`, skill `adr`), `docs/decisions/README.md`, ce plan.
 - Étapes :
   1. Écrire l'ADR-0129, qui étend l'ADR-0093 : la famille `entity_asset.*`, l'édition par le panneau et son historique, une entité par asset, la création d'un asset vide, la règle d'écriture à l'enregistrement, ce qui reste hors périmètre, et les constats de sécurité retenus : P13, P14, résidus de S3-1 (même schéma pour les matériaux, particules et sons), de S3-4 (arrêt entre deux gestes de la création) et de S3-8.
   2. Référence : `dotnet build CasaEngine.Editor.MonoGame.sln` et `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj`, résultats notés (erreurs, nombre de tests) ; `Tools/automation-smokes.sh artifacts/entity-asset-remote/smokes-before` (sorties dans le dépôt du jeu, chemin absolu), codes de sortie et empreintes notés.
   3. Référence du contrat (P15) : éditeur lancé avec `--remote` sur une copie neuve de `Projects/SampleProject` (lancement et arrêt comme en T2.2), `casa-editor commands` gardé en `artifacts/entity-asset-remote/commands-before.json`, éditeur arrêté.
 - Validation : build à 0 erreur ; tous les tests passent ; S1 à S8 rendent leur code de sortie ; `commands-before.json` existe et ne contient aucune commande `entity_asset.*` ; l'ADR est dans l'index avec le statut `Proposed`.
 - Commit : `docs(adr): record the entity asset remote commands`
+- Note de validation (2026-11-19), sorties dans `artifacts/entity-asset-remote/` du dépôt du jeu (`t0/`, `smokes-before/`, `commands-before.json`) : ADR-0129 écrite (`Proposed`, en anglais, ligne d'index ajoutée). Référence sur `8865bbb5c`, avant toute modification de code : `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur (231 avertissements) ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 6475 réussis sur 6475, aucun ignoré ; `Tools/automation-smokes.sh` : S1 à S8 en sortie 0. Contrat : éditeur lancé avec `--remote` sur une copie neuve de `Projects/SampleProject` (`<scratchpad>/entity-asset-remote/sample/t0/`), `casa-editor commands` : 48 commandes, aucune `entity_asset.*` ; chaque commande y porte son nom, sa description, son schéma et ses deux drapeaux. L'éditeur s'est fermé seul sur `taskkill /PID` (sans `/F`).
 
 ## Phase 1 — Commandes
 
