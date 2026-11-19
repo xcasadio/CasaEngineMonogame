@@ -1,6 +1,6 @@
 # Plan agent IA — Intégrer `origin/main` dans la ligne locale du moteur (seconde fois) et pousser
 
-Plan né du blocage O7 de [entity-asset-remote-tasks.md](entity-asset-remote-tasks.md) : le 2026-11-19, le push demandé par l'auteur a été refusé parce qu'`origin/main` avait reçu 197 commits d'ailleurs. Il n'y a pas d'audit dédié ; le modèle suivi est le plan de la première intégration, arrivé avec `origin/main` (`ai-agent/tasks/origin-main-integration-tasks.md`, lu par `git show origin/main:…`).
+Plan né du blocage O7 de [entity-asset-remote-tasks.md](archive/entity-asset-remote-tasks.md) (archivé par T4.2) : le 2026-11-19, le push demandé par l'auteur a été refusé parce qu'`origin/main` avait reçu 197 commits d'ailleurs. Il n'y a pas d'audit dédié ; le modèle suivi est le plan de la première intégration, arrivé avec `origin/main` (`ai-agent/tasks/origin-main-integration-tasks.md`, lu par `git show origin/main:…`).
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur le 2026-11-19 : **ce plan les applique, il ne les rediscute pas**.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
@@ -256,7 +256,7 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
   - Traitement des trois remarques (P4, aucune ne change le code) : **A1**, pendant le Play, `asset.open` d'une référence qui ne se résout pas (chemin écrit dans une autre casse) répond `not_found` et non `play_mode_active` : la résolution précède le contrôle du Play, la commande est refusée dans les deux cas sans panneau ni accès au fichier, comportement existant de la résolution des références : `REJECT`. **A2**, le `t22_run.py` du disque passe 185 contrôles, pas les 179 de la note de T2.1 : le défaut du script noté en T2.1 (type d'une propriété de matériau lu comme un texte) a été corrigé dans le script après T2.1, hors dépôt ; le sujet, la réouverture d'un matériau modifié, passe donc maintenant dans le parcours lui-même : rien à faire. **A3**, les deux rejeux du genre `ui` ont ajouté vingt captures sous `%LOCALAPPDATA%/CasaEngine/RacingGameCasaEngine/Screenshots/` (deux dossiers `ui-run-20261119-…`), chemin normal des captures du jeu, comme chaque rejeu du banc ; les fichiers qui existaient sont inchangés, réglages compris ; non supprimées (hors du dépôt), signalées à l'auteur : `DEFER`.
   - Non rejoués par lui : les smokes d'automatisation (P9, tenus en T2.1) ; les cinq autres genres de la parité (relus et comparés par empreinte).
 
-### ⏳ T4.2 — Archivage, avance, push
+### 🧪 T4.2 — Archivage, avance, push
 
 - Étapes :
   1. `git mv ai-agent/tasks/entity-asset-remote-tasks.md ai-agent/tasks/archive/` et lignes de `ai-agent/README.md` ; commit du moteur (le dernier) ; pointeur du jeu sur cette tête (commit du jeu) ; copies de P12 supprimées.
@@ -273,6 +273,10 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
   5. `artifacts/push-main-remaster.ps1 -DryRun`, puis sans `-DryRun` ; `git ls-remote origin main` et `origin remaster` égaux aux têtes locales. Si le script refuse (le dépôt distant a bougé entre-temps) : ⚠️, rien n'est forcé ; `main` et `remaster` restent avancés en local, ce que le rapport dit.
 - Validation : les sorties des contrôles de l'étape 3 ; les deux `ls-remote` ; arbres propres ; rapport de fin (`AGENTS.md` §12).
 - Commits : `docs(ai-agent): archive the entity asset remote plan` (moteur), `chore(engine): point CasaEngine at the pushed engine main` (jeu).
+- Note (2026-11-19), écrite dans le dernier commit du moteur, celui que les étapes 2 à 5 contrôlent, avancent et poussent :
+  - **Étape 1 faite** dans ce commit : `entity-asset-remote-tasks.md` déplacé dans `tasks/archive/` (ses décisions D6 à D8 mises à jour), lignes de `ai-agent/README.md`, lien de l'en-tête de ce plan. Les copies de P12 sont supprimées après ce commit.
+  - **Pourquoi 🧪 et non ✅** : les étapes 2 à 5 se font sur ce commit même, qui ne peut donc pas porter leur résultat. Les sorties des contrôles de l'étape 3 et les deux `ls-remote` sont dans le rapport de fin de la session. Ce commit lu sur `origin/main` prouve que le push a eu lieu ; lu seulement en local, `git ls-remote origin main` dit ce qu'il en est.
+  - Reste à l'auteur : passer cette tâche en ✅, valider les ADR-0144 et 0145 (`Proposed`), décider d'O4, archiver ce plan.
 
 ---
 

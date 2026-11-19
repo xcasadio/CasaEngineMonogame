@@ -354,9 +354,9 @@ Réponses de l'auteur à quatre questions posées par la session du chantier :
 | Réf | Décision | État |
 |---|---|---|
 | D5 | ADR-0145 : « Corriger, rester Proposed ». | Fait (O4). |
-| D6 | Création avec un dossier écrit avec `..` : « Refuser « .. » ». | À faire (O6). |
-| D7 | Fusion : « Avancer et pousser ». | Avance locale faite ; **push bloqué** (O7). |
-| D8 | Archivage du plan : « Après les suites ». | En attente de D6 et de D7. |
+| D6 | Création avec un dossier écrit avec `..` : « Refuser « .. » ». | Fait le 2026-11-19 par T1.4 du plan [origin-main-integration-2-tasks.md](../origin-main-integration-2-tasks.md) (`b47f0a552`), étendu aux segments vides ou finissant par un point ou une espace (O6). |
+| D7 | Fusion : « Avancer et pousser ». | Avance locale faite ; **push bloqué** (O7), puis `origin/main` intégré par le plan [origin-main-integration-2-tasks.md](../origin-main-integration-2-tasks.md), dont le push est la dernière étape (sa T4.2). |
+| D8 | Archivage du plan : « Après les suites ». | **Archivé le 2026-11-19** par le commit qui porte cette ligne, le dernier du plan d'intégration (celui qu'il pousse). |
 
 **O7, blocage du push (constaté le 2026-11-19).** `main` du moteur a été avancé en local de `1ed32d862` à `be750e7db` et `remaster` du jeu de `433a09e` à `6fe9ee8` (avance rapide des deux références, arbres propres, pointeur du jeu = `be750e7db`). L'essai à blanc de `artifacts/push-main-remaster.ps1` a alors rapporté, après son `fetch`, que **`origin/main` du moteur n'est plus un ancêtre du `main` local** : `origin/main` est passé de `da32906e2` à `760734aea`, soit 197 commits poussés d'ailleurs le 2026-11-19 (éditeur de cutscenes, question d'enregistrement pour tout document modifié, intégration d'`origin/main`, retrait du hook de garde). Rien n'a été poussé ; aucun push forcé n'est envisagé. Relevé en lecture seule :
 
