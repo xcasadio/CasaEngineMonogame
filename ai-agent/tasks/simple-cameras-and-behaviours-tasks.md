@@ -326,7 +326,7 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Commit : `feat(camera): add a 2d follow behaviour component`
 - Validation (2026-11-19) : `Follow2dCameraComponentTests`, 19 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8109 tests, 0 échec. `target_entity_name` et `dead_zone` passent par `[SerializedProperty]` ; `limits` (x, y, w, h entiers, comme l'ancienne classe) est lue par `Load`, clé facultative, et écrite par `EditorEntityJsonSerializer`. Une cible détruite (`ToBeRemoved`) est lâchée. La recherche par nom se teste par la méthode `internal ResolveTarget`, sur un `World` sans jeu. Limite : le composant écrit la position locale de la caméra et lit la position monde de la cible ; une caméra sous un parent n'est pas prévue.
 
-### ⏳ T2.5 — Vue 3D de l'éditeur
+### 🧪 T2.5 — Vue 3D de l'éditeur
 
 - Fichiers : `EditorViewportCameraController.cs`, `WorldViewportPanel.cs`, leurs tests.
 - Objectif : la vue 3D crée une `PerspectiveCameraComponent` et un `OrbitCameraComponent` ; le contrôleur écrit dans l'orbite. `EditorCameraFactory` prend déjà une `Camera3dComponent` et ne change pas.
@@ -345,6 +345,9 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 - Si le banc de test ne permet pas de rejouer `EditorCameraFactory.InitializeWithWorld` sans carte graphique, ⚠️ Blocked : la question va aux points ouverts.
 - Validation : build ; tests ; essai dans l'éditeur par l'auteur (🧪 tant qu'il n'est pas fait).
 - Commit : `refactor(editor): drive the 3d viewport through the orbit component`
+- Validation (2026-11-19) : la méthode de construction a d'abord été écrite sur `ArcBallCameraComponent` ; les vues et positions de la caméra y ont été relevées pour l'état initial et quatre états, dont un après le changement de monde, puis écrites en dur dans `EditorViewportCameraPoseTests` (3 cas). Après la bascule, le même test est vert sur la caméra simple et l'orbite, à 1e-4 près (relatif au-delà d'une unité). Le banc : un `World` sur un `CasaEngineGame` construit sans constructeur, en politique d'éditeur, sans carte graphique. `EditorViewportCameraControllerTests` : 22 lignes ajoutées et 1 changée, dans les limites permises (une ligne `var orbit = controller.CreateOrbitComponent();` après chacune des 10 créations de caméra, un argument `orbit,` ajouté à chacun des 11 appels à `Update`, `camera.Distance` devenu `orbit.Distance`) ; aucune valeur attendue changée. Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8112 tests, 0 échec.
+- Écart avec l'étape 1 : des six cas de `InfiniteFarPlaneTests`, seul celui de la projection est rejoué sur la nouvelle caméra (dans `EditorViewportCameraPoseTests`) ; les autres ne dépendent que de cette projection, qui est celle de `Camera3dComponent` quand le décalage est nul.
+- **Reste 🧪 : l'essai dans l'éditeur par l'auteur** (navigation de la vue 3D, dépôt d'un asset dans la vue, passage en Play et retour). Le test ne couvre pas un panneau qui n'appellerait pas la méthode de construction.
 
 ### ⏳ T2.6 — Aperçus, vignettes et caméra par défaut
 

@@ -182,7 +182,8 @@ public class WorldViewportPanel : IDisposable
     private Entity _selectedEntity;
     private EntityComponent _selectedComponent;
     private ITransformableObject _selectedTransformable;
-    private ArcBallCameraComponent _camera;
+    private PerspectiveCameraComponent _camera;
+    private OrbitCameraComponent _cameraOrbit;
     private Camera2dComponent _camera2d;
     private Entity _camera2dEntity;
     private bool _is2dViewMode;
@@ -480,7 +481,7 @@ public class WorldViewportPanel : IDisposable
 
             if (_camera != null)
             {
-                _cameraController.ApplyTo(_camera);
+                _cameraController.ApplyTo(_cameraOrbit);
             }
         }
 
@@ -597,6 +598,7 @@ public class WorldViewportPanel : IDisposable
         {
             navigationResult = _cameraController.Update(
                 gameTime,
+                _cameraOrbit,
                 _camera,
                 inputContext,
                 receivesInput,
@@ -761,7 +763,7 @@ public class WorldViewportPanel : IDisposable
 
         if (_camera != null)
         {
-            _cameraController.ApplyTo(_camera);
+            _cameraController.ApplyTo(_cameraOrbit);
         }
 
         if (UsesCamera2d)
@@ -804,7 +806,7 @@ public class WorldViewportPanel : IDisposable
         _cameraController.RestoreState(cameraState);
         if (_camera != null)
         {
-            _cameraController.ApplyTo(_camera);
+            _cameraController.ApplyTo(_cameraOrbit);
         }
 
         _renderView?.Invalidate();
@@ -850,7 +852,7 @@ public class WorldViewportPanel : IDisposable
             var diagonal = Vector3.Distance(bounds.Min, bounds.Max);
             var distance = Math.Max(5f, diagonal <= 0f ? 10f : diagonal * 1.5f);
             _cameraController.Focus(focusTarget, distance);
-            _cameraController.ApplyTo(_camera);
+            _cameraController.ApplyTo(_cameraOrbit);
         }
     }
 
@@ -890,7 +892,7 @@ public class WorldViewportPanel : IDisposable
 
         Vector3 focusTarget = (bounds.Min + bounds.Max) * 0.5f;
         _cameraController.SetState(0f, 0f, distance, focusTarget);
-        _cameraController.ApplyTo(_camera);
+        _cameraController.ApplyTo(_cameraOrbit);
         _renderView?.Invalidate();
     }
 
@@ -1320,8 +1322,8 @@ public class WorldViewportPanel : IDisposable
     {
         Vector3 basePosition = _is2dViewMode
             ? _camera2dController.Target
-            : _camera?.Target ?? _cameraController.Target;
-        Vector3 right = _camera?.Right ?? Vector3.Right;
+            : _cameraOrbit?.Target ?? _cameraController.Target;
+        Vector3 right = _cameraOrbit?.Right ?? Vector3.Right;
 
         if (right.LengthSquared() <= 0.0001f)
         {
@@ -1368,8 +1370,7 @@ public class WorldViewportPanel : IDisposable
 
         var world = GetRenderWorld();
 
-        _camera = _cameraController.CreateCameraComponent();
-        _cameraEntity = EditorCameraFactory.CreateCameraEntity("EditorViewportCamera", _camera, world);
+        _cameraEntity = _cameraController.CreateCameraEntity("EditorViewportCamera", world, out _camera, out _cameraOrbit);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
         _surface = new RenderTargetSurface(
@@ -1931,7 +1932,7 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        _cameraController.ApplyTo(_camera);
+        _cameraController.ApplyTo(_cameraOrbit);
     }
 
     /// <summary>

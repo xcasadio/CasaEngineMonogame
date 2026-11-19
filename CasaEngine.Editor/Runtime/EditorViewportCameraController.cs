@@ -1,5 +1,7 @@
 using CasaEngine.Framework.Scene.Cameras;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using System;
 using CasaEngine.Framework.Input;
 using Microsoft.Xna.Framework;
@@ -29,7 +31,8 @@ internal readonly struct EditorViewportCameraState
 /// <summary>
 /// Perspective camera of the editor viewport. The gestures are those of Unreal's perspective viewport, computed by
 /// the shared <see cref="ViewportCameraNavigation"/> (ADR-0089). This controller owns the pivot, distance, yaw and
-/// pitch (focus, play-mode capture and restore) and writes them to the <see cref="ArcBallCameraComponent"/>; the
+/// pitch (focus, play-mode capture and restore) and writes them to the <see cref="OrbitCameraComponent"/> of the
+/// camera entity, which poses the <see cref="PerspectiveCameraComponent"/> (ADR-0145); the
 /// field of view stays on the component.
 /// </summary>
 internal sealed class EditorViewportCameraController
@@ -88,23 +91,39 @@ internal sealed class EditorViewportCameraController
         _ignoreHeldButtonsOnNextUpdate = true;
     }
 
-    public ArcBallCameraComponent CreateCameraComponent()
+    /// <summary>The camera of the view. It carries no orbit value: an <see cref="OrbitCameraComponent"/> poses it.</summary>
+    public PerspectiveCameraComponent CreateCameraComponent()
     {
-        return new ArcBallCameraComponent
-        {
-            Target = Target,
-            Distance = Distance,
-            Yaw = Yaw,
-            Pitch = Pitch,
-        };
+        return new PerspectiveCameraComponent();
     }
 
-    public void ApplyTo(ArcBallCameraComponent camera)
+    /// <summary>The orbit that poses the camera, with the controller's target, distance, yaw and pitch.</summary>
+    public OrbitCameraComponent CreateOrbitComponent()
     {
-        camera.Target = Target;
-        camera.Distance = Distance;
-        camera.Yaw = Yaw;
-        camera.Pitch = Pitch;
+        var orbit = new OrbitCameraComponent();
+        ApplyTo(orbit);
+        return orbit;
+    }
+
+    /// <summary>
+    /// The only construction of the view camera: the hidden entity <paramref name="name"/> with its camera, initialized
+    /// in <paramref name="world"/> with the editor settings, then the orbit added to it, which poses the camera.
+    /// </summary>
+    public Entity CreateCameraEntity(string name, World world, out PerspectiveCameraComponent camera, out OrbitCameraComponent orbit)
+    {
+        camera = CreateCameraComponent();
+        Entity cameraEntity = EditorCameraFactory.CreateCameraEntity(name, camera, world);
+        orbit = CreateOrbitComponent();
+        cameraEntity.AddComponent(orbit);
+        return cameraEntity;
+    }
+
+    public void ApplyTo(OrbitCameraComponent orbit)
+    {
+        orbit.Target = Target;
+        orbit.Distance = Distance;
+        orbit.Yaw = Yaw;
+        orbit.Pitch = Pitch;
     }
 
     public EditorViewportCameraState CaptureState()
@@ -143,7 +162,8 @@ internal sealed class EditorViewportCameraController
     /// there belongs to the gizmo and moves no camera.</param>
     public ViewportNavigationResult? Update(
         GameTime gameTime,
-        ArcBallCameraComponent camera,
+        OrbitCameraComponent orbit,
+        Camera3dComponent camera,
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
@@ -248,7 +268,7 @@ internal sealed class EditorViewportCameraController
         if (result.CameraChanged)
         {
             SetState(state.Yaw, state.Pitch, state.Distance, state.Pivot);
-            ApplyTo(camera);
+            ApplyTo(orbit);
         }
 
         if (result.FieldOfViewDelta != 0f)
