@@ -135,7 +135,8 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0041).</summary>
     private EditorMessageBoxes _messageBoxes;
 
-    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0041, D4, D5).</summary>
+    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0041, D4, D5) and of cutscene
+    /// documents.</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
     /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0041).</summary>
@@ -421,11 +422,11 @@ public class GameEditor : Game, IObservableUpdate
         _desktop.LoadDefaultResources();
         _messageBoxes = new EditorMessageBoxes(_desktop);
         _modifiedScreenCloseCoordinator = new ModifiedScreenCloseCoordinator(
-            isModified: panelId => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId)),
+            isModified: IsDocumentModifiedBeforeClose,
             isAutomationActive: () => _automationOptions.HasAutomation,
-            ask: AskSaveBeforeClosingScreen,
-            isScreenOpen: panelId => TryGetUIScreenPreviewPanel(panelId, out _),
-            trySave: TrySaveScreenDocumentBeforeClose);
+            ask: AskSaveBeforeClosingDocument,
+            isScreenOpen: IsDocumentAskedBeforeClose,
+            trySave: TrySaveDocumentBeforeClose);
         _modifiedScreensExitCoordinator = new ModifiedScreensExitCoordinator(
             modifiedScreenTitles: GetModifiedScreenTitles,
             isAutomationActive: () => _automationOptions.HasAutomation,
@@ -2936,12 +2937,12 @@ public class GameEditor : Game, IObservableUpdate
     /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
     /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
     /// application code). The MGUI question answers later, so <see cref="_modifiedScreenCloseCoordinator"/> refuses the
-    /// close now and redoes it by code once the answer lets it go. Only screen panels are considered; every other kind of
-    /// panel closes unconditionally, exactly as before this event existed.
+    /// close now and redoes it by code once the answer lets it go. Only screen panels and cutscene documents are
+    /// considered; every other kind of panel closes unconditionally, exactly as before this event existed.
     /// </summary>
     private void OnDockHostPanelClosing(object sender, CancelEventArgs<DockPanelNode> e)
     {
-        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out _))
+        if (e?.Data == null || !IsDocumentAskedBeforeClose(e.Data.Id))
         {
             return;
         }
@@ -2956,16 +2957,69 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void AskSaveBeforeClosingScreen(string panelId, Action<ModifiedScreenCloseDecision.Answer> answered)
+    /// <summary>The documents whose user close asks "save before closing?" when they are modified.</summary>
+    private bool IsDocumentAskedBeforeClose(string panelId)
+        => TryGetUIScreenPreviewPanel(panelId, out _) || TryGetCutsceneAssetInspectorPanel(panelId, out _);
+
+    private bool IsDocumentModifiedBeforeClose(string panelId)
     {
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
+        {
+            if (ReferenceEquals(_cutsceneDetailsPanel?.Document, cutsceneInspectorPanel))
+            {
+                // Text typed and not yet validated counts as a change: it is written before the document is asked.
+                _cutsceneDetailsPanel.CommitPendingText();
+            }
+
+            return cutsceneInspectorPanel.IsDirty;
+        }
+
+        return _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+    }
+
+    private void AskSaveBeforeClosingDocument(string panelId, Action<ModifiedScreenCloseDecision.Answer> answered)
+    {
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out _))
+        {
+            string cutsceneTitle = _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var cutsceneValue) ? cutsceneValue : "Cutscene";
+            _messageBoxes.AskSave("Close Cutscene", $"Save changes to '{cutsceneTitle}' before closing?",
+                answer => answered(ToModifiedScreenCloseAnswer(answer)));
+            return;
+        }
+
         string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
         _messageBoxes.AskSave("Close Screen", $"Save changes to '{title}' before closing?",
             answer => answered(ToModifiedScreenCloseAnswer(answer)));
     }
 
-    private bool TrySaveScreenDocumentBeforeClose(string panelId)
-        => TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
-           && TrySaveScreenDocument(panelId, previewPanel, new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+    private bool TrySaveDocumentBeforeClose(string panelId)
+    {
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
+        {
+            return TrySaveCutsceneDocumentBeforeClose(cutsceneInspectorPanel);
+        }
+
+        return TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
+               && TrySaveScreenDocument(panelId, previewPanel, new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+    }
+
+    /// <summary>Saves a cutscene document for the Save answer of its close question. A refused or failed save keeps the
+    /// document open: the reason is logged and shown by the panel.</summary>
+    private static bool TrySaveCutsceneDocumentBeforeClose(CutsceneAssetInspectorPanel cutsceneInspectorPanel)
+    {
+        if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+
+        return false;
+    }
 
     /// <summary>Closes a screen panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
     /// finds the panel wherever it is, floating windows included; its <see cref="MGDockHost.PanelRemoved"/> runs

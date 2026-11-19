@@ -378,6 +378,26 @@ public sealed class CutsceneDetailsPanelTests : IDisposable
     }
 
     [Fact]
+    public void TextTypedAndNotValidatedIsCommittedBeforeTheDocumentIsAskedToClose()
+    {
+        var rig = Open();
+        var wait = (WaitCutsceneActionData)rig.Root.Actions[0];
+        rig.Document.SelectAction(wait);
+        ClearHistory();
+
+        rig.Row<CutsceneDetailsPanel.NumberRow>("seconds").NumberField.TextBox.SetText("9");
+        Assert.False(CanUndo());
+
+        rig.Details.CommitPendingText();
+
+        // The close question reads the dirty state right after: the typed value now counts as a change.
+        Assert.Equal(9f, wait.Seconds);
+        Assert.True(rig.Document.IsDirty);
+        Assert.Same(wait, rig.Details.BuiltFor);
+        Assert.Equal("9", rig.Row<CutsceneDetailsPanel.NumberRow>("seconds").NumberField.Text);
+    }
+
+    [Fact]
     public void TheMessagesOfTheSelectedActionAreListedAndFollowTheEdits()
     {
         var rig = Open();

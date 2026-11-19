@@ -406,6 +406,7 @@ An empty text sets a nullable property that is not a string back to "no value".
   - the file about to be written would not load back cleanly (for example a required `entity` left empty).
 - Editing the faulty field clears its error; undoing brings the error back. A faulty `actions` entry has no field: fix such a file outside the editor.
 - Format errors and load losses are listed in the Validation section of the Inspector cutscene view, and under the fields of the selected action.
+- **Closing a modified cutscene asks first.** Every user close of the tab (its close button, `Close`, `Close Others` and `Close All` of the tab menu, the close of a floating window) asks "Save changes to '<name>' before closing?". `Save` saves then closes; if the save is refused, the tab stays open and the reason is shown. `Don't Save` closes and drops the changes. `Cancel` keeps the tab. Text typed in a field of the Inspector and not yet validated is written before the question, so it counts as a change. Nothing is asked while an automation switch runs.
 
 ## Code
 
@@ -431,7 +432,7 @@ An empty text sets a nullable property that is not a string back to "no value".
 
 ## Limits
 
-- **Closing a modified cutscene tab loses its changes without a prompt.** Save first.
+- **Quitting the editor with a modified cutscene loses its changes without a prompt** (only closing its tab asks). Save first.
 - A string longer than 256 characters, or one that holds a line break, is shown as an empty field. Do not give the focus to such a field: leaving it replaces the value with an empty string (the change can be undone).
 - The structure is edited one action at a time, with no multiple selection and no automatic scroll or expansion during a drag (see "Limits of the structure editing").
 - A container emptied of its children, or a new action with empty required fields, is invalid but can still be saved: the Inspector shows the validator messages.

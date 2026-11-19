@@ -138,10 +138,16 @@ internal sealed class CutsceneDetailsPanel
         }
     }
 
-    private void OnSelectionChanged(CutsceneAssetInspectorPanel document)
+    /// <summary>Writes the text typed and not yet validated, then shows the values the document now holds.</summary>
+    internal void CommitPendingText()
     {
         FlushPendingText();
         Rebuild();
+    }
+
+    private void OnSelectionChanged(CutsceneAssetInspectorPanel document)
+    {
+        CommitPendingText();
     }
 
     private void OnDocumentChanged(CutsceneAssetInspectorPanel document)
