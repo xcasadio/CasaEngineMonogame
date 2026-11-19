@@ -233,7 +233,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 
 ## Phase 3 — Documentation et validation
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : que la documentation dise le comportement général.
 - Fichiers : `docs/editor/editor-message-boxes.md`, `docs/editor/cutscene-editor.md`, et tout autre document de `docs/editor/` qui dit qu'un document se perd sans question (`rg -n -i "without a prompt|before closing|unsaved" docs/editor`).
@@ -243,6 +243,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   3. Ajouter une section « Limits » ou la compléter : les points P10 et P11, et les sortes non concernées (P3).
 - Validation : relecture ; aucun fichier de code touché.
 - Commit : `docs(editor): describe the save question for every modified document`
+- Validation faite (2026-11-19) : `docs/editor/editor-message-boxes.md` décrit les quatre flux (fermeture, sortie avec documents et monde, autre projet, autre monde), la liste des neuf sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6) et renvoie à ADR-0104 ; la section « Limits » reprend P10, P11, les sortes non concernées (P3) et O5. `docs/editor/cutscene-editor.md` : la limite « Quitting the editor with a modified cutscene loses its changes » est remplacée par un renvoi. `screen-authoring-conventions.md` et `audio-mixer-panel.md` relus : exacts, non modifiés. Aucun code touché, donc ni build ni tests.
 
 ### ⏳ T3.2 — Lancement de contrôle et clôture
 

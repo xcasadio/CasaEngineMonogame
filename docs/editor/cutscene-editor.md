@@ -432,7 +432,7 @@ An empty text sets a nullable property that is not a string back to "no value".
 
 ## Limits
 
-- **Quitting the editor with a modified cutscene loses its changes without a prompt** (only closing its tab asks). Save first.
+- Quitting the editor or opening another project with a modified cutscene asks too: see [editor-message-boxes.md](editor-message-boxes.md).
 - A string longer than 256 characters, or one that holds a line break, is shown as an empty field. Do not give the focus to such a field: leaving it replaces the value with an empty string (the change can be undone).
 - The structure is edited one action at a time, with no multiple selection and no automatic scroll or expansion during a drag (see "Limits of the structure editing").
 - A container emptied of its children, or a new action with empty required fields, is invalid but can still be saved: the Inspector shows the validator messages.
