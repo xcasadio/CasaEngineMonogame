@@ -96,7 +96,7 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
   - Étape 3 (numéros sans `ADR-`) : 7 mentions corrigées à la main, des numéros réservés par des plans (`Prochain numéro libre : 0090` devient 0129, 0091 devient 0130, 0092 devient 0131, 0093 devient 0132 ; `Dernier ADR : 0093. Ce plan prend 0094` devient 0132 et 0133 ; `le dernier ADR est le 0094 … libre est 0095` devient 0133 et 0134 ; `0089 pour le moteur` devient 0128). Non touchés car ce ne sont pas des décisions : `0.0096` (test Doppler), la chaîne binaire `"0100"` (test MDEC), `sprite_0100` à `sprite_0102` (document de l'éditeur d'animation).
   - Étape 4 : `rg "ADR-(0089|009[0-9]|010[0-4])"` ne renvoie que les 16 lignes « Renumbered from » et les 16 lignes de l'index « numbered … until » ; 104 liens de l'index, aucun fichier manquant ; aucun numéro en double dans l'index ; les 16 fichiers 0128 à 0143 ont le titre `# ADR-01nn`. Les mentions « ADR-0026 de MGUI » et « ADR-0097 du moteur » citées dans `MGUI/` ne sont pas touchées (MGUI est exclu ; T0.2 traite la première).
 
-### ⏳ T0.2 — Renuméroter la décision Video de MGUI
+### ✅ T0.2 — Renuméroter la décision Video de MGUI
 
 - Objectif : P3.
 - Fichiers (dans `MGUI/`, branche `develop`) : `Docs/decisions/0026-a-video-element-plays-host-video-sources.md` (renommé en `0039-…`), `Docs/decisions/README.md`, et les fichiers de MGUI qui citent l'ADR Video : `MGUI.Shared/Assets/IUIVideo.cs`, `MGUI.Shared/Assets/IUIAssetProvider.cs`, `MGUI.Tests/Architecture/AssetProviderTests.cs`, `MGUI.Tests/Architecture/VideoElementTests.cs`, `MGUI.Core/UI/XAML/Controls.cs`, `MGUI.Core/UI/MGVideo.cs`. Côté moteur : les mentions « ADR-0026 de MGUI » ou « MGUI ADR-0026 » (`ai-agent/tasks/video-playback-tasks.md`, `ai-agent/README.md`, l'ADR renumérotée 0128).
@@ -105,6 +105,7 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
   2. `dotnet build MGUI/MGUI.sln` à 0 erreur. Commit dans MGUI, sur `develop` : `docs(decisions): renumber the video element record to ADR-0039`.
   3. Dans le moteur : remplacer les mentions de l'ADR-0026 de MGUI qui désignent la Video par ADR-0039. Commit moteur : `docs(decisions): follow the new number of the video element record of MGUI` (le pointeur du sous-module n'est pas indexé ici : il l'est par T1.1).
 - Validation : `rg "ADR-0026" MGUI --glob "!**/bin/**" --glob "!**/obj/**"` ne renvoie plus que l'ADR du texte et ses citations ; build de MGUI à 0 erreur.
+- Note de validation (2026-11-19) : dans MGUI (`develop`, commit `2f9773d0`), fichier renommé par `git mv` en `0039-a-video-element-plays-host-video-sources.md`, titre `# ADR-0039`, ligne « Renumbered from ADR-0026 » sous `Source`, ligne de l'index déplacée après ADR-0038 avec « (numbered ADR-0026 until 2026-11-19) » ; 6 fichiers de code et de tests changés (commentaires seulement). `rg "ADR-0026" MGUI` ne renvoie plus que l'ADR du texte, ses citations (`text-architecture.md`, `HostRuntimeContractTests.cs`) et la ligne « Renumbered from ». `dotnet build MGUI/MGUI.sln` : 0 erreur. Côté moteur : ADR-0128, `ai-agent/README.md` et `video-playback-tasks.md` (7 mentions) suivent ADR-0039. Le pointeur MGUI n'est pas indexé (T1.1). Les tests de MGUI n'ont pas été relancés (commentaires seulement ; T3.1 le fait).
 
 ---
 
