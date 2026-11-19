@@ -116,6 +116,18 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - `CasaEngine.Tests` entièrement vert, sans test existant modifié.
 - Smoke manuel : le sample de T1.4 au Launcher. L'image défile sous une caméra fixe ; le maillage reste posé au même endroit de l'image pendant le défilement.
 
+### Vérification indépendante (2026-11-19, `ed354b5c`)
+
+Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed354b5c` : **toutes confirmées**, aucun point P0 à P2.
+
+- Aucune caméra existante ne change ; aucun test existant modifié.
+- La vue égale l'inverse de `WorldMatrixNoScale` à la première lecture, après `Clone`, après `Load`, après le déplacement d'une entité parente ou la rotation d'un composant parent, sans `Update`.
+- Le sens et l'ampleur du décalage, redérivés de `Matrix.CreatePerspectiveOffCenter` et mesurés par `Viewport.Project` sur 320x240, 1920x1080, 2560x1080 et 240x320 : écart maximal 0,00024 pixel.
+- L'écriture et la relecture : `picture_offset` écrit une fois, clé absente lue (0, 0).
+- Builds à 0 erreur, 8064 tests verts.
+- Les données du sample se chargeraient telles quelles, d'après les chemins de chargement lus. **Ce que le sample dessine n'est pas vérifié** (T1.4 reste 🧪).
+- Trois remarques P4, sans suite dans cette tranche : `WorldMatrixNoScale` applique deux fois la transformation de l'entité parente à un composant enfant d'un composant racine d'une entité enfant, défaut de `SceneComponent` antérieur à ce plan, que la caméra hérite comme tout composant ; la vue recompose la chaîne des matrices à chaque lecture, sans allocation ; le cas de la nouvelle classe dans `EditorEntityJsonSerializer` appelle la même méthode que celui de `Camera3dComponent`.
+
 ### ✅ T0.1 — Recenser sur la base réelle
 
 - Objectif : remplacer la section « État vérifié du dépôt » par des faits lus sur la base du lancement, avec fichier:ligne.
