@@ -313,7 +313,7 @@ internal static class EditorRemoteEditCommands
 
         registry.Register(new EditorRemoteCommand(
             "history.undo",
-            "Undoes the last change of a history, whatever panel has the focus: the world (default) or the open panel of a material, particle or UI screen asset (context = its asset id).",
+            "Undoes the last change of a history, whatever panel has the focus: the world (default) or the open panel of a material, particle, UI screen or entity asset (context = its asset id).",
             HistorySchema,
             readOnly: false,
             destructive: false,
@@ -321,7 +321,7 @@ internal static class EditorRemoteEditCommands
 
         registry.Register(new EditorRemoteCommand(
             "history.redo",
-            "Redoes the last undone change of a history: the world (default) or an open asset panel (context = its asset id).",
+            "Redoes the last undone change of a history: the world (default) or the open panel of a material, particle, UI screen or entity asset (context = its asset id).",
             HistorySchema,
             readOnly: false,
             destructive: false,
@@ -358,7 +358,7 @@ internal static class EditorRemoteEditCommands
     }
 
     private const string HistorySchema =
-        "{\"type\":\"object\",\"properties\":{\"context\":{\"type\":\"string\",\"description\":\"'world' (default) or the asset id of an open material, particle or UI screen panel.\"}},\"additionalProperties\":false}";
+        "{\"type\":\"object\",\"properties\":{\"context\":{\"type\":\"string\",\"description\":\"'world' (default) or the asset id of an open material, particle, UI screen or entity asset panel.\"}},\"additionalProperties\":false}";
 
     private static void StepHistory(EditorRemoteCall call, IEditorRemoteHost host, bool undo)
     {
@@ -376,7 +376,7 @@ internal static class EditorRemoteEditCommands
         else if (!host.TryGetAssetHistoryContext(assetId, out context))
         {
             // Only the context of an open panel: never create one (security review S2-10).
-            throw new EditorRemoteRefusedException(RemoteErrorReasons.NotFound, $"No open material, particle or UI screen panel for asset {assetId}.");
+            throw new EditorRemoteRefusedException(RemoteErrorReasons.NotFound, $"No open material, particle, UI screen or entity asset panel for asset {assetId}.");
         }
 
         if (!EditorHistoryService.Current.TryGet(context, out EditorHistoryStack stack) || (undo ? !stack.CanUndo : !stack.CanRedo))

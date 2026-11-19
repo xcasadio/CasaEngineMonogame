@@ -111,7 +111,7 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
 
     public bool ActivatePanel(string panelId) => Panels.Exists(p => p.Id == panelId);
 
-    /// <summary>Mirrors the editor's rule: only the four asset kinds, never a modified one.</summary>
+    /// <summary>Mirrors the editor's rule: only the five asset kinds (entity included), never a modified one.</summary>
     public RemotePanelCloseResult ClosePanel(string panelId)
     {
         RemotePanelInfo panel = Panels.Find(p => p.Id == panelId);

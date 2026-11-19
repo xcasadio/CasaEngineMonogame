@@ -13,7 +13,7 @@ internal sealed class RemotePanelInfo
 
     public string Title { get; init; }
 
-    /// <summary><c>material</c>, <c>particle</c>, <c>uiscreen</c>, <c>sound</c> for the asset panels <c>panel.close</c> may close, otherwise <c>other</c>.</summary>
+    /// <summary><c>material</c>, <c>particle</c>, <c>uiscreen</c>, <c>sound</c>, <c>entity</c> for the asset panels <c>panel.close</c> may close, otherwise <c>other</c>.</summary>
     public string Kind { get; init; }
 
     public bool Active { get; init; }
@@ -26,7 +26,7 @@ internal enum RemotePanelCloseResult
     Closed,
     NotFound,
 
-    /// <summary>Not one of the four asset document panels (plan P7: closed list).</summary>
+    /// <summary>Not one of the five asset document panels (material, particle, UI screen, sound, entity; plan P7: closed list).</summary>
     NotClosable,
 
     /// <summary>Has unsaved changes: never closed by a command (security review S2-3).</summary>
@@ -73,13 +73,21 @@ internal static class EditorRemoteAssetCommands
 
         registry.Register(new EditorRemoteCommand(
             "asset.open",
-            "Opens a material, particle, UI screen or sound asset in its editor panel and returns the panel id. Worlds open with world.open.",
+            "Opens a material, particle, UI screen, sound or entity asset in its editor panel and returns the panel id. Worlds open with world.open. An entity asset is refused in play mode.",
             "{\"type\":\"object\",\"properties\":{\"asset\":" + AssetArgument + "},\"required\":[\"asset\"],\"additionalProperties\":false}",
             readOnly: false,
             destructive: false,
             call =>
             {
                 RemoteAssetReference asset = EditorRemoteAssets.Resolve(host.ProjectDirectory, call.GetString("asset", 260), expectedType: null);
+                if (asset.Type == EditorRemoteAssetTypes.Entity && host.IsPlaySessionActive)
+                {
+                    // Plan P14, security review S3-7: opening an entity asset runs project code in a second, preview world.
+                    throw new EditorRemoteRefusedException(
+                        RemoteErrorReasons.PlayModeActive,
+                        "The editor is in play mode: opening an entity asset loads it in a preview world, call play.stop first.");
+                }
+
                 string panelId = host.OpenAsset(asset.FullPath, asset.Type)
                     ?? throw new EditorRemoteRefusedException(RemoteErrorReasons.Failed, $"'{asset.Info.FileName}' could not be opened: see logs.read.");
                 call.Succeed(new { panel_id = panelId, asset_id = asset.Info.Id, type = asset.Type });
@@ -112,7 +120,7 @@ internal static class EditorRemoteAssetCommands
 
         registry.Register(new EditorRemoteCommand(
             "panel.close",
-            "Closes a material, particle, UI screen or sound panel that has no unsaved changes. Other panels and modified ones are refused; nothing is ever discarded.",
+            "Closes a material, particle, UI screen, sound or entity asset panel that has no unsaved changes. Other panels and modified ones are refused; nothing is ever discarded.",
             "{\"type\":\"object\",\"properties\":{\"panel_id\":{\"type\":\"string\"}},\"required\":[\"panel_id\"],\"additionalProperties\":false}",
             readOnly: false,
             destructive: false,
@@ -129,7 +137,7 @@ internal static class EditorRemoteAssetCommands
                     case RemotePanelCloseResult.Modified:
                         throw new EditorRemoteRefusedException(RemoteErrorReasons.UnsavedChanges, $"'{panelId}' has unsaved changes: save it first.");
                     default:
-                        throw new EditorRemoteArgumentException($"'{panelId}' is not a material, particle, UI screen or sound panel: it cannot be closed by a command.");
+                        throw new EditorRemoteArgumentException($"'{panelId}' is not a material, particle, UI screen, sound or entity asset panel: it cannot be closed by a command.");
                 }
             }));
     }

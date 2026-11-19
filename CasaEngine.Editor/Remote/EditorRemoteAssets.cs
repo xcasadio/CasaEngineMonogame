@@ -12,9 +12,16 @@ internal static class EditorRemoteAssetTypes
     public const string Particle = "particle";
     public const string UIScreen = "uiscreen";
     public const string Sound = "sound";
+    public const string Entity = "entity";
 
-    /// <summary>The types <c>asset.open</c> accepts (plan P7); a world goes through <c>world.open</c>.</summary>
-    public static bool IsOpenable(string type) => type is Material or Particle or UIScreen or Sound;
+    /// <summary>The five types <c>asset.open</c> accepts (plan P7, ADR-0129); a world goes through <c>world.open</c>.</summary>
+    public static bool IsOpenable(string type) => type is Material or Particle or UIScreen or Sound or Entity;
+
+    /// <summary>
+    /// The four types the automation flag <c>--open-asset</c> routes through <c>asset.open</c>; an <c>.entity</c> keeps the
+    /// editor's own route (plan P4).
+    /// </summary>
+    public static bool IsAutomationOpenable(string type) => type is Material or Particle or UIScreen or Sound;
 
     public static string Extension(string type) => "." + type;
 }
@@ -79,7 +86,7 @@ internal static class EditorRemoteAssets
         {
             throw new EditorRemoteArgumentException(expectedType != null
                 ? $"'{reference}' is a '{type}' asset, not a '{expectedType}'."
-                : $"'{reference}' is a '{type}' asset: only material, particle, uiscreen and sound assets open here (worlds use world.open).");
+                : $"'{reference}' is a '{type}' asset: only material, particle, uiscreen, sound and entity assets open here (worlds use world.open).");
         }
 
         if (!File.Exists(fullPath))

@@ -171,4 +171,114 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
             EditorHistoryService.Current.Remove(context);
         }
     }
+
+    /// <summary>ADR-0129, plan P3: an entity asset opens through asset.open, by id or by file, at the file Resolve checked.</summary>
+    [Fact]
+    public void AssetOpen_EntityByIdOrFile_OpensTheResolvedFile()
+    {
+        Guid id = Catalog("Entities/Box.entity");
+
+        JsonElement byId = Ok(Call("asset.open", new { asset = id.ToString() }));
+        JsonElement byFile = Ok(Call("asset.open", new { asset = "Entities/Box.entity" }));
+
+        Assert.Equal("entity", byId.GetProperty("type").GetString());
+        Assert.Equal("entity", byFile.GetProperty("type").GetString());
+        Assert.Equal(id, byFile.GetProperty("asset_id").GetGuid());
+        Assert.Equal(2, _host.OpenedAssets.Count);
+        string expected = Path.Combine(Path.GetFullPath(_host.ProjectDirectory!), "Entities", "Box.entity");
+        Assert.All(_host.OpenedAssets, opened =>
+        {
+            Assert.Equal(expected, opened.FullPath);
+            Assert.Equal("entity", opened.Type);
+        });
+    }
+
+    /// <summary>Security review S2-5, S2-6 and S3-5: the refusals of asset.open hold for an entity asset, before any host call.</summary>
+    [Fact]
+    public void AssetOpen_Entity_RefusesWhatItMustNotOpen()
+    {
+        Guid escaping = Catalog("../outside.entity", createFile: false);
+        Guid missing = Catalog("Entities/Missing.entity", createFile: false);
+
+        Assert.Equal(RemoteErrorCodes.InvalidParams, Call("asset.open", new { asset = "../outside.entity" }).Error!.Code);
+        Assert.Equal(RemoteErrorCodes.InvalidParams, Call("asset.open", new { asset = escaping.ToString() }).Error!.Code);
+        Assert.Equal(RemoteErrorReasons.NotFound, Call("asset.open", new { asset = missing.ToString() }).Error!.Data!.Reason);
+        Assert.Equal(RemoteErrorReasons.NotFound, Call("asset.open", new { asset = Guid.NewGuid().ToString() }).Error!.Data!.Reason);
+        Assert.Empty(_host.OpenedAssets);
+    }
+
+    [Fact]
+    public void Resolve_EntityAndMaterial_RefuseEachOther()
+    {
+        Guid material = Catalog("Materials/Stone.material");
+        Guid entity = Catalog("Entities/Box.entity");
+
+        Assert.Equal("entity", EditorRemoteAssets.Resolve(_host.ProjectDirectory, entity.ToString(), "entity").Type);
+        Assert.Throws<EditorRemoteArgumentException>(() => EditorRemoteAssets.Resolve(_host.ProjectDirectory, material.ToString(), "entity"));
+        Assert.Throws<EditorRemoteArgumentException>(() => EditorRemoteAssets.Resolve(_host.ProjectDirectory, entity.ToString(), "material"));
+    }
+
+    /// <summary>ADR-0129, plan P3, security review S2-3: an entity panel closes like the four other asset panels, never when modified.</summary>
+    [Fact]
+    public void PanelClose_EntityPanel_ClosesOnlyWhenUnmodified()
+    {
+        _host.Panels.Add(new RemotePanelInfo { Id = "panel_entity_asset_saved", Kind = "entity" });
+        _host.Panels.Add(new RemotePanelInfo { Id = "panel_entity_asset_modified", Kind = "entity", Modified = true });
+
+        Assert.True(Ok(Call("panel.close", new { panel_id = "panel_entity_asset_saved" })).GetProperty("closed").GetBoolean());
+        Assert.Equal(RemoteErrorReasons.UnsavedChanges, Call("panel.close", new { panel_id = "panel_entity_asset_modified" }).Error!.Data!.Reason);
+        Assert.Equal(new[] { "panel_entity_asset_saved" }, _host.ClosedPanels);
+    }
+
+    /// <summary>
+    /// ADR-0129, plans P3 and P13, security review S2-10 and S3-2: history.undo and history.redo reach the context of an open entity
+    /// panel the host answers for; an id without a panel is refused and creates no history.
+    /// </summary>
+    [Fact]
+    public void HistoryUndoAndRedo_WithAnEntityAssetContext_UseItsOpenPanel()
+    {
+        Guid assetId = Guid.NewGuid();
+        var context = new EditorHistoryContext(EditorHistoryContextKind.Entity, "remote-assets-test-" + assetId.ToString("N"));
+        int executed = 0;
+        int undone = 0;
+        EditorHistoryService.Current.IsSuspended = false;
+        EditorHistoryService.Current.Execute(context, new EditorDelegateCommand("Edit Entity", () => executed++, () => undone++));
+        _host.AssetContexts[assetId] = context;
+        try
+        {
+            Assert.True(Ok(Call("history.undo", new { context = assetId.ToString() })).GetProperty("done").GetBoolean());
+            Assert.Equal(1, undone);
+            Assert.True(Ok(Call("history.redo", new { context = assetId.ToString() })).GetProperty("done").GetBoolean());
+            Assert.Equal(2, executed);
+            Assert.Equal(new[] { context, context }, _host.RefreshedContexts);
+
+            Guid unknown = Guid.NewGuid();
+            Assert.Equal(RemoteErrorReasons.NotFound, Call("history.undo", new { context = unknown.ToString() }).Error!.Data!.Reason);
+            Assert.Equal(RemoteErrorReasons.NotFound, Call("history.redo", new { context = unknown.ToString() }).Error!.Data!.Reason);
+            Assert.False(EditorHistoryService.Current.TryGet(
+                new EditorHistoryContext(EditorHistoryContextKind.Entity, CasaEngine.Editor.Workspaces.EditorPanelIds.EntityAssetDocumentPrefix + unknown.ToString("N")),
+                out _));
+            Assert.False(EditorHistoryService.Current.TryGet(new EditorHistoryContext(EditorHistoryContextKind.Entity, "remote-assets-test-" + unknown.ToString("N")), out _));
+        }
+        finally
+        {
+            EditorHistoryService.Current.Remove(context);
+        }
+    }
+
+    /// <summary>Plan P14, security review S3-7: an entity asset does not open during play; the four other types keep today's behaviour.</summary>
+    [Fact]
+    public void AssetOpen_DuringPlay_RefusesAnEntityOnly()
+    {
+        Guid entity = Catalog("Entities/Box.entity");
+        Guid material = Catalog("Materials/Stone.material");
+        _host.IsPlaySessionActive = true;
+
+        Assert.Equal(RemoteErrorReasons.PlayModeActive, Call("asset.open", new { asset = entity.ToString() }).Error!.Data!.Reason);
+        Assert.Equal(RemoteErrorReasons.PlayModeActive, Call("asset.open", new { asset = "Entities/Box.entity" }).Error!.Data!.Reason);
+        Assert.Empty(_host.OpenedAssets);
+
+        Assert.Equal("material", Ok(Call("asset.open", new { asset = material.ToString() })).GetProperty("type").GetString());
+        Assert.Equal("material", Assert.Single(_host.OpenedAssets).Type);
+    }
 }
