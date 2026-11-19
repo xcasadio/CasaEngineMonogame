@@ -123,7 +123,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 
 ## Phase 1 — Socle
 
-### ⏳ T1.1 — Modèle pur d'un document enregistrable, et porte « demander puis poursuivre »
+### ✅ T1.1 — Modèle pur d'un document enregistrable, et porte « demander puis poursuivre »
 
 - Objectif : donner aux trois chemins une vue commune d'un document, testable sans MGUI ni `GameEditor`.
 - Fichiers : `CasaEngine.Editor/History/EditorSavableDocument.cs`, `CasaEngine.Editor/History/ModifiedDocuments.cs`, `CasaEngine.Editor/History/ModifiedDocumentsGate.cs` ; tests `CasaEngine.Tests/Editor/ModifiedDocumentsTests.cs`, `CasaEngine.Tests/Editor/ModifiedDocumentsGateTests.cs`.
@@ -134,6 +134,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   4. Tests. `ModifiedDocuments` : ordre et format des titres ; documents non modifiés ignorés ; `TrySaveAll` enregistre seulement les modifiés, continue après un échec et rend faux ; rend vrai quand tout est enregistré ; liste vide. Porte : rien de modifié → `proceed` immédiat sans question ; automatisation → `proceed` immédiat ; modifié → question, pas de `proceed` ; `Save` réussi → `proceed` une fois ; `Save` échoué → pas de `proceed`, la demande suivante repose la question ; `Don't Save` → `proceed` sans enregistrer ; `Cancel` → rien ; demande pendant une question → ignorée ; seconde réponse ignorée ; arguments nuls.
 - Validation : build à 0 erreur ; tests verts, dont les nouveaux.
 - Commit : `feat(editor): add the pure model of a savable document and the ask-then-proceed gate`
+- Validation faite (2026-11-19) : trois classes internes pures ajoutées (`EditorSavableDocument`, `ModifiedDocuments`, `ModifiedDocumentsGate`), non branchées ; 16 tests ajoutés (6 + 10), calqués sur `ModifiedScreensExitCoordinatorTests`. Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts (6624 + 16). Aucun test existant modifié.
 
 ### ⏳ T1.2 — Aligner le document Son
 
