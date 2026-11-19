@@ -76,4 +76,49 @@ public sealed class Camera2dTargetKeyTests : IDisposable
         Assert.Contains("'target'", error);
         Assert.Contains((string)node["id"]!, error);
     }
+
+    [Theory]
+    [MemberData(nameof(Camera2dWorldDataTests.Worlds), MemberType = typeof(Camera2dWorldDataTests))]
+    public void TheCameraOfAWorldOfTheRepository_LoadsWithoutAnyReport(string relativePath)
+    {
+        JObject node = Camera2dWorldDataTests.FindCameraNode(relativePath);
+
+        Assert.IsType<Camera2dComponent>(ElementFactory.LoadComponent<SceneComponent>(node));
+
+        Assert.False(node.ContainsKey("target"));
+        Assert.Empty(_logger.Errors);
+    }
+
+    [Fact]
+    public void NoDataFileOfTheRepository_KeepsATargetKeyUnderA2dCamera()
+    {
+        string root = LegacyCameraEntityDataTests.FindRepositoryRoot();
+        var offenders = new List<string>();
+
+        foreach (string directory in new[] { Path.Combine(root, "Projects"), Path.Combine(root, "CasaEngine.Demos", "Content") })
+        {
+            foreach (string file in Directory.EnumerateFiles(directory, "*.*", SearchOption.AllDirectories))
+            {
+                string extension = Path.GetExtension(file);
+                bool isData = extension is ".world" or ".entity";
+                bool isBuildOutput = file.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)
+                    || file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar);
+                if (!isData || isBuildOutput)
+                {
+                    continue;
+                }
+
+                JToken document = JToken.Parse(File.ReadAllText(file));
+                bool keepsTarget = document.SelectTokens("$..*")
+                    .OfType<JObject>()
+                    .Any(node => (string)node["type"] == nameof(Camera2dComponent) && node.ContainsKey("target"));
+                if (keepsTarget)
+                {
+                    offenders.Add(Path.GetRelativePath(root, file));
+                }
+            }
+        }
+
+        Assert.Empty(offenders);
+    }
 }

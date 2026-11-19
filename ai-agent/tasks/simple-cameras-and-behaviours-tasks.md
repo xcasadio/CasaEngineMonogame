@@ -623,11 +623,12 @@ Un seul commit : le dépôt ne compile pas entre les deux.
   - Tests : dans `Camera2dComponentTests`, les sept tests qui écrivaient ou lisaient `Target` passent sur `CentreOn` et `LocalPosition` avec les mêmes valeurs (trois sont renommés) ; six tests ajoutés (caméra neuve, `CentreOn` garde l'orientation, déplacement vu sans mise à jour, roulis, entité parente, arrondi d'une caméra parentée). Trois égalités exactes de matrices sont devenues des égalités à 1e-4 près : la vue vient maintenant d'une inversion, plus de `CreateLookAt`. Aucune affirmation retirée : celles qui portaient sur `Target` portent sur la position. `EditorViewport2dCameraControllerTests` : deux lignes passent de `Target` à la position de la caméra. `PerspectiveCameraComponentTests` : la ligne de théorie « la caméra 2D ne redéfinit pas le crochet » devient un test « elle le redéfinit ». Nouveau `Camera2dTargetKeyTests` (écriture sans `target`, clé restante signalée une fois et pose lue dans la transformation) ; nouveau test du suivi 2D sur une `Camera2dComponent`.
   - Le test des 14 mondes de T4.1 est vert **sans modification** ; le test de grille aussi, seule sa méthode `Place` passant de `Target` à `CentreOn`. Les deux solutions à 0 erreur ; 8143 tests, 0 échec (8134 + 9).
 
-### ⏳ T4.4 — Retirer la clé `target` des 14 mondes
+### ✅ T4.4 — Retirer la clé `target` des 14 mondes
 
 - La ligne `target` (et son objet) sort du nœud de la caméra de chaque monde.
 - Nouveau test : aucun fichier `*.world` ni `*.entity` de `Projects/` et de `CasaEngine.Demos/Content/` n'a de clé `target` sous un nœud `Camera2dComponent`.
 - Validation : le test de T4.1 vert ; aucune erreur de clé `target` au chargement des 14 mondes (test) ; builds ; tests. Indice joint au rapport, pas preuve : une capture de `Projects/SpriteDrawOrderSample` avant (sur la base de la tranche) et après, par `tools/run-launcher.ps1` du dépôt hôte, si le projet se lance.
+- **Fait (2026-11-19).** L'objet `target` retiré du nœud de la caméra des 14 mondes (cinq lignes par fichier, rien d'autre). Deux tests ajoutés à `Camera2dTargetKeyTests` : chaque caméra des 14 mondes se charge sans rien signaler au journal (14 lignes), et aucun `*.world` ni `*.entity` de `Projects/` et de `CasaEngine.Demos/Content/` ne garde de clé `target` sous une caméra 2D. Ces tests échouaient tant que la clé était là, constaté avant le retrait. Le test de T4.1 vert sans modification. Les deux solutions à 0 erreur ; 8158 tests, 0 échec (8143 + 15). Indice : `Projects/SpriteDrawOrderSample` lancé 6 s par le script de capture, avant le changement de la caméra et après : les deux images sont identiques octet pour octet (trois disques qui se recouvrent, au centre).
 
 ### ⏳ T4.5 — Documentation
 
