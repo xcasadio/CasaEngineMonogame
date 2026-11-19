@@ -4993,6 +4993,7 @@ public class GameEditor : Game, IObservableUpdate
         EnsureDockHostInitialized();
 
         var panelId = $"{EditorPanelIds.UIScreenDocumentPrefix}{screenAsset.Id:N}";
+        bool createdPanel = false;
         if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
         {
             previewPanel = new UIScreenPreviewPanel(_mainWindow);
@@ -5020,9 +5021,20 @@ public class GameEditor : Game, IObservableUpdate
             previewPanel.NodeResizeRequested += OnScreenNodeResizeRequested;
             previewPanel.ExportPngRequested += () => ExportPreviewAsPng(previewPanel);
             _screenPreviewPanels.Add(panelId, previewPanel);
+            createdPanel = true;
         }
 
-        previewPanel.LoadAsset(screenAsset, fullPath);
+        if (!createdPanel && IsScreenDocumentModified(panelId))
+        {
+            // Reopening a modified screen keeps its unsaved changes, like the other asset documents: reloading would
+            // replace the edited document with the file.
+            Logs.WriteInfo($"Unsaved changes kept for {previewPanel.LoadedSourceXamlPath}");
+        }
+        else
+        {
+            previewPanel.LoadAsset(screenAsset, fullPath);
+        }
+
         var panelTitle = string.IsNullOrWhiteSpace(screenAsset.Name)
             ? Path.GetFileNameWithoutExtension(fullPath)
             : screenAsset.Name;
@@ -5134,19 +5146,17 @@ public class GameEditor : Game, IObservableUpdate
             inspectorPanel.DirtyStateChanged += OnSoundInspectorDirtyStateChanged;
             _soundInspectorPanels.Add(panelId, inspectorPanel);
         }
-        else if (inspectorPanel.IsDirty)
+
+        if (inspectorPanel.IsDirty)
         {
-            // Reopening a modified sound keeps its unsaved changes, like the other asset documents.
-            if (_dockHost?.LayoutModel?.FindPanelById(panelId) != null)
-            {
-                ActivateDockPanel(panelId);
-            }
-
+            // Reopening a modified sound keeps its unsaved changes, like the other asset documents. Its tab is still
+            // docked again below when the layout no longer holds it.
             Logs.WriteInfo($"Unsaved changes kept for {inspectorPanel.LoadedRelativePath}");
-            return true;
         }
-
-        inspectorPanel.LoadAsset(soundAsset, fullPath);
+        else
+        {
+            inspectorPanel.LoadAsset(soundAsset, fullPath);
+        }
 
         var panelTitle = string.IsNullOrWhiteSpace(soundAsset.Name)
             ? Path.GetFileNameWithoutExtension(fullPath)

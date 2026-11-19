@@ -84,7 +84,9 @@ document(s) abandoned`, as before for screens.
   lists the documents modified at the time the user asked to quit.
 - Text typed in a field and not yet validated is not counted as a change, except for the cutscene and the audio mixer.
 - After `Reset Layout` or `Load Layout`, open documents lose their tab but stay open: they are saved by "Save project"
-  and listed when quitting.
+  and listed when quitting. Opening the asset again from the Content Browser brings the tab back.
+- Opening an asset whose document is already open and modified never reloads the file: the unsaved changes are kept
+  and the log says "Unsaved changes kept for <path>".
 - Closing a project's documents on a project switch happens before loading: if the load then fails, the documents of
   the previous project are already closed.
 - To be checked by hand in the running editor (automated tests cover the logic, not the clicks): each close gesture,
