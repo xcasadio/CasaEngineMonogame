@@ -29,7 +29,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly PreviewWorldDriver _driver;
-    private readonly CutscenePreviewEffectHost _host = new();
+    private readonly CutscenePreviewEffectHost _host;
     private readonly List<string> _entityNames = [];
     private readonly CutscenePlayTimings _timings = new();
     private readonly CutscenePreviewTransport _transport = new();
@@ -61,6 +61,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         ArgumentNullException.ThrowIfNull(editorRuntime);
 
         _editorRuntime = editorRuntime;
+        _host = new CutscenePreviewEffectHost(editorRuntime.AudioSystemComponent?.Service);
         _driver = new PreviewWorldDriver(
             editorRuntime,
             new PreviewWorldDriverOptions
@@ -94,6 +95,27 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     /// <summary>True when the last play was ended because the cutscene asked to change the world.</summary>
     public bool EndedByWorldChange { get; private set; }
 
+    /// <summary>True when the last play was ended by <see cref="SimulateInput"/>: the game would have played another cutscene.</summary>
+    public bool EndedByInput { get; private set; }
+
+    /// <summary>The input that <see cref="SimulateInput"/> pressed in the last play, or an empty string.</summary>
+    public string SimulatedInput { get; private set; } = string.Empty;
+
+    /// <summary>The cutscene the game would have played after <see cref="SimulatedInput"/>, or an empty string.</summary>
+    public string SimulatedNextCutscene { get; private set; } = string.Empty;
+
+    /// <summary>The input names of the watch the play armed (its last <c>ExitOnInput</c>), or an empty list. The play drops it when it ends.</summary>
+    public IReadOnlyList<string> ArmedInputNames => _host.ArmedInputNames;
+
+    /// <summary>Changes only when the armed watch changes: a loop that arms the same action again keeps it.</summary>
+    public int ArmedInputVersion => _host.ArmedVersion;
+
+    /// <summary>The cutscene the armed watch plays on a press, or an empty string.</summary>
+    public string ArmedNextCutscene => _host.ArmedNextCutscene;
+
+    /// <summary>True when the user turned the sound of the preview on (ADR-0103). It is off for a new session.</summary>
+    public bool IsSoundOn => _host.IsSoundOn;
+
     /// <summary>The requests to the game that the play made and the preview refused.</summary>
     public IReadOnlyList<CutscenePreviewRequest> Requests => _host.Requests;
 
@@ -112,7 +134,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     public int PendingFrameSteps => _transport.PendingFrameSteps;
 
     /// <summary>What the transport row shows (ADR-0099): the play comes first, then the end state of the last play.</summary>
-    public CutscenePreviewStatus Status => CutscenePreviewTransport.GetStatus(IsPlaying, _transport.Mode, State, EndedByWorldChange);
+    public CutscenePreviewStatus Status => CutscenePreviewTransport.GetStatus(IsPlaying, _transport.Mode, State, EndedByWorldChange || EndedByInput);
 
     double ICutscenePreviewStepper.PlayElapsedSeconds => ElapsedSeconds;
 
@@ -170,6 +192,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        // Stop cleans the editor audio even when nothing plays: the voices belong to the world that is about to be replaced.
         Stop();
         DetachDirector();
         _worldId = Guid.Empty;
@@ -177,6 +200,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         State = CutsceneRuntimeState.Idle;
         FailureReason = string.Empty;
         EndedByWorldChange = false;
+        ClearSimulatedInput();
         _host.Reset();
         _timingsValid = false;
 
@@ -213,7 +237,55 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         if (IsPlaying)
         {
             _transport.Pause();
+            RestoreEditorAudio();
         }
+    }
+
+    /// <summary>
+    /// Turns the sound of the preview on or off (ADR-0103). Turning it off stops what the preview made heard and puts the
+    /// editor mixer back. The mixer is never captured here, only once per launch. Does nothing when the state is the same.
+    /// </summary>
+    public void SetSound(bool on)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (_host.IsSoundOn == on)
+        {
+            return;
+        }
+
+        _host.IsSoundOn = on;
+        if (!on)
+        {
+            RestoreEditorAudio();
+        }
+    }
+
+    /// <summary>
+    /// Simulates the press of an input of the armed watch (ADR-0103): the play ends, and <see cref="SimulatedInput"/> and
+    /// <see cref="SimulatedNextCutscene"/> say what the game would have done. The next cutscene is not played. Acts only
+    /// while a play runs or is paused, not while it seeks. False when it did nothing.
+    /// </summary>
+    public bool SimulateInput(string inputName)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!IsPlaying || _transport.Mode == CutscenePreviewTransportMode.Seeking)
+        {
+            return false;
+        }
+
+        // The armed watch and the next cutscene are read before the stop: the end of the play drops the watch.
+        if (!_host.TrySimulateInput(inputName, out string? nextCutscene))
+        {
+            return false;
+        }
+
+        SimulatedInput = inputName;
+        SimulatedNextCutscene = nextCutscene ?? string.Empty;
+        EndedByInput = true;
+        _director!.Stop();
+        return true;
     }
 
     /// <summary>
@@ -247,6 +319,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
             return false;
         }
 
+        RestoreEditorAudio();
         bool rebuilt = LeaveStartState();
         if (!rebuilt || IsPlaying)
         {
@@ -286,6 +359,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
                 : target >= ElapsedSeconds - CutscenePreviewTransport.StepSeconds / 2.0;
             if (inPlace)
             {
+                RestoreEditorAudio();
                 _transport.Seek(target, ElapsedSeconds);
                 return true;
             }
@@ -323,6 +397,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
         _host.Reset();
         EndedByWorldChange = false;
+        ClearSimulatedInput();
         FailureReason = string.Empty;
         State = CutsceneRuntimeState.Idle;
         if (!TryLoadWorld(_worldId))
@@ -355,6 +430,8 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
     private bool Launch(CutsceneAsset asset, bool keepTimings)
     {
+        // Stop ends the previous play and cleans the editor audio, with the previous world as the owner of the voices; only
+        // then is the mixer captured, once for this launch, whether the sound is on or not.
         Stop();
         if (_worldId == Guid.Empty)
         {
@@ -362,8 +439,10 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
             return false;
         }
 
+        _host.TakeMixerSnapshot();
         _host.Reset();
         EndedByWorldChange = false;
+        ClearSimulatedInput();
         FailureReason = string.Empty;
         State = CutsceneRuntimeState.Idle;
         if (!TryLoadWorld(_worldId))
@@ -408,6 +487,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     public void Stop()
     {
         _director?.Stop();
+        RestoreEditorAudio();
     }
 
     /// <summary>
@@ -430,7 +510,12 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         }
 
         _clampNextStep = false;
+
+        // Only a step that the transport makes while it runs may be heard: a seek, a frame step and the zero-duration
+        // update of the first instant (done outside this method) would play every sound of their path at once.
+        _host.IsNormalPlayStep = _transport.Mode == CutscenePreviewTransportMode.Running;
         _transport.Advance(this, frameSeconds);
+        _host.IsNormalPlayStep = false;
     }
 
     void ICutscenePreviewStepper.Step(float seconds)
@@ -454,7 +539,9 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         }
 
         _disposed = true;
+        RestoreEditorAudio();
         DetachDirector();
+        _host.Dispose();
         _driver.Dispose();
     }
 
@@ -506,6 +593,23 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         FailureReason = e.State == CutsceneRuntimeState.Failed
             ? _director?.GetDebugSnapshot().ActiveActionStopReason ?? string.Empty
             : string.Empty;
+
+        // As in the game, the input watch does not outlive its play, and what the play made heard stops with it.
+        _host.Disarm();
+        RestoreEditorAudio();
+    }
+
+    /// <summary>Puts the editor audio back to the state captured at the launch, with the preview world as the owner of the voices.</summary>
+    private void RestoreEditorAudio()
+    {
+        _host.RestoreEditorAudio(_driver.World);
+    }
+
+    private void ClearSimulatedInput()
+    {
+        EndedByInput = false;
+        SimulatedInput = string.Empty;
+        SimulatedNextCutscene = string.Empty;
     }
 
     private void OnActionStarted(in CutsceneActionNotification notification)
