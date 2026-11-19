@@ -69,3 +69,7 @@ log.txt
 
 # Local CodeGraph index
 .codegraph/
+
+# PerspectiveCameraSample gameplay binaries (copied by CasaEngine.PerspectiveCameraSample PostBuild) #
+Projects/PerspectiveCameraSample/*.dll
+Projects/PerspectiveCameraSample/*.pdb

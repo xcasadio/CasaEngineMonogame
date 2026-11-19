@@ -184,7 +184,7 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - Commit : `feat(camera): shift the picture of the posed perspective camera`
 - Validation (2026-11-19) : 11 cas ajoutés à `PerspectiveCameraComponentTests` (25 en tout), verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8056 tests, 0 échec, aucun test existant modifié. Sur 320x240, tout décalage de −320 à 320 pixels entiers déplace l'image du nombre de pixels demandé à moins de 0,01 pixel. La clé est écrite et lue par `[SerializedProperty]` : `EditorEntityJsonSerializer.cs` n'est pas touché. Avec un décalage nul, la classe appelle la projection de `Camera3dComponent` : la matrice est alors identique bit à bit à celle des autres caméras 3D.
 
-### ⏳ T1.4 — Sample
+### 🧪 T1.4 — Sample
 
 - Objectif : un projet de `Projects/` qui montre la caméra et son décalage (D6).
 - Fichiers : le projet, son `README.md`, un test de données comme les autres samples en ont.
@@ -194,6 +194,8 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
   3. README : ce qu'il faut observer.
 - Validation : test de données vert ; essai au Launcher par l'auteur (🧪 tant qu'il n'est pas fait).
 - Commit : `feat(samples): add a sample of the posed perspective camera`
+- Validation (2026-11-19) : `Projects/PerspectiveCameraSample` (monde, image 640x240 générée, cube à matériau sans lumière) et `Projects/CasaEngine.PerspectiveCameraSample` (DLL minimale, ajoutée à `CasaEngine.MonoGame.sln`). Étape 1 : aucun sample sans DLL ne lit le clavier pour agir sur un composant (un script se cherche seulement dans une DLL de jeu enregistrée, ADR-0075) ; O4 s'applique, le script `PictureOffsetKeys` écrit `PictureOffset` aux flèches. `PerspectiveCameraSampleDataTests` : 8 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8064 tests, 0 échec.
+- **Reste 🧪 : le sample n'a pas été lancé.** L'agent n'a pas pu ouvrir le Launcher ; le dessin (sprite sous une caméra perspective, cube, défilement) n'est prouvé que par la lecture du code. Essai par l'auteur : voir le README du sample.
 
 ### ⏳ T1.5 — Documentation
 

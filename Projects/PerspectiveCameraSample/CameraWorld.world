@@ -1,0 +1,165 @@
+{
+  "id": "5a3d3a9a-3fc3-4f0e-a30c-a5bb7f1b70ea",
+  "name": "CameraWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "6d260cb1-c2c4-4512-9ffb-3f9da52bed49",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "PerspectiveCameraComponent",
+          "type": "PerspectiveCameraComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 289.7056
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "view_distance": 999,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 960,
+            "h": 720,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "fieldOfView": 0.7853982,
+          "picture_offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "components": [],
+        "script_class_name": "CasaEngine.PerspectiveCameraSample.PictureOffsetKeys",
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "193fc816-8de5-4280-91d4-508bc06ffe52",
+        "name": "backdrop",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "backdrop",
+          "blend_mode": "AlphaBlend",
+          "draw_order": 0
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "1906dd89-3bba-4ac1-a3ad-00ddc94a666f",
+        "name": "box",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "StaticModelComponent",
+          "type": "StaticModelComponent",
+          "coordinates": {
+            "position": {
+              "x": 100,
+              "y": -40,
+              "z": 15
+            },
+            "scale": {
+              "x": 30,
+              "y": 30,
+              "z": 30
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "static_model_asset_id": "5cbc44f3-ae47-429f-bc20-de1bc8ee9ae6",
+          "cast_shadows": false,
+          "receive_shadows": false,
+          "material_slot_overrides": [
+            {
+              "slot_name": "Mesh",
+              "slot_index": 0,
+              "material_asset_id": "1fb5d6a9-c54d-4491-a89e-dbdc873d9950"
+            }
+          ]
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 20,
+      "g": 20,
+      "b": 28,
+      "a": 255
+    }
+  }
+}

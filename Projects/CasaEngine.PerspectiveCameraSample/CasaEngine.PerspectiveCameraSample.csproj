@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>$(WindowsTargetFramework)</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="MonoGame.Framework.DesktopGL" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\CasaEngine\CasaEngine.csproj" />
+	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.dll $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.dll&#xD;&#xA;copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.pdb $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.pdb" />
+	</Target>
+</Project>
