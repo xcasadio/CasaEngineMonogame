@@ -138,7 +138,7 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>The asynchronous "save before closing?" question of every modifiable document (ADR-0041, ADR-0104).</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
-    /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0041).</summary>
+    /// <summary>The asynchronous "save before quitting?" question of every modified document and the world (ADR-0041, ADR-0104).</summary>
     private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
 
     /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0041).</summary>
@@ -427,11 +427,11 @@ public class GameEditor : Game, IObservableUpdate
             isScreenOpen: IsDocumentAskedBeforeClose,
             trySave: TrySaveDocumentBeforeClose);
         _modifiedScreensExitCoordinator = new ModifiedScreensExitCoordinator(
-            modifiedScreenTitles: GetModifiedScreenTitles,
+            modifiedScreenTitles: GetModifiedDocumentTitles,
             isAutomationActive: () => _automationOptions.HasAutomation,
-            logAbandonedUnderAutomation: LogScreensAbandonedByAutomatedExit,
+            logAbandonedUnderAutomation: LogDocumentsAbandonedByAutomatedExit,
             ask: AskSaveBeforeQuitting,
-            trySaveAll: TrySaveAllScreenDocumentsBeforeQuitting,
+            trySaveAll: TrySaveAllModifiedDocuments,
             requestExit: Exit);
 
         // Register editor logger
@@ -2991,10 +2991,10 @@ public class GameEditor : Game, IObservableUpdate
 
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save every still-modified screen document before the
-    /// game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
+    /// T4.5 (D17), made asynchronous by ADR-0041 and widened by ADR-0104: asks whether to save every still-modified
+    /// document, and the world, before the game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
     /// asks, and requests the exit again (<see cref="Game.Exit"/>) once the answer lets it go. Under automation, nothing is
-    /// asked - the abandoned screens are logged instead, exactly as the author decided for every other unattended path.
+    /// asked - the abandoned documents are logged instead, exactly as the author decided for every other unattended path.
     /// MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true to cancel closing the game".
     /// </summary>
     protected override void OnExiting(object sender, ExitingEventArgs args)
@@ -3008,50 +3008,46 @@ public class GameEditor : Game, IObservableUpdate
         base.OnExiting(sender, args);
     }
 
-    private IReadOnlyList<string> GetModifiedScreenTitles()
+    /// <summary>The "<c>Kind: title</c>" line of every open document that is modified right now, the world included.</summary>
+    private IReadOnlyList<string> GetModifiedDocumentTitles()
     {
-        var titles = new List<string>();
-        if (_screenPreviewPanels == null)
-        {
-            return titles;
-        }
-
-        foreach (var pair in _screenPreviewPanels)
-        {
-            if (_editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key)))
-            {
-                titles.Add(_screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen");
-            }
-        }
-
-        return titles;
+        var documents = new List<EditorSavableDocument>();
+        CollectSavableDocuments(documents, includeWorld: true);
+        return ModifiedDocuments.GetModifiedTitles(documents);
     }
 
-    private static void LogScreensAbandonedByAutomatedExit(IReadOnlyList<string> titles)
+    private static void LogDocumentsAbandonedByAutomatedExit(IReadOnlyList<string> titles)
     {
         string abandonedTitles = string.Join(", ", titles);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-            $"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
-        Logs.WriteInfo($"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
+            $"[Automation] Exiting with {titles.Count} modified document(s) abandoned: {abandonedTitles}");
+        Logs.WriteInfo($"[Automation] Exiting with {titles.Count} modified document(s) abandoned: {abandonedTitles}");
     }
 
     private void AskSaveBeforeQuitting(IReadOnlyList<string> titles, Action<ModifiedScreenCloseDecision.Answer> answered)
     {
         string list = string.Join("\n", titles.Select(title => $"- {title}"));
-        _messageBoxes.AskSave("Quit", $"Save changes to the modified screens before quitting?\n\n{list}",
+        _messageBoxes.AskSave("Quit", $"Save changes to the modified documents before quitting?\n\n{list}",
             answer => answered(ToModifiedScreenCloseAnswer(answer)));
     }
 
-    /// <summary>Saves every modified screen document; false, with a warning, when one is still modified afterwards.</summary>
-    private bool TrySaveAllScreenDocumentsBeforeQuitting()
+    /// <summary>Saves every modified document and the world; false, with a warning, when one is still modified afterwards.
+    /// A running game session is stopped first: saving the project is refused during a session (P6).</summary>
+    private bool TrySaveAllModifiedDocuments()
     {
-        SaveDirtyScreenDocuments();
-        if (GetModifiedScreenTitles().Count == 0)
+        if (_playModeService?.IsPlaySessionActive == true)
+        {
+            StopPlayMode();
+        }
+
+        var documents = new List<EditorSavableDocument>();
+        CollectSavableDocuments(documents, includeWorld: true);
+        if (ModifiedDocuments.TrySaveAll(documents))
         {
             return true;
         }
 
-        Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
+        Logs.WriteWarning("Exit cancelled: one or more modified documents could not be saved.");
         return false;
     }
 

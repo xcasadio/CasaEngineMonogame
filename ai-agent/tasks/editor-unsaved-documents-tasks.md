@@ -195,7 +195,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 - Commit : `feat(editor): ask to save any modified document before its tab closes`
 - Validation faite (2026-11-19) : `IsDocumentAskedBeforeClose`, `IsDocumentModifiedBeforeClose`, `AskSaveBeforeClosingDocument` et `TrySaveDocumentBeforeClose` s'appuient sur `TryGetSavableDocument`, sans branche par sorte (titre `Close <Kind>`, message `Save changes to '<title>' before closing?`) ; le `CommitPendingText` dupliqué de `IsDocumentModifiedBeforeClose` est retiré (il reste dans `CreateCutsceneSavableDocument`). `CloseScreenPanelAfterAnswer` renommée `CloseDocumentPanelAfterAnswer`, avertissement « Cannot close document ». Commentaires de `OnDockHostPanelClosing`, du champ et de `ModifiedScreenCloseCoordinator` mis à jour. Étape 4, par lecture : `ClosePanel` lève `PanelRemoved`, donc `OnDockHostPanelRemoved` libère table, titre, historique et état modifié de chaque sorte (écran, matériau, entité, sprite, particules, son, cutscene, Animation2D ; mixeur audio par `CloseAudioMixerPanel`). Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts, les 13 tests du coordinateur inchangés. Statut 🧪 (P13) : le clic réel n'est pas essayé.
 
-### ⏳ T2.2 — Sortie de l'éditeur : tous les documents et le monde
+### 🧪 T2.2 — Sortie de l'éditeur : tous les documents et le monde
 
 - Objectif : D2.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Editor/History/ModifiedScreensExitCoordinator.cs` (commentaires seulement).
@@ -206,6 +206,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   4. Mettre à jour les commentaires de `OnExiting`, du champ et de la classe `ModifiedScreensExitCoordinator` (P2).
 - Validation : build à 0 erreur ; tests verts (les 10 tests du coordinateur inchangés). Statut 🧪 (P13).
 - Commit : `feat(editor): ask to save every modified document and the world before quitting`
+- Validation faite (2026-11-19) : `GetModifiedScreenTitles` devient `GetModifiedDocumentTitles` (`CollectSavableDocuments(includeWorld: true)` puis `ModifiedDocuments.GetModifiedTitles`) ; `TrySaveAllScreenDocumentsBeforeQuitting` devient `TrySaveAllModifiedDocuments` (arrête d'abord une session de jeu active, P6, puis `ModifiedDocuments.TrySaveAll`, avertissement `Exit cancelled: one or more modified documents could not be saved.`) ; `AskSaveBeforeQuitting` pose le message de P4 (documents, liste `- <Kind>: <title>`) ; `LogScreensAbandonedByAutomatedExit` devient `LogDocumentsAbandonedByAutomatedExit` (« modified document(s) abandoned », P7). Commentaires de `OnExiting`, du champ et de `ModifiedScreensExitCoordinator` mis à jour. Le monde est le dernier de la liste : son `Save` est `TrySaveProjectAndWorld`. Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts, les 10 tests du coordinateur inchangés. Exécutés sur place (aucun éditeur lancé). Statut 🧪 (P13) : le clic réel n'est pas essayé.
 
 ### ⏳ T2.3 — Autre projet : la question, puis la fermeture des documents du projet quitté
 
