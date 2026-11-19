@@ -221,7 +221,7 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8094 réussis, 0 échec, 0 ignoré, total 8094** (8081 plus 11 tests ajoutés plus 2 lignes de théories existantes qui prennent un fichier par cutscene du dépôt : `ARepositoryFile_SavesAndReloadsWithoutLoss_AndSavesTheSameTextTwice` et `ARepositoryFile_HasNoLoadLoss_AndTheGuardAcceptsIt`, toutes vertes pour `live.cutscene` ; `TheRepositoryHoldsTheFourteenCutsceneFiles` vert).
   - Non vérifié : aucun lancement de l'éditeur ni du Launcher (le monde n'a été chargé que comme données, aucune entité n'a été initialisée dans un monde ni aucune physique avancée) ; la chute réelle de la boîte, la lecture de l'animation, l'émission des particules et leur rendu dans une caméra 2D (tailles en unités de monde, billboards) sont à prouver par T2.4.
 
-### ⏳ T2.3 — Diagnostics de l'aperçu vivant
+### 🧪 T2.3 — Diagnostics de l'aperçu vivant
 
 - Objectif : pouvoir lire, sans regarder l'écran, ce que le monde d'aperçu fait.
 - Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs` (`GetAutomationStateSnapshot`, `AppendEntityPositions`), ce plan. `GameEditor.cs` ne change pas : il recopie les lignes du panneau.
@@ -230,6 +230,12 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   2. Refaire sur la branche le lancement de référence de T0.1, avec la même ligne de commande.
 - Validation : build ; `dotnet test` vert ; les lignes de l'aperçu du lancement de l'étape 2 sont celles de la référence de T0.1, à deux écarts attendus près : la ligne `Preview status line` porte le texte de P9 au lieu de l'ancien, et les lignes d'entité portent les valeurs ajoutées. Tout autre écart est un défaut. La comparaison est notée sous la tâche.
 - Commit : `feat(editor): report the live state of the cutscene preview world in the diagnostics`
+- Note de validation (2026-11-19) :
+  - `CutsceneAssetInspectorPanel.AppendEntityPositions` ajoute à la ligne d'une entité, par `DescribeLiveComponents`, `animation '<nom du composant>' time=<s> s` pour chaque `AnimatedSpriteComponent` (membre public `CurrentAnimationTimeSeconds`) et `particles '<nom du composant>' alive=<n>` pour chaque `ParticleSystemComponent` (membres publics `RuntimeInstance` et `AliveCount`, 0 si l'instance est nulle). Aucune API du moteur créée. Une entité qui n'a ni l'un ni l'autre garde exactement sa ligne d'avant. `GameEditor.cs` inchangé.
+  - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 8094 réussis sur 8094 au deuxième et au troisième lancement ; **le premier lancement a donné 1 échec (8093 réussis sur 8094)**, dont je n'ai pas relevé le nom (sortie tronquée) et que je n'ai pas pu reproduire ensuite : test instable probable, non élucidé.
+  - Lancement de référence refait sur la branche, avec la ligne de commande de T0.1 (sorties `new-diagnostics.txt` et `new.png` dans `.../live-preview-runs/t23/`) : code de sortie 0. Les lignes de l'aperçu (de `Cutscene preview` à `Preview entity 'ring-right'`) sont **identiques** à la référence, au seul écart attendu près : la ligne `Preview status line` porte `Gameplay scripts are not updated in the preview.` Les entités du monde `SpriteWorld` n'ont ni sprite animé ni particules : leurs lignes sont inchangées, donc **les nouvelles valeurs ne sont pas exercées par ce lancement** (T2.4 les lira sur `live.cutscene`). Autres écarts du fichier, hors comparaison : horodatage, `Current folder items` (8 devient 11 : T2.2 a ajouté des éléments au dossier du sample), `Grid virtualization ... items` (même raison), lignes de journal. Capture non regardée.
+  - Après le lancement : `Projects/SpriteCutsceneSample/.casaeditor/viewport.editor.json` (seul fichier apparu) supprimé, puis le dossier vide ; `git status --short` n'affiche que le travail de la tâche.
+  - Non vérifié : le format des nouvelles lignes sur un monde réel (T2.4), d'où 🧪.
 
 ### ⏳ T2.4 — Lancements de validation
 

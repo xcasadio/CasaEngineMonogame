@@ -17,6 +17,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MGUI.Core.UI;
@@ -1509,11 +1510,33 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         foreach (var entity in entities)
         {
             var position = entity.RootComponent?.Position;
-            lines.Add(position.HasValue
+            var line = position.HasValue
                 ? string.Create(CultureInfo.InvariantCulture, $"Preview entity '{entity.Name}': x={position.Value.X:0.###} y={position.Value.Y:0.###} z={position.Value.Z:0.###}")
-                : $"Preview entity '{entity.Name}': <no root component>");
+                : $"Preview entity '{entity.Name}': <no root component>";
+            lines.Add(line + DescribeLiveComponents(entity));
             AppendEntityPositions(lines, entity.Children);
         }
+    }
+
+    // The live state of the preview world, read through public members only: the time of the current animation of
+    // each animated sprite and the number of living particles of each particle system. Entities that have neither
+    // keep the exact line they had before.
+    private static string DescribeLiveComponents(Entity entity)
+    {
+        var text = string.Empty;
+        foreach (var component in entity.Components)
+        {
+            if (component is AnimatedSpriteComponent animatedSprite)
+            {
+                text += string.Create(CultureInfo.InvariantCulture, $" animation '{animatedSprite.Name}' time={animatedSprite.CurrentAnimationTimeSeconds:0.###} s");
+            }
+            else if (component is ParticleSystemComponent particles)
+            {
+                text += string.Create(CultureInfo.InvariantCulture, $" particles '{particles.Name}' alive={particles.RuntimeInstance?.AliveCount ?? 0}");
+            }
+        }
+
+        return text;
     }
 
     private void PlayPreview()
