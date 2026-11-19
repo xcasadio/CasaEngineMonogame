@@ -250,12 +250,13 @@ Les trois tâches sont écrites par `security-executor`, l'une après l'autre.
 
 ## Phase 2 — Documentation et éditeur lancé
 
-### ⏳ T2.1 — Documentation
+### ✅ T2.1 — Documentation
 
 - Objectif : la documentation décrit les nouvelles commandes et leurs règles.
 - Fichiers : `docs/editor/editor-remote-control.md` (introduction : ADR-0129 ; table des commandes : `asset.open`, `panel.close`, `history.*`, ligne `entity_asset.*` ; règles des assets : une entité par asset, historique du panneau, `written`, création vide ; limites : la phrase « Only materials, particles, UI screens and sounds are editable assets » ; ce que l'enregistrement ne fait pas : rafraîchir les mondes ouverts ; sécurité : ouvrir un `.entity` exécute du code du projet dans un monde d'aperçu, famille refusée en Play, historique partagé avec l'auteur, fermeture qui efface l'historique du panneau, résidus de S3-8), ce plan. L'ADR-0129 n'est pas réécrite ici : un point que l'exécution aurait changé est une question à l'auteur.
 - Validation : chaque commande enregistrée par `EditorRemoteEntityAssetCommands.Register` est dans la table (liste relue dans le code ; `casa-editor commands` le confirme en T2.2) ; aucune phrase ne dit plus que ce que les tests prouvent ; une phrase que T2.2 contredirait est corrigée dans le commit de T2.2.
 - Commit : `docs(editor): document the entity asset remote commands`
+- Note de validation (2026-11-19) : `docs/editor/editor-remote-control.md` : ADR-0129 citée ; lignes `asset.open` et `panel.close` complétées, ligne `entity_asset.*` ajoutée avec ses six commandes, celles qu'enregistre `EditorRemoteEntityAssetCommands.Register` (relu dans le code : `create`, `get`, `set_property`, `add_component`, `remove_component`, `save`) ; nouvelle liste « Entity assets » (une entité par asset, forme de `get`, règles des éditions et nom du composant ajouté, création vide, `written`, mondes ouverts non rafraîchis, refus en Play, refus quand le panneau tient un autre fichier) ; historique partagé et effacé à la fermeture ; `--open-asset` garde sa route pour un `.entity` ; sécurité : l'ouverture exécute du code du projet ; limites mises à jour. Aucun code touché, aucun build. L'intitulé du document ne change pas : `docs/README.md` non touché. Deux phrases attendent leur preuve dans l'éditeur lancé (T2.2 et M9) : l'effet de « modifier puis annuler » sur l'écriture, et la réécriture par « poser puis remettre ».
 
 ### ⏳ T2.2 — Parcours dans l'éditeur lancé
 
