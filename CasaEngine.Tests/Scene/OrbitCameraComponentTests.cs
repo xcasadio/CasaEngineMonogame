@@ -35,6 +35,29 @@ public sealed class OrbitCameraComponentTests
         return camera;
     }
 
+    // The formulas of ArcBallCameraComponent, written here so that these proofs do not depend on that class (ADR-0149):
+    // it looked along FormulaDirection from Target - Direction * Distance, at Target, with Vector3.Up for up.
+    private static Vector3 FormulaDirection(float yaw, float pitch)
+    {
+        return new Vector3(MathF.Sin(yaw) * MathF.Cos(pitch), MathF.Sin(pitch), -MathF.Cos(yaw) * MathF.Cos(pitch));
+    }
+
+    private static Vector3 FormulaRight(float yaw, float pitch)
+    {
+        Quaternion orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, pitch);
+        return Vector3.Transform(Vector3.Right, orientation);
+    }
+
+    private static Vector3 FormulaPosition(Vector3 target, float distance, float yaw, float pitch)
+    {
+        return target - FormulaDirection(yaw, pitch) * distance;
+    }
+
+    private static Matrix FormulaView(Vector3 target, float distance, float yaw, float pitch)
+    {
+        return Matrix.CreateLookAt(FormulaPosition(target, distance, yaw, pitch), target, Vector3.Up);
+    }
+
     private static (Entity Entity, PerspectiveCameraComponent Camera, OrbitCameraComponent Orbit) CreateOrbitCamera()
     {
         var camera = new PerspectiveCameraComponent();
@@ -93,6 +116,10 @@ public sealed class OrbitCameraComponentTests
                         AssertVectorEqual(arcBall.Right, orbit.Right, Tolerance, context);
                         AssertVectorEqual(target - orbit.Direction * distance, camera.LocalPosition, Tolerance, context);
                         AssertVectorEqual(arcBall.Position, camera.LocalPosition, Tolerance, context);
+                        AssertMatrixEqual(FormulaView(target, distance, yaw, pitch), camera.ViewMatrix, Tolerance, context);
+                        AssertVectorEqual(FormulaDirection(yaw, pitch), orbit.Direction, Tolerance, context);
+                        AssertVectorEqual(FormulaRight(yaw, pitch), orbit.Right, Tolerance, context);
+                        AssertVectorEqual(FormulaPosition(target, distance, yaw, pitch), camera.LocalPosition, Tolerance, context);
                     }
                 }
             }
@@ -130,6 +157,10 @@ public sealed class OrbitCameraComponentTests
                         AssertVectorEqual(arcBall.Direction, orbit.Direction, Tolerance, context);
                         AssertVectorEqual(arcBall.Right, orbit.Right, Tolerance, context);
                         AssertVectorEqual(arcBall.Position, camera.LocalPosition, Tolerance, context);
+                        AssertMatrixEqual(FormulaView(target, distance, yaw, pitch), camera.ViewMatrix, Tolerance, context);
+                        AssertVectorEqual(FormulaDirection(yaw, pitch), orbit.Direction, Tolerance, context);
+                        AssertVectorEqual(FormulaRight(yaw, pitch), orbit.Right, Tolerance, context);
+                        AssertVectorEqual(FormulaPosition(target, distance, yaw, pitch), camera.LocalPosition, Tolerance, context);
 
                         // The camera faces the target: the target is straight ahead, on the -Z axis of the view.
                         Vector3 seen = Vector3.Transform(target, camera.ViewMatrix);
@@ -158,6 +189,7 @@ public sealed class OrbitCameraComponentTests
         orbit.Pitch = 0.165f;
 
         AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+        AssertMatrixEqual(FormulaView(target, -18.25f, MathHelper.Pi, 0.165f), camera.ViewMatrix, Tolerance);
         AssertVectorEqual(new Vector3(0f, 7f, 18f), camera.LocalPosition, 0.01f);
     }
 
@@ -181,6 +213,7 @@ public sealed class OrbitCameraComponentTests
         orbit.Pitch = -0.165f;
 
         AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+        AssertMatrixEqual(FormulaView(target, -18.25f, MathHelper.Pi, 0.165f), camera.ViewMatrix, Tolerance);
         // The view direction of the navigation is now the one of the camera.
         AssertVectorEqual(Vector3.Normalize(target - camera.LocalPosition), orbit.Direction, Tolerance);
     }
@@ -215,6 +248,14 @@ public sealed class OrbitCameraComponentTests
         Assert.Equal(arcBall.Pitch, orbit.Pitch, Tolerance);
         AssertMatrixEqual(Matrix.CreateLookAt(position, target, Vector3.Up), camera.ViewMatrix, Tolerance);
         AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+
+        // What ArcBallCameraComponent.SetCamera deduced from the two points.
+        float expectedDistance = (position - target).Length();
+        Vector3 backward = (position - target) / expectedDistance;
+        Assert.Equal(target, orbit.Target);
+        Assert.Equal(expectedDistance, orbit.Distance, Tolerance);
+        Assert.Equal(MathF.Atan2(-backward.X, backward.Z), orbit.Yaw, Tolerance);
+        Assert.Equal(-MathF.Asin(backward.Y), orbit.Pitch, Tolerance);
     }
 
     [Fact]
@@ -233,6 +274,9 @@ public sealed class OrbitCameraComponentTests
         Assert.Equal(arcBall.Yaw, orbit.Yaw);
         Assert.Equal(arcBall.Pitch, orbit.Pitch);
         Assert.Equal(arcBall.Distance, orbit.Distance);
+        Assert.Equal(1.1f, orbit.Yaw);
+        Assert.Equal(-0.4f, orbit.Pitch);
+        Assert.Equal(0f, orbit.Distance);
         Assert.Equal(new Vector3(2f, 3f, 4f), orbit.Target);
     }
 
@@ -310,6 +354,7 @@ public sealed class OrbitCameraComponentTests
         loaded.Initialize();
 
         AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+        AssertMatrixEqual(FormulaView(new Vector3(4f, 1f, -3f), 12f, 2.2f, -0.6f), camera.ViewMatrix, Tolerance);
     }
 
     [Fact]

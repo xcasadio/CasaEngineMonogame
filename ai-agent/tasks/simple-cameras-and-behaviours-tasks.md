@@ -484,7 +484,7 @@ Fait à l'écriture de ces tâches : voir « État vérifié » ci-dessus.
 - Validation : relecture ; aucun nom de projet extérieur.
 - **Fait (2026-11-19).** Plan approuvé par l'auteur le 2026-11-19 (« Approuvé, lance »), tranches 3 et 4, en mode AUTO. ADR-0149 écrit et indexé. Documentation seule : ni build ni test.
 
-### ⏳ T3.2 — Figer les références
+### ✅ T3.2 — Figer les références
 
 Tests seulement, aucun code du moteur.
 
@@ -508,6 +508,10 @@ Tests seulement, aucun code du moteur.
 3. `ArcBallCameraComponentTests` n'est pas touché ici : il est traité en T3.4.
 4. Nouveau `LegacyCameraEntityDataTests` (nom libre) : une théorie à deux lignes, une par `camera.entity`. Elle charge l'entité **par `Entity.Load`** puis l'initialise comme le fait le test existant `AnEntityLoadedFromData_IsPosedAtItsInitialisation_WithNoPropertyWrite`, prend le composant caméra de l'entité, lui donne un viewport de 1280 × 720 et les profondeurs 1 et 1000, et compare sa vue et sa projection aux 32 termes écrits en dur, **à 1e-4 près par terme** (la tolérance de `OrbitCameraComponentTests`) : avant la migration la vue vient de `CreateLookAt`, après de l'inverse de la matrice du monde, et leurs derniers bits diffèrent. Les termes sont relevés par ce même test sur les fichiers d'origine et écrits avec 9 chiffres significatifs. Le test ne nomme aucune classe de caméra concrète : il reste inchangé après la migration.
 5. Validation : tests verts ; la note de la tâche donne les 32 termes relevés et le compte de tests.
+- **Fait (2026-11-19).** Chaque ligne de la table a ses deux références vertes : les six tests de `OrbitCameraComponentTests` (formules `FormulaDirection`, `FormulaRight`, `FormulaPosition`, `FormulaView` ; valeurs de `SetCamera` recalculées ; position sur la cible : lacet 1,1, tangage −0,4, distance 0) et `AnEntityLoadedFromData…` ; le test du script (navigation sur l'état nu, champ de vision de départ plus la somme des deltas, vue par `CreateLookAt(Eye, Pivot, Up)`) ; deux jumeaux dans `ViewportCameraNavigationTests` (`Eye_MatchesThePositionOfACameraPosedByAnOrbit`, `ApplyTo_AnOrbit_LeavesTheFieldOfViewOfItsCameraUntouched`). Nouveau `LegacyCameraEntityDataTests`, deux lignes. Termes relevés sur les deux fichiers d'origine, identiques pour les deux :
+  - vue : −0,964125872 ; 0,135757655 ; −0,228103638 ; 0 / 2,23517418E-08 ; 0,859323382 ; 0,511432827 ; 0 / 0,265445679 ; 0,493085623 ; −0,8284958 ; 0 / −6,93412876 ; 4,44501209 ; −8,6817112 ; 1
+  - projection : 1,35799503 ; 0 ; 0 ; 0 / 0 ; 2,41421342 ; 0 ; 0 / 0 ; 0 ; −1,001001 ; −1 / 0 ; 0 ; −1,001001 ; 0
+  - Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8122 tests, 0 échec (8118 + 2 lignes de données + 2 jumeaux).
 
 ### ⏳ T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
 

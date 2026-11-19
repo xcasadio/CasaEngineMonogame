@@ -127,11 +127,35 @@ public sealed class ScriptArcBallCameraOrbitTests
         Matrix start = orbit.Camera.ViewMatrix;
         float startFieldOfView = orbit.Camera.FieldOfView;
 
+        // A reference that does not depend on the arc ball camera (ADR-0149): the navigation run on the bare state,
+        // with the rule the script adds for F (the pivot goes to its focus point).
+        var navigation = new ViewportCameraNavigation();
+        ViewportCameraState expectedState = ViewportCameraState.From(orbit.Orbit);
+        float expectedFieldOfView = startFieldOfView;
+
         foreach (ViewportNavigationInput input in Frames(gesture))
         {
             arcBall.Script.ApplyNavigation(input);
             orbit.Script.ApplyNavigation(input);
+
+            ViewportNavigationResult expectedResult = navigation.Update(ref expectedState, input);
+            if (expectedResult.FocusRequested)
+            {
+                expectedState.Pivot = orbit.Script.FocusPoint;
+            }
+
+            expectedFieldOfView += expectedResult.FieldOfViewDelta;
         }
+
+        Assert.Equal(expectedState.Pivot.X, orbit.Orbit.Target.X, Tolerance);
+        Assert.Equal(expectedState.Pivot.Y, orbit.Orbit.Target.Y, Tolerance);
+        Assert.Equal(expectedState.Pivot.Z, orbit.Orbit.Target.Z, Tolerance);
+        Assert.Equal(expectedState.Distance, orbit.Orbit.Distance, Tolerance);
+        Assert.Equal(expectedState.Yaw, orbit.Orbit.Yaw, Tolerance);
+        Assert.Equal(expectedState.Pitch, orbit.Orbit.Pitch, Tolerance);
+        Assert.Equal(expectedFieldOfView, orbit.Camera.FieldOfView, Tolerance);
+        //  The view of the arc ball camera for a state: it looked at the pivot from the eye, with Vector3.Up for up.
+        AssertMatrixEqual(Matrix.CreateLookAt(expectedState.Eye, expectedState.Pivot, Vector3.Up), orbit.Camera.ViewMatrix);
 
         Assert.Equal(arcBall.Camera.Target.X, orbit.Orbit.Target.X, Tolerance);
         Assert.Equal(arcBall.Camera.Target.Y, orbit.Orbit.Target.Y, Tolerance);

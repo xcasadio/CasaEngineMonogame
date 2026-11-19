@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Scene.Cameras;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -66,6 +67,38 @@ public class ViewportCameraNavigationTests
 
         AssertVector(state.Eye, camera.Position);
         AssertVector(state.Forward, camera.Direction);
+    }
+
+    [Fact]
+    public void Eye_MatchesThePositionOfACameraPosedByAnOrbit()
+    {
+        var state = CreateState();
+        var camera = new PerspectiveCameraComponent();
+        camera.OnScreenResized(1920, 1080);
+        camera.FarPlane = 1000f;
+        camera.NearPlane = 1f;
+        var orbit = new OrbitCameraComponent();
+        var entity = new Entity { RootComponent = camera };
+        entity.AddComponent(orbit);
+
+        state.ApplyTo(orbit);
+
+        AssertVector(state.Eye, camera.LocalPosition);
+        AssertVector(state.Forward, orbit.Direction);
+    }
+
+    [Fact]
+    public void ApplyTo_AnOrbit_LeavesTheFieldOfViewOfItsCameraUntouched()
+    {
+        var camera = new PerspectiveCameraComponent();
+        camera.FieldOfView = 1.1f;
+        var orbit = new OrbitCameraComponent();
+        var entity = new Entity { RootComponent = camera };
+        entity.AddComponent(orbit);
+
+        CreateState().ApplyTo(orbit);
+
+        Assert.Equal(1.1f, camera.FieldOfView, Tolerance);
     }
 
     [Fact]
