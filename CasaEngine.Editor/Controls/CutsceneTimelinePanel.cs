@@ -32,7 +32,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
     private const int CompactTrackRowHeight = 23;
     private const float FitMarginFraction = 0.04f;
 
-    // P7: the model is longer than the cutscene by a quarter of it, and by 2 s at least, so that an item can be dragged later than the end.
+    // P7: when an item can be dragged, the model is longer than the cutscene by a quarter of it, and by 2 s at least, so that the item can be dragged later than the end.
     private const double DisplayMarginFraction = 0.25;
     private const double DisplayMarginMinimumSeconds = 2d;
 
@@ -92,13 +92,15 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
     public string? LastPlaceRefusal => _lastPlaceRefusal;
 
     /// <summary>
-    /// The duration the timeline model shows for a cutscene that lasts <paramref name="realSeconds"/> (P7): the real duration plus
-    /// the larger of a quarter of it and 2 s. The playhead, the seeks and the open bars keep the real duration.
+    /// The duration the timeline model shows for a cutscene that lasts <paramref name="realSeconds"/> (P7). When an item of the
+    /// model can be dragged (<paramref name="hasDraggableItem"/>), it is the real duration plus the larger of a quarter of it and
+    /// 2 s, so that the item can be dragged later than the end; otherwise the room would serve nothing and it is the real duration.
+    /// The playhead, the seeks and the open bars keep the real duration.
     /// </summary>
-    public static double GetDisplayedDuration(double realSeconds)
+    public static double GetDisplayedDuration(double realSeconds, bool hasDraggableItem)
     {
         double real = double.IsFinite(realSeconds) && realSeconds > 0 ? realSeconds : 0;
-        return real + Math.Max(real * DisplayMarginFraction, DisplayMarginMinimumSeconds);
+        return hasDraggableItem ? real + Math.Max(real * DisplayMarginFraction, DisplayMarginMinimumSeconds) : real;
     }
 
     public MGElement CreateContent()
@@ -236,10 +238,11 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         }
     }
 
-    // The fit reads the duration of the projection, not the one of the model: the room of P7 must not shrink the view.
-    private float GetContentSeconds(TimelineModel model)
+    // The fit reads the duration of the model, the room of P7 included when there is one, so that all the content the control
+    // can scroll to is inside the visible width and no horizontal scroll bar appears; the playhead and the seeks keep the real duration.
+    private static float GetContentSeconds(TimelineModel model)
     {
-        float seconds = (float)_layout.DurationSeconds;
+        float seconds = model.DurationSeconds;
         for (int index = 0; index < model.Items.Count; index++)
         {
             var item = model.Items[index];
@@ -577,7 +580,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
     {
         var model = new TimelineModel
         {
-            DurationSeconds = (float)GetDisplayedDuration(layout.DurationSeconds),
+            DurationSeconds = (float)layout.DurationSeconds,
             TimeUnit = TimelineTimeUnit.Seconds,
             FrameRate = (float)CutsceneTimelineProjection.FramesPerSecond,
         };
@@ -607,6 +610,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         _actionsByItemId.Clear();
 
         var items = layout.Items;
+        bool hasDraggableItem = false;
         for (int index = 0; index < items.Count; index++)
         {
             var source = items[index];
@@ -632,6 +636,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
             // P5: only the item the placement rule allows is dragged, in time only: it has no resize and does not change track.
             var rule = CutscenePlacement.Resolve(root, source);
             bool canDrag = rule.CanDrag;
+            hasDraggableItem |= canDrag;
             float lowestInstant = canDrag
                 ? (float)CutscenePlacement.LowestInstant(rule.Kind == CutscenePlacementKind.ChangeAt ? rule.At!.Seconds : 0d, source.StartSeconds)
                 : 0f;
@@ -652,6 +657,9 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
             };
             model.Items.Add(timelineItem);
         }
+
+        // P7: the room after the end serves only to drag an item later than it.
+        model.DurationSeconds = (float)GetDisplayedDuration(layout.DurationSeconds, hasDraggableItem);
 
         // Labels never meet: a marker has room up to the next item of its track and none on a bar; a bar label starts
         // after a marker drawn on its start and ends before a marker drawn over it.

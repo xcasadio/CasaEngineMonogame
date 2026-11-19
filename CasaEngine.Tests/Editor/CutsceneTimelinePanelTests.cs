@@ -144,7 +144,7 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
 
         Assert.Equal(expectedTracks, model.Tracks.Count);
         Assert.Equal(layout.Items.Count, model.Items.Count);
-        Assert.Equal((float)(layout.DurationSeconds + Math.Max(layout.DurationSeconds / 4d, 2d)), model.DurationSeconds);
+        Assert.Equal((float)layout.DurationSeconds, model.DurationSeconds);
         Assert.All(model.Tracks, track => Assert.False(track.IsEditable));
         Assert.All(model.Items, item =>
         {
@@ -946,10 +946,10 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         var rig = OpenDragTree();
         double real = rig.Panel.Layout.DurationSeconds;
 
-        Assert.Equal(real + Math.Max(real / 4d, 2d), CutsceneTimelinePanel.GetDisplayedDuration(real), 6);
-        Assert.Equal(2d + 2d, CutsceneTimelinePanel.GetDisplayedDuration(2d), 6);
-        Assert.Equal(20d + 5d, CutsceneTimelinePanel.GetDisplayedDuration(20d), 6);
-        Assert.Equal((float)CutsceneTimelinePanel.GetDisplayedDuration(real), rig.Timeline.Model!.DurationSeconds);
+        Assert.Equal(real + Math.Max(real / 4d, 2d), CutsceneTimelinePanel.GetDisplayedDuration(real, true), 6);
+        Assert.Equal(2d + 2d, CutsceneTimelinePanel.GetDisplayedDuration(2d, true), 6);
+        Assert.Equal(20d + 5d, CutsceneTimelinePanel.GetDisplayedDuration(20d, true), 6);
+        Assert.Equal((float)CutsceneTimelinePanel.GetDisplayedDuration(real, true), rig.Timeline.Model!.DurationSeconds);
 
         // A request in the room after the end is bounded to the real duration, and the playhead stays there.
         rig.Timeline.NotifyTimeScrubbed((float)real + 1.5f);
@@ -959,16 +959,79 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
     }
 
     [Fact]
-    public void TheZoomFit_ReadsTheDurationOfTheProjection_NotTheOneOfTheModel()
+    public void TheZoomFit_ReadsTheDisplayedDuration_RoomIncludedWhenTheModelHasRoom()
     {
         var rig = OpenDragTree();
         Settle(rig.Harness, rig.Panel);
         var timeline = rig.Timeline;
 
         float width = timeline.VisibleTimeAreaWidth;
-        float expected = Math.Clamp(width / ((float)rig.Panel.Layout.DurationSeconds * 1.04f), timeline.MinimumPixelsPerSecond, timeline.MaximumPixelsPerSecond);
-        Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
         Assert.True(timeline.Model!.DurationSeconds > (float)rig.Panel.Layout.DurationSeconds);
+        float expected = Math.Clamp(width / (timeline.Model.DurationSeconds * 1.04f), timeline.MinimumPixelsPerSecond, timeline.MaximumPixelsPerSecond);
+        Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
+    }
+
+    private static float GetMaxScrollX(TimelineControl timeline)
+    {
+        return timeline.ViewTransform.GetMaxScrollX(timeline.GetTimelineEndSeconds(), timeline.VisibleTimeAreaWidth);
+    }
+
+    [Fact]
+    public void TheSample_HasNoRoomAfterItsEnd_AndItsContentFitsTheVisibleWidthAfterTheFit()
+    {
+        var (harness, panel, _, _) = OpenSample();
+        Settle(harness, panel);
+        var timeline = panel.Timeline!;
+
+        // The fit leaves nothing to scroll: no horizontal overflow, so the bar does not take the height of a row.
+        Assert.True(timeline.VisibleTimeAreaWidth > 0f);
+        Assert.True(GetMaxScrollX(timeline) <= 0.5f, $"horizontal overflow of {GetMaxScrollX(timeline)} px");
+        Assert.True(timeline.ViewTransform.GetContentWidth(timeline.GetTimelineEndSeconds()) <= timeline.VisibleTimeAreaWidth + 0.5f);
+        Assert.False(timeline.IsVerticalScrollBarVisible);
+
+        // No item of loop.cutscene can be dragged: the model shows the real duration.
+        Assert.All(timeline.Model!.Items, item => Assert.False(item.CanMove));
+        Assert.Equal((float)panel.Layout.DurationSeconds, timeline.Model.DurationSeconds);
+    }
+
+    [Fact]
+    public void ADocumentWithADraggableItem_KeepsTheRoomAfterItsEnd_AndItsContentFitsTheVisibleWidthAfterTheFit()
+    {
+        var rig = OpenDragTree();
+        Settle(rig.Harness, rig.Panel);
+        var timeline = rig.Timeline;
+        double real = rig.Panel.Layout.DurationSeconds;
+
+        Assert.Contains(timeline.Model!.Items, item => item.CanMove);
+        Assert.Equal((float)CutsceneTimelinePanel.GetDisplayedDuration(real, true), timeline.Model.DurationSeconds);
+        Assert.Equal((float)(real + 2d), timeline.Model.DurationSeconds);
+        Assert.True(GetMaxScrollX(timeline) <= 0.5f, $"horizontal overflow of {GetMaxScrollX(timeline)} px");
+        Assert.True(timeline.ViewTransform.GetContentWidth(timeline.Model.DurationSeconds) <= timeline.VisibleTimeAreaWidth + 0.5f);
+    }
+
+    [Fact]
+    public void TheDisplayedDuration_HasRoomOnlyWhenAnItemCanBeDragged()
+    {
+        Assert.Equal(3d, CutsceneTimelinePanel.GetDisplayedDuration(3d, false), 6);
+        Assert.Equal(3d + 2d, CutsceneTimelinePanel.GetDisplayedDuration(3d, true), 6);
+        Assert.Equal(20d + 5d, CutsceneTimelinePanel.GetDisplayedDuration(20d, true), 6);
+        Assert.Equal(0d, CutsceneTimelinePanel.GetDisplayedDuration(double.NaN, false), 6);
+    }
+
+    [Fact]
+    public void AfterTheFit_ABarCanStillBeDraggedBeyondTheRealEnd_WithoutAnyZoom()
+    {
+        var rig = OpenDragTree();
+        Settle(rig.Harness, rig.Panel);
+        rig.Time += 200;
+        double real = rig.Panel.Layout.DurationSeconds;
+        var a = FindItem(rig.Panel, rig.A);
+
+        // The bar starts at 1.5 s and is grabbed 0.3 s after its start: its start goes to 4.1 s, after the real end (3 s).
+        Drag(rig, a, 1.8f, 4.4f);
+
+        Assert.Equal(0.5f + (4.1f - 1.5f), rig.At.Seconds, 1f / 60f);
+        Assert.True(FindItem(rig.Panel, rig.A).StartTime > (float)real);
     }
 
     // ---- Adding at the cursor time (ADR-0102, P9) ---------------------------------------------------------------------
