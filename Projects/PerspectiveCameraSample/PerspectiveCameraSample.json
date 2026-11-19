@@ -1,0 +1,15 @@
+{
+  "WindowTitle": "Perspective Camera Sample",
+  "ProjectName": "PerspectiveCameraSample",
+  "FirstScreenName": "",
+  "AllowUserResizing": true,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": true,
+  "FirstWorldLoaded": "CameraWorld.world",
+  "GameplayDllName": "CasaEngine.PerspectiveCameraSample.dll",
+  "ExternalToolsDirectory": "ExternalTools",
+  "DebugIsFullScreen": false,
+  "DebugHeight": 720,
+  "DebugWidth": 960,
+  "VSyncEnabled": true
+}

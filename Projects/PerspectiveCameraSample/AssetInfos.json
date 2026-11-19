@@ -1,0 +1,52 @@
+{
+  "asset_infos": [
+    {
+      "id": "5a3d3a9a-3fc3-4f0e-a30c-a5bb7f1b70ea",
+      "name": "CameraWorld",
+      "file_name": "CameraWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "3f21a0ef-a62f-4441-8480-f1e9d7e4feaf",
+      "name": "backdrop-image",
+      "file_name": "Images\\backdrop.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "3e0ba973-8a1b-45de-b172-569535d45c90",
+      "name": "backdrop-sheet",
+      "file_name": "Images\\backdrop.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "4494e116-a384-4bb0-80ae-4887e6d776fa",
+      "name": "backdrop",
+      "file_name": "Images\\backdrop.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "8ed1c091-cca6-4150-a98d-ab9fabb27190",
+      "name": "box-image",
+      "file_name": "Images\\box.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "49a964dd-7d63-47bd-a0ff-4af7f831789d",
+      "name": "box-texture",
+      "file_name": "Images\\box.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "1fb5d6a9-c54d-4491-a89e-dbdc873d9950",
+      "name": "box-material",
+      "file_name": "Models\\box.material",
+      "asset_type": "material"
+    },
+    {
+      "id": "5cbc44f3-ae47-429f-bc20-de1bc8ee9ae6",
+      "name": "box-model",
+      "file_name": "Models\\box.staticModel",
+      "asset_type": "staticmodel"
+    }
+  ]
+}

@@ -235,6 +235,10 @@ internal static class EditorEntityJsonSerializer
                 SaveCamera2dComponent(camera2dComponent, node);
                 return;
 
+            case PerspectiveCameraComponent perspectiveCameraComponent:
+                SaveCamera3dComponent(perspectiveCameraComponent, node);
+                return;
+
             case Camera3dComponent camera3dComponent:
                 SaveCamera3dComponent(camera3dComponent, node);
                 return;

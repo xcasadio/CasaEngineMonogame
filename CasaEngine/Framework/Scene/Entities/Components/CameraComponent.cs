@@ -18,7 +18,7 @@ public abstract class CameraComponent : SceneComponent
     {
         get
         {
-            if (_needToComputeViewMatrix)
+            if (_needToComputeViewMatrix || IsViewOutOfDate())
             {
                 ComputeViewMatrix();
                 _needToComputeViewMatrix = false;
@@ -97,6 +97,15 @@ public abstract class CameraComponent : SceneComponent
         _viewport.MinDepth = 1.0f;
         _viewport.MaxDepth = 1000.0f;
         _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
+    }
+
+    /// <summary>
+    /// True when the view must be recomputed although nothing set the flag: for a camera whose view follows a state it is
+    /// not told about, such as the world transform of its component. Consulted at each read of <see cref="ViewMatrix"/>.
+    /// </summary>
+    protected virtual bool IsViewOutOfDate()
+    {
+        return false;
     }
 
     protected abstract void ComputeProjectionMatrix();
