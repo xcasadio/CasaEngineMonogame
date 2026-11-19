@@ -54,6 +54,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGTextBlock? _previewStatusText;
     private MGTextBlock? _timeText;
     private MGTextBlock? _playPauseText;
+    private MGStackPanel? _inputRow;
+    private int _lastArmedInputVersion = -1;
     private int _lastTimeTenths = -1;
     private long _lastTimeFrames = -1;
     private CutscenePreviewStatus? _lastTimeStatus;
@@ -1023,6 +1025,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _preview.Tick(gameTime);
         RefreshPreviewStatus();
         RefreshTimeText();
+        RefreshInputButtons();
     }
 
     /// <summary>The status word and play time shown under the transport row, or empty without a preview.</summary>
@@ -1111,6 +1114,17 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         };
 
         documentRoot.TryAddChild(CreateTransportRow(), Dock.Top);
+
+        // The row of the armed inputs sits under the transport row; it stays collapsed while nothing is armed.
+        _inputRow = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            Margin = new Thickness(8, 0, 8, 4),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Visibility = Visibility.Collapsed,
+        };
+        _lastArmedInputVersion = -1;
+        documentRoot.TryAddChild(_inputRow, Dock.Top);
         documentRoot.TryAddChild(_timeText!, Dock.Top);
         documentRoot.TryAddChild(_statusText!, Dock.Top);
 
@@ -1195,6 +1209,56 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _lastTimeStatus = null;
         RefreshTimeText();
         return row;
+    }
+
+    /// <summary>
+    /// Rebuilds the buttons of the armed inputs, one <c>Press "name"</c> per input, only when the version of the armed
+    /// inputs changes. It is called from <see cref="Update"/> and never from a click: a button is not removed while its own
+    /// click is handled.
+    /// </summary>
+    private void RefreshInputButtons()
+    {
+        if (_inputRow == null || _preview == null)
+        {
+            return;
+        }
+
+        int version = _preview.ArmedInputVersion;
+        if (version == _lastArmedInputVersion)
+        {
+            return;
+        }
+
+        _lastArmedInputVersion = version;
+        _inputRow.TryRemoveAll();
+        var names = _preview.ArmedInputNames;
+        for (int index = 0; index < names.Count; index++)
+        {
+            string name = names[index];
+            _inputRow.TryAddChild(CreateTransportButton(
+                EscapeMarkup(string.Concat("Press \"", name, "\"")),
+                () => SimulatePreviewInput(name)));
+        }
+
+        _inputRow.Visibility = names.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>
+    /// Simulates the press of an armed input of the play (ADR-0103): the play ends and the status line says which cutscene
+    /// the game would play. False, and no change, when the document has no preview or no asset, when no play runs or is
+    /// paused, or when <paramref name="inputName"/> is not armed.
+    /// </summary>
+    public bool SimulatePreviewInput(string inputName)
+    {
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        bool done = _preview.SimulateInput(inputName);
+        RefreshPreviewStatus();
+        RefreshTimeText();
+        return done;
     }
 
     private MGButton CreateTransportButton(string label, Action onClick)
@@ -1589,6 +1653,9 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         CutsceneRuntimeState State,
         CutscenePreviewStatus Transport,
         bool EndedByWorldChange,
+        bool EndedByInput,
+        string SimulatedInput,
+        string SimulatedNextCutscene,
         int RequestCount,
         string Error,
         string FailureReason,
@@ -1610,6 +1677,9 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             _preview.State,
             _preview.Status,
             _preview.EndedByWorldChange,
+            _preview.EndedByInput,
+            _preview.SimulatedInput,
+            _preview.SimulatedNextCutscene,
             _preview.Requests.Count,
             _preview.Error,
             _preview.FailureReason,
@@ -1669,6 +1739,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         if (_preview.EndedByWorldChange)
         {
             text.Append(" Would change the world: the play ends here.");
+        }
+
+        if (_preview.EndedByInput)
+        {
+            text.Append(" Input \"").Append(_preview.SimulatedInput).Append("\": the game would play ")
+                .Append(_preview.SimulatedNextCutscene.Length > 0 ? _preview.SimulatedNextCutscene : "no cutscene")
+                .Append(". The play ends here.");
         }
 
         if (fade.Active)

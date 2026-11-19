@@ -464,6 +464,20 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     }
 
     [Fact]
+    public void SimulatePreviewInput_WithoutAPreview_ReturnsFalseAndDoesNothing()
+    {
+        var rig = Open();
+
+        Assert.False(rig.Panel.SimulatePreviewInput("exit"));
+        Assert.False(rig.Panel.SimulatePreviewInput(string.Empty));
+        Assert.Null(rig.Panel.Preview);
+
+        rig.Harness.AdvanceFrame(0);
+        rig.Harness.AdvanceFrame(16);
+        Assert.Equal(string.Empty, rig.Panel.TransportText);
+    }
+
+    [Fact]
     public void TheTransportText_WithoutAPreview_IsEmpty()
     {
         var rig = Open();
