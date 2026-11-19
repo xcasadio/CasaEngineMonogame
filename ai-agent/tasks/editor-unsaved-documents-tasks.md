@@ -105,7 +105,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 
 ## Phase 0 — Décision
 
-### ⏳ T0.1 — ADR : tout document modifié demande avant d'être perdu
+### ✅ T0.1 — ADR : tout document modifié demande avant d'être perdu
 
 - Objectif : enregistrer la décision D1 à D4 et les arbitrages qui la précisent.
 - Fichiers : `docs/decisions/0104-every-modified-document-asks-before-its-changes-are-lost.md`, `docs/decisions/README.md`.
@@ -117,6 +117,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   5. Ajouter la ligne à l'index.
 - Validation : le fichier suit le modèle ; l'index a la ligne ; aucun autre fichier touché.
 - Commit : `docs(adr): record that every modified document asks before its changes are lost`
+- Validation faite (2026-11-19) : ADR-0104 écrite selon le modèle (statut Accepted, D1 à D5, P3 à P9, P11, P12, P14), ligne ajoutée à l'index ; ADR-0041 et ADR-0095 non modifiées ; aucun code touché, donc ni build ni tests.
 
 ---
 
