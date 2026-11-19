@@ -116,3 +116,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0100](0100-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md) | The cutscene preview shows the first instant at time 0 and keeps its world live once no play runs | Accepted | 2026-11-18 |
 | [ADR-0101](0101-the-cutscene-editor-edits-the-action-tree-structure-by-mouse.md) | The cutscene editor edits the structure of the action tree by mouse | Accepted | 2026-11-18 |
 | [ADR-0102](0102-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md) | The cutscene format gains an At action, and the timeline places actions in time | Accepted | 2026-11-18 |
+| [ADR-0103](0103-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md) | The cutscene preview draws screen fades, simulates an input and plays sound on demand | Accepted | 2026-11-19 |
