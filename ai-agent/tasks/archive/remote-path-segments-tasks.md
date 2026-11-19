@@ -1,6 +1,6 @@
 # Plan agent IA — Le pilotage refuse tout chemin dont un segment finit par un point ou une espace
 
-Plan né du point ouvert O4 de [origin-main-integration-2-tasks.md](archive/origin-main-integration-2-tasks.md) (constat de sa tâche T1.4). Il n'y a pas d'audit dédié : les faits sont dans « État vérifié du dépôt ».
+Plan né du point ouvert O4 de [origin-main-integration-2-tasks.md](origin-main-integration-2-tasks.md) (constat de sa tâche T1.4). Il n'y a pas d'audit dédié : les faits sont dans « État vérifié du dépôt ».
 Les décisions D1 → D3 ci-dessous ont été arbitrées avec l'auteur le 2026-11-19 : **ce plan les applique, il ne les rediscute pas**. Les propositions P1 → P12 sont à valider avec le plan.
 
 > Relecture de sécurité (2026-11-19, `security-reviewer`) : aucun P0 ni P1 ; constats S5-1 à S5-9 traités (section « Relecture de sécurité »).
@@ -208,11 +208,13 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
   - **Revérification ciblée** (`verifier` frais, sur `2a692800b`, lecture seule) : **CONFIRMED**. `git diff --name-only a5b641795 2a692800b` ne nomme que les trois fichiers attendus, arbre propre ; F1 fermé ; chaque affirmation de la phrase de documentation sur le résidu vérifiée dans le code (le chemin gardé par l'appelant, la renormalisation du contrôle, `CreateUniqueParticleAssetPath`, la création par le chemin relatif, `--content-folder` qui normalise, les autres drapeaux qui prennent un fichier) ; plan cohérent. Deux remarques P4 de rédaction, `DEFER` (écrites en O4, la documentation n'est pas retouchée après la tête vérifiée) : un nom long finissant par un **point** se comporterait très probablement de même, non essayé ; « rien n'est lu » est vrai du contenu, mais le résultat des tests d'existence choisit le nom de l'asset créé (`_2`, `_3`…).
   - Non rejoués par les vérificateurs : les smokes d'automatisation (fichiers comparés) ; les noms réservés sous Windows 10 (hors périmètre, O3).
 
-### ⏳ T4.2 — Archivage, avance, push
+### ✅ T4.2 — Archivage, avance, push
 
 - Étapes : ce plan passe dans `tasks/archive/`, lignes de `ai-agent/README.md`, statut selon P12 (dernier commit du moteur) ; pointeur du jeu sur cette tête (dernier commit du jeu) ; copies de P10 supprimées ; contrôles, avance et push de P9.
 - Validation : les sorties des contrôles de P9 ; les deux `ls-remote` ; arbres propres ; rapport de fin (`AGENTS.md` §12).
 - Commits : `docs(ai-agent): archive the path segment plan` (moteur), `chore(engine): point CasaEngine at the engine main with the path segment rule` (jeu).
+- Note (2026-11-19), écrite dans le dernier commit du moteur, **avant** les contrôles, l'avance et le push, selon P12 : ce plan est archivé par ce commit, avec ses lignes de `ai-agent/README.md`. **Cette tâche est faite pour le moteur si ce commit est lu sur `origin/main` ; pour le jeu, quand `origin/remaster` contient le commit du jeu qui pointe sur lui.** Les sorties des contrôles de P9 et les deux `ls-remote` sont dans le rapport de fin de la session. Si un contrôle échoue ou si un push est refusé, un commit de plus sur la branche repasse cette tâche en ⚠️ et dit ce qui a été poussé ; lu seulement en local, `git ls-remote origin main` dit ce qu'il en est.
+- Reste à l'auteur : O3 (étendre ou non le refus aux noms réservés de Windows) et O4 (nom court 8.3 en dernière position d'un drapeau de dossier de l'automatisation).
 
 ---
 
