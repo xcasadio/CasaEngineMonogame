@@ -11,7 +11,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 namespace CasaEngine.Editor.Remote;
 
 /// <summary>
-/// Entity asset commands (ADR-0129, plan T1.2). They act on the single entity of a <c>.entity</c> asset through its
+/// Entity asset commands (ADR-0145, plan T1.2). They act on the single entity of a <c>.entity</c> asset through its
 /// open panel, with the panel's own undo history: one entry per edit, undone with <c>history.undo</c> (context = the
 /// asset id). Every command, <c>entity_asset.get</c> included, is refused in play mode (plan P14) and checks that the
 /// open panel holds the resolved file before any read or edit (plan P13). <c>entity_asset.create</c> (plan T1.3, P6)

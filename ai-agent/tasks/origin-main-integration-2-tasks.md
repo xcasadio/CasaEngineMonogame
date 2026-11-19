@@ -10,7 +10,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > Relecture de la première tranche, T0.1 à T1.2 (relecteur frais, sur `49c9bd22c`) : **REVISE**, quatre blocages, tous traités (`FIX`) : la renumérotation dit maintenant, mention par mention, ce qui change et ce qui reste, avec la liste exacte attendue après coup ; les liens par nom de fichier sont contrôlés ; les contrôles placés avant le commit de fusion lisent l'arbre de travail et non `HEAD` ; l'arrêt garde les fichiers résolus ou réparés à la main, par copie, à un chemin absolu.
 > Relecture de la première tranche, seconde passe (relecteur frais, sur `7ee5e43ae`) : **REVISE**, un blocage ; les trois autres sont dits fermés. Second `REVISE` de cette tranche : traitement par la session principale, puis une seule relecture de clôture. `FIX` : la liste de T0.1 n'était pas fermée ; trois mentions échappaient aux quatre motifs. Toutes les mentions de l'arbre ont été relevées par `git grep -n -E "\b0128\b|\b0129\b|0128-|0129-"` hors de ce plan : en dehors des quatre motifs, il n'y en a que deux lignes (`ai-agent/README.md:16`, des numéros nus dans la ligne de ce plan ; `ai-agent/tasks/offline-world-writer-tasks.md:91`, un nom de fichier écrit avec une ellipse), plus les numéros nus de la ligne O7 du plan précédent. T0.1 les nomme, et sa validation porte sur cette recherche large.
 > Relecture de clôture de la première tranche (relecteur frais, sur `604ec46de`) : **READY**.
-> **En attente de l'approbation explicite de l'auteur** : rien n'est fusionné, renuméroté ni poussé avant.
+> **Approuvé par l'auteur le 2026-11-19** : « Approuvé en mode auto », écrit par lui dans la session du chantier, sur le plan `473f8c9d3` (P1 à P12, push final compris). Exécution en mode `AUTO`.
 > Relecture de l'enveloppe (2026-11-19, `plan-verifier`) : **REVISE**, quatre blocages, tous traités (`FIX`) dans cette version : (1) le seul conflit annoncé était mesuré avant la renumérotation, qui touche elle-même des fichiers qu'`origin/main` modifie : `GameEditor.cs` sort de T0.1, la mesure est refaite après T0.1 et tout conflit hors des deux index arrête avant la fusion ; (2) l'arrêt au milieu de T1.2 n'avait pas d'état défini : procédure d'arrêt écrite, liste de contrôle placée avant le commit de fusion ; (3) le point (b) de la liste laissait l'agent choisir entre arrêt et résidu : les quatre prédicats d'`origin/main` ont été relus (ils égalent ceux de l'hôte), et tout écart sur l'arbre fusionné est un arrêt ; (4) les contrôles de S4-5 n'étaient dans aucune étape : ils sont des étapes de T4.2, avant toute avance de référence.
 
 > **Quand écrire un plan** : dès que le travail demande plus d'un commit. En dessous, exécution directe avec le rapport de fin de tâche d'`AGENTS.md`.
@@ -112,7 +112,7 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 
 ## Phase 0 — Numéros de décisions
 
-### ⏳ T0.1 — Renuméroter les ADR locales 0128 et 0129
+### ✅ T0.1 — Renuméroter les ADR locales 0128 et 0129
 
 - Objectif : P2, avant la fusion, quand les mentions à changer désignent encore des décisions locales.
 - Fichiers : `docs/decisions/0128-a-world-file-can-be-written-from-entities-that-are-not-initialized.md` → `0144-a-world-file-can-be-written-from-entities-that-are-not-initialized.md`, `docs/decisions/0129-editor-remote-control-edits-entity-assets.md` → `0145-editor-remote-control-edits-entity-assets.md` (`git mv`), `docs/decisions/README.md`, et les fichiers du relevé (code et tests : commentaires seulement).
@@ -131,6 +131,11 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
   - `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur. **Exception voulue à la règle « les deux solutions et les tests »** : la tâche ne change que du texte de commentaire, et `CasaEngine.Tests` n'est compilé par aucune des deux solutions ; les tests sont compilés et lancés en T1.2 ;
   - **la liste des conflits ne contient que `docs/decisions/README.md` et, au plus, `ai-agent/README.md`.** Tout autre fichier en conflit : ⚠️ **avant T1.1** (MGUI n'est pas avancé, `git merge` n'est pas lancé), liste écrite dans les points ouverts, question à l'auteur.
 - Commit : `docs(decisions): renumber the local records 0128 and 0129 to 0144 and 0145 before merging origin/main`
+- Note de validation (2026-11-19) : deux `git mv` ; script `t01_renumber.py` (scratchpad de la session) : 40 mentions remplacées dans 14 fichiers, la mention de la ligne 91 de `offline-world-writer-tasks.md`, les deux lignes `Renumbered from`, les deux titres de l'index, la phrase d'en-tête du plan précédent.
+  - Recherche large hors de ce plan : exactement les neuf lignes attendues : `CasaEngine.Editor/GameEditor.cs:8194` (`ADR-0129`, laissé à la fusion) ; `ai-agent/README.md:16` (numéros nus) et `:17` (« ADR-0128 à 0143 », seule mention restante de la ligne) ; `ai-agent/tasks/entity-asset-remote-tasks.md:6` (phrase d'en-tête) et `:364` (O7) ; `docs/decisions/0144-…md:6` et `0145-…md:6` (`Renumbered from`) ; `docs/decisions/README.md:144` et `:145` (`numbered ADR-… until 2026-11-19`). `offline-world-writer-tasks.md:91` lit `docs/decisions/0144-…md`. « ADR-0144 à 0143 » n'apparaît nulle part hors de ce plan, qui le cite.
+  - Liens : trois liens vers les fichiers renumérotés (deux dans l'index, un dans `docs/editor/editor-remote-control.md`), tous résolus ; aucun lien vers un ancien nom.
+  - `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+  - Conflits prévus, mesurés sur l'arbre renuméroté (objet de commit temporaire, sans référence, puis `git merge-tree --write-tree --name-only origin/main`) : **`docs/decisions/README.md` seul**. La liste tient dans ce que la tâche admet : T1.1 peut être lancée.
 
 ## Phase 1 — Fusion et code
 

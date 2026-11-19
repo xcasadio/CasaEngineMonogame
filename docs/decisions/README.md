@@ -141,5 +141,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0125](0125-the-static-mesh-draw-order-is-fully-deterministic.md) | The static mesh draw order is fully deterministic | Accepted | 2026-11-17 |
 | [ADR-0126](0126-a-lit-pbr-material-can-ask-for-its-emissive-to-receive-the-shadow.md) | A lit-pbr material can ask for its emissive to receive the shadow | Accepted | 2026-11-17 |
 | [ADR-0127](0127-the-tap-count-of-the-shadow-filter-is-a-setting.md) | The tap count of the shadow filter is a setting | Accepted | 2026-11-18 |
-| [ADR-0128](0128-a-world-file-can-be-written-from-entities-that-are-not-initialized.md) | A world file can be written from entities that are not initialized | Proposed | 2026-11-18 |
-| [ADR-0129](0129-editor-remote-control-edits-entity-assets.md) | Editor remote control edits entity assets through their panel | Proposed | 2026-11-19 |
+| [ADR-0144](0144-a-world-file-can-be-written-from-entities-that-are-not-initialized.md) | A world file can be written from entities that are not initialized (numbered ADR-0128 until 2026-11-19) | Proposed | 2026-11-18 |
+| [ADR-0145](0145-editor-remote-control-edits-entity-assets.md) | Editor remote control edits entity assets through their panel (numbered ADR-0129 until 2026-11-19) | Proposed | 2026-11-19 |

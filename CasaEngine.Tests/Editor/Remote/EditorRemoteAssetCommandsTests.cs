@@ -172,7 +172,7 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
         }
     }
 
-    /// <summary>ADR-0129, plan P3: an entity asset opens through asset.open, by id or by file, at the file Resolve checked.</summary>
+    /// <summary>ADR-0145, plan P3: an entity asset opens through asset.open, by id or by file, at the file Resolve checked.</summary>
     [Fact]
     public void AssetOpen_EntityByIdOrFile_OpensTheResolvedFile()
     {
@@ -218,7 +218,7 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
         Assert.Throws<EditorRemoteArgumentException>(() => EditorRemoteAssets.Resolve(_host.ProjectDirectory, entity.ToString(), "material"));
     }
 
-    /// <summary>ADR-0129, plan P3, security review S2-3: an entity panel closes like the four other asset panels, never when modified.</summary>
+    /// <summary>ADR-0145, plan P3, security review S2-3: an entity panel closes like the four other asset panels, never when modified.</summary>
     [Fact]
     public void PanelClose_EntityPanel_ClosesOnlyWhenUnmodified()
     {
@@ -231,7 +231,7 @@ public sealed class EditorRemoteAssetCommandsTests : IDisposable
     }
 
     /// <summary>
-    /// ADR-0129, plans P3 and P13, security review S2-10 and S3-2: history.undo and history.redo reach the context of an open entity
+    /// ADR-0145, plans P3 and P13, security review S2-10 and S3-2: history.undo and history.redo reach the context of an open entity
     /// panel the host answers for; an id without a panel is refused and creates no history.
     /// </summary>
     [Fact]

@@ -316,7 +316,7 @@ public partial class GameEditor
 
         /// <summary>
         /// Closing by code raises no closing event (the dock only asks for user closes), so the unsaved check is done
-        /// here, per kind, and only the five asset document panels may close (ADR-0093 P7, security review S2-3; ADR-0129).
+        /// here, per kind, and only the five asset document panels may close (ADR-0093 P7, security review S2-3; ADR-0145).
         /// </summary>
         public RemotePanelCloseResult ClosePanel(string panelId)
         {

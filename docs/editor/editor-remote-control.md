@@ -1,6 +1,6 @@
 # Editor remote control (CLI and MCP)
 
-A running editor can be driven from outside: by the `casa-editor` command line, or by an AI agent through the `casa-editor-mcp` MCP server. Both call the same typed commands, served by the editor on a local pipe. Decisions: [ADR-0092](../decisions/0092-editor-remote-control-for-tools-and-ai-agents.md) (world, entities, captures, play) and [ADR-0093](../decisions/0093-editor-remote-control-covers-assets-panels-and-automation.md) (assets, panels, reparenting, automation flags) and [ADR-0129](../decisions/0129-editor-remote-control-edits-entity-assets.md) (entity assets).
+A running editor can be driven from outside: by the `casa-editor` command line, or by an AI agent through the `casa-editor-mcp` MCP server. Both call the same typed commands, served by the editor on a local pipe. Decisions: [ADR-0092](../decisions/0092-editor-remote-control-for-tools-and-ai-agents.md) (world, entities, captures, play) and [ADR-0093](../decisions/0093-editor-remote-control-covers-assets-panels-and-automation.md) (assets, panels, reparenting, automation flags) and [ADR-0145](../decisions/0145-editor-remote-control-edits-entity-assets.md) (entity assets).
 
 ## Start it
 

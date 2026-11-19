@@ -6,7 +6,7 @@ using CasaEngine.Framework.Scene.Entities;
 
 namespace CasaEngine.Editor.Remote;
 
-/// <summary>Rules the remote commands apply to an entity asset panel (ADR-0129).</summary>
+/// <summary>Rules the remote commands apply to an entity asset panel (ADR-0145).</summary>
 internal static class EditorRemoteEntityAssets
 {
     /// <summary>

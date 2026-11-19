@@ -14,7 +14,7 @@ internal static class EditorRemoteAssetTypes
     public const string Sound = "sound";
     public const string Entity = "entity";
 
-    /// <summary>The five types <c>asset.open</c> accepts (plan P7, ADR-0129); a world goes through <c>world.open</c>.</summary>
+    /// <summary>The five types <c>asset.open</c> accepts (plan P7, ADR-0145); a world goes through <c>world.open</c>.</summary>
     public static bool IsOpenable(string type) => type is Material or Particle or UIScreen or Sound or Entity;
 
     /// <summary>

@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Editor.Remote;
 
 /// <summary>
-/// ADR-0129, task T1.3: <c>entity_asset.create</c> goes through the checks of <c>EditorRemoteAssetCreation.Prepare</c>
+/// ADR-0145, task T1.3: <c>entity_asset.create</c> goes through the checks of <c>EditorRemoteAssetCreation.Prepare</c>
 /// before the host is called (security review S3-5), and <see cref="EditorRemoteEntityAssets.Create"/> writes the file
 /// before the catalog entry and undoes both on any failure after the reservation (plan P6, security review S3-4).
 /// </summary>

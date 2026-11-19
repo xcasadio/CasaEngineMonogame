@@ -15,7 +15,7 @@ using static CasaEngine.Tests.Editor.Remote.EditorRemoteEditCommandsTests;
 namespace CasaEngine.Tests.Editor.Remote;
 
 /// <summary>
-/// ADR-0129, task T1.2: the <c>entity_asset.*</c> commands edit the entity of a <c>.entity</c> asset through its open
+/// ADR-0145, task T1.2: the <c>entity_asset.*</c> commands edit the entity of a <c>.entity</c> asset through its open
 /// panel and the panel's history (plans P1, P2, P5, P7), refused in play mode (P14), with the asset reference checked
 /// before any host call and the panel checked to hold the resolved file before any read or edit (P13, security review
 /// S3-1, S3-5, S3-7).

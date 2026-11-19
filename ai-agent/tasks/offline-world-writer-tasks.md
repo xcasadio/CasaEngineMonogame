@@ -88,11 +88,11 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 ### ✅ T2 — ADR, vérification indépendante, clôture
 
-- **Fichiers** : `docs/decisions/0128-…md` (skill `CasaEngine:adr`, `Proposed`), son index, ce plan, `ai-agent/README.md`.
+- **Fichiers** : `docs/decisions/0144-…md` (skill `CasaEngine:adr`, `Proposed`), son index, ce plan, `ai-agent/README.md`.
 - **Vérification** : un `verifier` frais sur T1 (build, tests relancés, P1 à P4 éprouvés, un monde écrit puis chargé par `World.Load`, la voie existante inchangée). Ses constats sont tranchés avant la clôture.
 - **Commit** : `docs(adr): record the offline world writer`
 
-> Validation (2026-11-18). ADR-0128 `Proposed`, index mis à jour.
+> Validation (2026-11-18). ADR-0144 `Proposed`, index mis à jour.
 > Vérification indépendante de T1 (`verifier` frais sur `de9770f10`) : **CONFIRMED** sur les six affirmations ; arbre propre à la fin.
 > - Périmètre : six fichiers depuis `da32906e2`, tous sous `CasaEngine.EditorServices/`, `CasaEngine.Tests/`, `docs/`, `ai-agent/` ; aucun `.world` modifié.
 > - Voie existante inchangée, **mesurée** : l'ancien sérialiseur (copie de `da32906e2` compilée à part) et le nouveau écrivent un texte identique pour un monde riche construit en code, un monde de lumières initialisé, un monde vide et les 14 `.world` des projets du dépôt.
@@ -116,4 +116,4 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 ## Points ouverts
 
-- O1 (auteur, après T2) : validation de l'ADR-0128 ; avance de `main` et push.
+- O1 (auteur, après T2) : validation de l'ADR-0144 ; avance de `main` et push.
