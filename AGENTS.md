@@ -26,7 +26,7 @@ Source unique des règles pour tous les agents IA qui travaillent dans ce dépô
 
 ## 4. Git et commits
 
-- **Branche dédiée par chantier**, créée depuis `main`. Jamais de commit sur `main` (un hook Claude Code déclaré dans `.claude/settings.json` l'interdit).
+- **Branche dédiée par chantier**, créée depuis `main`. Jamais de commit sur `main`. Aucun hook ne l'empêche : la règle s'applique par elle-même.
 - **Un commit par tâche terminée**, fait par l'agent sans demander, atomique et buildable. Message en anglais, au format `type(area): summary` (`feat`, `fix`, `refactor`, `docs`, `chore`, `perf`, `test`).
 - **Jamais de push**, jamais de merge sur `main`, sans demande explicite de l'auteur.
 - Inspecter `git diff` avant de committer. Indexer fichier par fichier (`git add <chemin>`), jamais `git add -A` ni `git add .`. Ne jamais committer de changement sans rapport avec la tâche.
