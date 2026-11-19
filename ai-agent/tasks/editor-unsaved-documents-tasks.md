@@ -136,7 +136,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 - Commit : `feat(editor): add the pure model of a savable document and the ask-then-proceed gate`
 - Validation faite (2026-11-19) : trois classes internes pures ajoutées (`EditorSavableDocument`, `ModifiedDocuments`, `ModifiedDocumentsGate`), non branchées ; 16 tests ajoutés (6 + 10), calqués sur `ModifiedScreensExitCoordinatorTests`. Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts (6624 + 16). Aucun test existant modifié.
 
-### ⏳ T1.2 — Aligner le document Son
+### ✅ T1.2 — Aligner le document Son
 
 - Objectif : D4 et P9.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`.
@@ -148,6 +148,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   5. Ajouter `SaveDirtySoundInspectors()` sur le modèle de `SaveDirtySpriteInspectors` (sans contexte d'historique : le son n'en a pas) et l'appeler dans `SaveCurrentProject` avec les autres boucles.
 - Validation : build à 0 erreur ; tests verts. Lecture du diff : aucun autre document touché.
 - Commit : `feat(editor): mark a modified sound in its tab and save it with the project`
+- Validation faite (2026-11-19) : `TryGetSoundAssetInspectorPanel`, `GetSoundDocumentTitle`, `OnSoundInspectorDirtyStateChanged` (abonné à la création, désabonné dans `OnDockHostPanelRemoved`) et `SaveDirtySoundInspectors` (appelée par `SaveCurrentProject`) ajoutés dans `GameEditor.cs` seul. P9 : comme matériau, particules et Animation2D, un son déjà ouvert et modifié garde ses modifications (activation de l'onglet, journal `Unsaved changes kept for <chemin>`). Build de `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 6640 verts. Aucun autre document touché.
 
 ### ⏳ T1.3 — Une méthode d'enregistrement par document, et la liste des documents ouverts
 

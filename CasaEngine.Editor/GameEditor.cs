@@ -2597,6 +2597,7 @@ public class GameEditor : Game, IObservableUpdate
         SaveDirtyScreenDocuments();
         SaveDirtyMaterialInspectors();
         SaveDirtySpriteInspectors();
+        SaveDirtySoundInspectors();
         SaveDirtyParticleInspectors();
         SaveDirtyAudioMixers();
         SaveDirtyAnimation2dInspectors();
@@ -3226,6 +3227,7 @@ public class GameEditor : Game, IObservableUpdate
         if (_soundInspectorPanels.TryGetValue(panel.Id, out var soundInspectorPanel))
         {
             // Disposing stops the preview: a closed tab must not keep playing.
+            soundInspectorPanel.DirtyStateChanged -= OnSoundInspectorDirtyStateChanged;
             soundInspectorPanel.Dispose();
             _soundInspectorPanels.Remove(panel.Id);
             _soundInspectorPanelTitles.Remove(panel.Id);
@@ -3702,6 +3704,18 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return _entityAssetEditorPanels.TryGetValue(panelId, out entityAssetEditorPanel);
+    }
+
+    private bool TryGetSoundAssetInspectorPanel(string panelId, out SoundAssetInspectorPanel inspectorPanel)
+    {
+        inspectorPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.SoundAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _soundInspectorPanels.TryGetValue(panelId, out inspectorPanel);
     }
 
     private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
@@ -5104,7 +5118,19 @@ public class GameEditor : Game, IObservableUpdate
         if (!_soundInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
             inspectorPanel = new SoundAssetInspectorPanel(_mainWindow, _editorRuntime);
+            inspectorPanel.DirtyStateChanged += OnSoundInspectorDirtyStateChanged;
             _soundInspectorPanels.Add(panelId, inspectorPanel);
+        }
+        else if (inspectorPanel.IsDirty)
+        {
+            // Reopening a modified sound keeps its unsaved changes, like the other asset documents.
+            if (_dockHost?.LayoutModel?.FindPanelById(panelId) != null)
+            {
+                ActivateDockPanel(panelId);
+            }
+
+            Logs.WriteInfo($"Unsaved changes kept for {inspectorPanel.LoadedRelativePath}");
+            return true;
         }
 
         inspectorPanel.LoadAsset(soundAsset, fullPath);
@@ -5125,7 +5151,7 @@ public class GameEditor : Game, IObservableUpdate
 
             var panelNode = new DockPanelNode(panelId)
             {
-                Title = panelTitle,
+                Title = GetSoundDocumentTitle(panelId),
                 DockableType = DockableType.Document,
                 CanClose = true,
                 CanFloat = true,
@@ -5137,7 +5163,7 @@ public class GameEditor : Game, IObservableUpdate
         }
         else
         {
-            existingPanel.Title = panelTitle;
+            existingPanel.Title = GetSoundDocumentTitle(panelId);
         }
 
         ActivateDockPanel(panelId);
@@ -5658,6 +5684,18 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void OnSoundInspectorDirtyStateChanged(SoundAssetInspectorPanel inspectorPanel)
+    {
+        foreach (var pair in _soundInspectorPanels)
+        {
+            if (ReferenceEquals(pair.Value, inspectorPanel))
+            {
+                UpdateDockPanelTitle(pair.Key, GetSoundDocumentTitle(pair.Key));
+                return;
+            }
+        }
+    }
+
     private void OnSpriteInspectorDirtyStateChanged(SpriteAssetInspectorPanel inspectorPanel)
     {
         UpdateDockPanelTitleForSpriteInspector(inspectorPanel);
@@ -5795,6 +5833,29 @@ public class GameEditor : Game, IObservableUpdate
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
                 Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
+    private void SaveDirtySoundInspectors()
+    {
+        // The sound has no history context: only the panel flag and the tab title are updated.
+        foreach (var pair in _soundInspectorPanels)
+        {
+            var soundInspectorPanel = pair.Value;
+            if (!soundInspectorPanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (soundInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                UpdateDockPanelTitle(pair.Key, GetSoundDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Sound asset saved: {soundInspectorPanel.LoadedRelativePath}");
             }
             else if (!string.IsNullOrWhiteSpace(errorMessage))
             {
@@ -6093,6 +6154,13 @@ public class GameEditor : Game, IObservableUpdate
             isDirty |= inspectorPanel.IsDirty;
         }
 
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private string GetSoundDocumentTitle(string panelId)
+    {
+        var title = _soundInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Sound";
+        bool isDirty = TryGetSoundAssetInspectorPanel(panelId, out var inspectorPanel) && inspectorPanel.IsDirty;
         return isDirty ? $"{title} *" : title;
     }
 
