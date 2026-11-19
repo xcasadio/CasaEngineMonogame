@@ -551,11 +551,12 @@ Travail répétitif à jugement borné : confié à un `executor`, relu par la s
 3. Validation : `rg "\bCamera3dComponent\b" --glob "*.cs"` ne trouve rien ; `Camera3dFieldOfViewTests` et `PerspectiveCameraComponentTests` verts sans changement d'affirmation ; un test relit un `PerspectiveCameraComponent` écrit par l'éditeur et retrouve les mêmes clés qu'avant la fusion ; builds ; tests.
 - **Fait (2026-11-19).** `PerspectiveCameraComponent` dérive de `CameraComponent` et porte `DefaultFieldOfView`, `FieldOfView`, `InitializeWithWorld`, la projection par défaut et la lecture de `fieldOfView`, recopiés sans changement. `Camera3dComponent.cs` supprimé. Six fichiers passent sur le nouveau type ; `SaveCamera3dComponent` devient `SavePerspectiveCameraComponent`, corps inchangé (un seul cas dans l'aiguillage). `rg "\bCamera3dComponent\b" --glob "*.cs"` : aucun résultat. Nouveau test `TheEditorWriter_WritesTheKeysOfTheCamera_InTheSameOrderAsBeforeTheFusion` : `id`, `name`, `type`, `local_transform`, `children_component`, `view_distance`, `viewport`, `fieldOfView`, `picture_offset`. Cette liste a été relevée après la fusion ; qu'elle soit celle d'avant se déduit du diff (le corps de la méthode d'écriture n'a pas changé), le test ne l'a pas mesuré sur l'ancien code. `Camera3dFieldOfViewTests` et `PerspectiveCameraComponentTests` verts sans changement d'affirmation. Les deux solutions à 0 erreur ; 8119 tests, 0 échec.
 
-### ⏳ T3.7 — Documentation
+### ✅ T3.7 — Documentation
 
 - `docs/engine/perspective-camera-component.md`, `docs/engine/camera-behaviour-components.md`, `docs/editor/viewport-camera-controls.md`, `docs/editor/editor-2d-viewport.md`, `docs/README.md` : plus de mention des classes retirées comme existantes ; comment migrer un fichier à la main (les deux formes côte à côte).
 - `ai-agent/README.md` : la ligne du plan dit l'état réel (elle dit encore que la tranche 2 attend sa fusion).
 - Validation : relecture ; liens vérifiés.
+- **Fait (2026-11-19).** `perspective-camera-component.md` (la caméra 3D du moteur ; section de migration d'un fichier à la main, les deux formes côte à côte), `camera-behaviour-components.md`, `editor-2d-viewport.md`, `docs/README.md`, `ai-agent/README.md`. `viewport-camera-controls.md` ne nommait aucune classe retirée : inchangé. Documentation seule.
 
 ### ⏳ T3.8 — Vérification indépendante et recette
 

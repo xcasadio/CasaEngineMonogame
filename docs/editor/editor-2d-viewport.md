@@ -1,6 +1,6 @@
 # Viewport 2D de l'éditeur
 
-Le viewport monde de l'éditeur peut basculer entre une vue 3D perspective (caméra ArcBall, mode
+Le viewport monde de l'éditeur peut basculer entre une vue 3D perspective (caméra perspective posée par une orbite, mode
 historique) et une vue 2D orthographique. Le mode est une propriété **du viewport**, pas de la
 scène : voir [rendering-2d-3d-spaces.md](../engine/rendering-2d-3d-spaces.md) pour la règle de
 projection côté moteur.
@@ -15,7 +15,7 @@ monde de l'éditeur.
 Le panneau possède **deux caméras et deux contrôleurs indépendants** :
 
 ```text
-3D : PerspectiveCameraComponent + OrbitCameraComponent + EditorViewportCameraController (ADR-0148 ; ArcBallCameraComponent jusqu'au 2026-11-19)
+3D : PerspectiveCameraComponent + OrbitCameraComponent + EditorViewportCameraController (ADR-0148, ADR-0149)
 2D : Camera2dComponent       + EditorViewport2dCameraController
 ```
 
@@ -104,5 +104,5 @@ de viewport étant créé paresseusement, un état lu avant sa création est mé
 création. Toute erreur d'E/S ou de parsing est journalisée en warning et n'empêche jamais le
 chargement du layout ; sans projet chargé, la sauvegarde est un no-op.
 
-L'état de la caméra ArcBall 3D n'est volontairement pas persisté (il ne l'était pas non plus avant :
+L'état de la caméra 3D n'est volontairement pas persisté (il ne l'était pas non plus avant :
 `SaveLayoutToJson` ne sérialise que l'arbre de docking).

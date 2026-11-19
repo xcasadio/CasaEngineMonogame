@@ -2,7 +2,7 @@
 
 A perspective camera posed by the transform of its component (ADR-0147). A world declares it with no code: where the component is, the camera is; how the component is turned, the camera looks, roll included.
 
-It is the first slice of the chantier "simple cameras, behaviours as components" (`ai-agent/tasks/simple-cameras-and-behaviours-tasks.md`). The other cameras (`ArcBallCameraComponent`, `CameraLookAtComponent`, `CameraTargeted2dComponent`, `Camera2dComponent`) are unchanged.
+It is the 3d camera of the engine: the arc ball, look-at and targeted 2d cameras are removed, and the abstract `Camera3dComponent` is merged into it (ADR-0149). The 2d camera is `Camera2dComponent`.
 
 ## View
 
@@ -56,7 +56,29 @@ It is the first slice of the chantier "simple cameras, behaviours as components"
 ## What comes next
 
 - Slice 2 (done, ADR-0148) moved the orbit and the 2d follow into components that write the transform of this camera: see [camera-behaviour-components.md](camera-behaviour-components.md).
-- Slice 3 removes `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent`, and decides how the data that names them is read. `PerspectiveCameraComponent` keeps its name and its keys.
+- Slice 3 (done, ADR-0149) removed `ArcBallCameraComponent`, `CameraLookAtComponent`, `CameraTargeted2dComponent` and `Camera3dComponent`. `PerspectiveCameraComponent` keeps its name and its keys.
+
+## Migrating a file that names an old camera
+
+The loader has no translation path (ADR-0149): a component whose `type` is an old camera is reported in the log and kept as an unresolved component, and the entity has no camera. Edit the file once.
+
+An arc ball camera:
+
+```json
+"root_component": { "type": "ArcBallCameraComponent", "fieldOfView": 0.7853982, "target": { "x": 0, "y": 1, "z": 0 }, "distance": 12, "yaw": 3.1415927, "pitch": -0.4, "...": "..." },
+"components": []
+```
+
+becomes a posed camera and an orbit, with the same four values:
+
+```json
+"root_component": { "type": "PerspectiveCameraComponent", "fieldOfView": 0.7853982, "...": "..." },
+"components": [
+  { "id": "<a new guid>", "name": "OrbitCameraComponent", "type": "OrbitCameraComponent", "target": { "x": 0, "y": 1, "z": 0 }, "distance": 12, "yaw": 3.1415927, "pitch": -0.4 }
+]
+```
+
+A look-at camera becomes a `PerspectiveCameraComponent` whose `coordinates` hold its position and its orientation.
 
 ## Tests
 

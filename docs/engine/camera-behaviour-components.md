@@ -6,12 +6,12 @@ What moves a camera is a component placed on the entity of the camera (ADR-0148)
 
 Makes the camera orbit a target, without roll.
 
-- `Target`, `Distance`, `Yaw`, `Pitch`: the same values and conventions as `ArcBallCameraComponent`. The camera stands at `Target - Direction * Distance` with the orientation `AxisAngle(Up, -Yaw) * AxisAngle(Right, Pitch)`; `Direction` is (sin Yaw cos Pitch, sin Pitch, -cos Yaw cos Pitch).
+- `Target`, `Distance`, `Yaw`, `Pitch`: the values and conventions of the arc ball camera it replaced (removed, ADR-0149). The camera stands at `Target - Direction * Distance` with the orientation `AxisAngle(Up, -Yaw) * AxisAngle(Right, Pitch)`; `Direction` is (sin Yaw cos Pitch, sin Pitch, -cos Yaw cos Pitch).
 - `SetCamera(position, target)` deduces the distance, the yaw and the pitch from two points. A position equal to the target only moves the target.
 - `Direction` and `Right` give the axes of the camera.
 - It writes the local transform of the camera of its entity at each write of one of its values, when its entity is initialised and when it joins a world. It does nothing per frame.
 - **It owns the pose.** A pose written directly on the camera (`SetPositionAndTarget`, the transform) is overwritten at its next write. Frame an orbited camera through `SetCamera`.
-- For the same values, the view equals the view of an `ArcBallCameraComponent`: `OrbitCameraComponentTests` checks it on 360 combinations.
+- For the same values, the view equals the view the removed arc ball camera gave: `OrbitCameraComponentTests` checks it against the formulas of that class on 360 combinations.
 
 ```json
 "root_component": { "type": "PerspectiveCameraComponent", "...": "..." },
@@ -31,11 +31,11 @@ The saved transform of the camera is replaced by the pose of the orbit when the 
 
 ### Navigation
 
-`ViewportCameraState.From(orbit)` and `ApplyTo(orbit)` read and write the four values, so the viewport navigation (ADR-0089) drives an orbit as it drives an arc ball camera. `ScriptArcBallCamera` keeps its name: on an entity that has an orbit component it drives the orbit and changes the field of view of the camera; otherwise it drives an `ArcBallCameraComponent` as before. The 3d viewport of the editor and the default camera of the demos are a posed camera, an orbit and, in the demos, this script.
+`ViewportCameraState.From(orbit)` and `ApplyTo(orbit)` read and write the four values, so the viewport navigation (ADR-0089) drives an orbit. `ScriptArcBallCamera` keeps its name: on an entity that has an orbit component it drives the orbit and changes the field of view of the camera; on an entity with no orbit it does nothing (ADR-0149). The 3d viewport of the editor and the default camera of the demos are a posed camera, an orbit and, in the demos, this script.
 
 ## Follow2dCameraComponent
 
-Makes the camera follow an entity in the XY plane. The old `CameraTargeted2dComponent` followed nothing; this component is specified anew.
+Makes the camera follow an entity in the XY plane. The targeted 2d camera it replaces (removed, ADR-0149) followed nothing; this component is specified anew.
 
 - `target_entity_name`: the name of an entity of the world. `Target` can also be set by code.
 - `dead_zone` (`x`, `y`): width and height of the zone, in world units, centred on the camera. While the target is inside, the camera does not move.
@@ -62,8 +62,8 @@ There is no aim component. `PerspectiveCameraComponent.SetPositionAndTarget(posi
 - Both components write the local transform of the camera and expect a camera with no parent.
 - The follow component reads the world position of its target and does not drive a `Camera2dComponent`, which places itself from its own target.
 - No repository world uses the follow component: it is proven by its tests only.
-- `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent` still exist and still load from data; slice 3 of the chantier removes them.
+- `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent` are removed (ADR-0149); [perspective-camera-component.md](perspective-camera-component.md) shows how to migrate a file that names one.
 
 ## Tests
 
-`OrbitCameraComponentTests`, `ScriptArcBallCameraOrbitTests`, `Follow2dCameraComponentTests`, `EditorViewportCameraPoseTests`, `DemoCameraFramingTests`.
+`OrbitCameraComponentTests`, `OrbitCameraPlacementTests`, `LegacyCameraEntityDataTests`, `ScriptArcBallCameraOrbitTests`, `Follow2dCameraComponentTests`, `EditorViewportCameraPoseTests`, `DemoCameraFramingTests`.
