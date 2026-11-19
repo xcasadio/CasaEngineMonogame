@@ -590,10 +590,11 @@ Travail répétitif à jugement borné : confié à un `executor`, relu par la s
 - Les deux solutions à 0 erreur ; `CasaEngine.Tests` vert ; aucune affirmation retirée hors de celles qui portaient sur `Target`, listées dans la note de T4.3.
 - Recette de l'auteur : la vue 2D de l'éditeur, les démos 2D, `RPGDemo`, un sample à sprites.
 
-### ⏳ T4.0 — ADR
+### ✅ T4.0 — ADR
 
 - ADR-0150, en anglais, skill `adr`, indexé : la caméra 2D est posée par sa transformation ; la distance par défaut ; `PixelSnap` ; le sort de la clé `target` ; les 14 mondes migrés une fois (ADR-0008) ; la rupture d'API ; comment migrer un fichier à la main.
 - Validation : relecture.
+- **Fait (2026-11-19).** ADR-0150 écrit et indexé, sur la branche `chantier/camera-2d-pose`, partie de la tête de `chantier/camera-removal` (`a053061e`), la tranche 3 n'étant pas fusionnée. Documentation seule.
 
 ### ⏳ T4.1 — Figer la vue des 14 mondes
 
