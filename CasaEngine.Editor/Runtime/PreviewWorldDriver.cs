@@ -19,6 +19,13 @@ internal sealed class PreviewWorldDriverOptions
     public bool RefreshAfterRebuild { get; init; } = true;
 
     public bool ClearWorldOnDispose { get; init; } = true;
+
+    /// <summary>
+    /// When true, <see cref="PreviewWorldDriver.Tick(float)"/> also advances the physics world of the preview world, by the
+    /// step it received, after the world update. Only a preview whose world runs under a policy that leaves the physics to
+    /// its driver (<c>UpdatePhysicsEngine</c> false) should set it. False by default: other previews do not step physics.
+    /// </summary>
+    public bool StepPhysics { get; init; }
 }
 
 internal sealed class PreviewWorldDriver : IDisposable
@@ -94,7 +101,11 @@ internal sealed class PreviewWorldDriver : IDisposable
         Tick((float)gameTime.ElapsedGameTime.TotalSeconds);
     }
 
-    /// <summary>Advances the world by <paramref name="seconds"/>. Creates no <see cref="GameTime"/>, so a loop of steps allocates nothing.</summary>
+    /// <summary>
+    /// Advances the world by <paramref name="seconds"/>, then its physics world when <see cref="PreviewWorldDriverOptions.StepPhysics"/>
+    /// is set and the step is positive, in the order of the game: the world is updated before the physics. The game time scale
+    /// is not applied. Creates no <see cref="GameTime"/>, so a loop of steps allocates nothing.
+    /// </summary>
     public void Tick(float seconds)
     {
         if (_options.UpdateMode != PreviewWorldUpdateMode.Continuous || World == null)
@@ -103,6 +114,11 @@ internal sealed class PreviewWorldDriver : IDisposable
         }
 
         World.Update(seconds);
+
+        if (_options.StepPhysics && seconds > 0f)
+        {
+            World.PhysicsWorld?.Update(seconds);
+        }
     }
 
     public void Clear()

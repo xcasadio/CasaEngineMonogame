@@ -34,7 +34,7 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 internal sealed class CutsceneAssetInspectorPanel : IDisposable
 {
-    private const string PreviewLimitText = "Sprite animations, physics and scripts are frozen in the preview.";
+    private const string PreviewLimitText = "Gameplay scripts are not updated in the preview.";
 
     private readonly MGWindow _window;
     private readonly EditorDirtyStateService _dirtyState = EditorDirtyStateService.Current;

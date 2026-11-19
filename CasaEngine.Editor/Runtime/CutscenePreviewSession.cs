@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
@@ -69,6 +70,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
             {
                 WorldName = "Cutscene Preview",
                 UpdateMode = PreviewWorldUpdateMode.Continuous,
+                StepPhysics = true,
             });
     }
 
@@ -580,7 +582,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
         try
         {
-            _driver.Rebuild(() => _editorRuntime.AssetContentManager.LoadCopy<World>(worldAssetId));
+            _driver.Rebuild(() => CreatePreviewWorld(worldAssetId));
         }
         catch (Exception exception)
         {
@@ -598,6 +600,15 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         _clampNextStep = true;
         Error = string.Empty;
         return true;
+    }
+
+    // The copy runs under its own policy, set before its content is loaded (the load-time rules are read during that call):
+    // sprite animations, particles and physics live, gameplay scripts stay stopped (ADR-0146).
+    private World CreatePreviewWorld(Guid worldAssetId)
+    {
+        var world = _editorRuntime.AssetContentManager.LoadCopy<World>(worldAssetId);
+        world.ExecutionPolicyOverride = GameplayExecutionPolicies.EditorLivePreview;
+        return world;
     }
 
     private void DetachDirector()

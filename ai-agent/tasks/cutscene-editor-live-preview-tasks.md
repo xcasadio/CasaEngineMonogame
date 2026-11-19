@@ -181,7 +181,7 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
 
 ## Phase 2 — Éditeur et sample
 
-### ⏳ T2.1 — L'aperçu des cutscenes devient vivant
+### 🧪 T2.1 — L'aperçu des cutscenes devient vivant
 
 - Objectif : le monde d'aperçu d'une cutscene porte `EditorLivePreview` et fait avancer sa physique à chaque pas.
 - Fichiers : `CasaEngine.Editor/Runtime/PreviewWorldDriver.cs`, `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`, `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, tests dans `CasaEngine.Tests/Editor/` si un harnais existe, ce plan.
@@ -193,6 +193,12 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   5. Le pas de physique de `Tick` est dans le pilote, qu'aucun test ne construit : ne pas créer de harnais pour lui.
 - Validation : build ; `dotnet test` entier vert. Le câblage de la session n'a pas de test (aucun test ne construit la session) : il est prouvé par T2.4, et la tâche reste 🧪 jusque-là si rien d'autre ne le prouve.
 - Commit : `feat(editor): run sprite animations, particles and physics in the cutscene preview`
+- Note de validation (2026-11-19) :
+  - `PreviewWorldDriverOptions.StepPhysics` (faux par défaut) ajouté ; avec l'option, `PreviewWorldDriver.Tick(float)` appelle `World.Update(seconds)` puis `World.PhysicsWorld?.Update(seconds)` quand le pas est positif, sans `TimeScale`. `rg StepPhysics` : seule `CutscenePreviewSession` l'active ; les huit autres sites de `new PreviewWorldDriverOptions` (sprite, particules, modèle, matériau, entité, clip d'animation, Animation2D, miniatures) ne changent pas.
+  - `CutscenePreviewSession` : la fabrique passée à `Rebuild` charge la copie par `LoadCopy<World>`, pose `ExecutionPolicyOverride = GameplayExecutionPolicies.EditorLivePreview` (le monde n'a pas de jeu à ce moment, avant `LoadContent` du pilote), et le pilote est créé avec `StepPhysics = true`. `PreviewLimitText` du panneau vaut maintenant `Gameplay scripts are not updated in the preview.` (P9). Aucun commentaire de classe du pilote ni de la session ne disait l'aperçu figé : aucun n'a été changé.
+  - `rg "frozen in the preview" CasaEngine.Tests` : aucun résultat, donc aucun test existant touché. Aucun harnais créé pour le pas de physique du pilote.
+  - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8081 réussis, 0 échec, 0 ignoré, total 8081** (inchangé : aucun test ajouté).
+  - Non vérifié : le câblage de la session (règle posée sur la copie, pas de physique par pas) n'a pas de test et aucun lancement de l'éditeur n'a eu lieu ; il sera prouvé par T2.4, la tâche reste 🧪 jusque-là.
 
 ### ⏳ T2.2 — Sample vivant
 
