@@ -163,12 +163,17 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
 
 ## Phase 2 — Éditeur lancé
 
-### ⏳ T2.1 — L'essai refusé, le parcours et les smokes
+### ✅ T2.1 — L'essai refusé, le parcours et les smokes
 
 - Objectif : P7 après correction, et aucune régression du pilotage.
 - Étapes : rebuild ; l'essai de T0.1 rejoué sur une copie neuve (`…/after/`) ; `t22_run.py` sur une copie neuve (`EAR_SCRATCH` sur `<scratchpad>/remote-path-segments`, `EAR_COMMANDS_REFERENCE` sur `t22/commands-after.json`) ; `Tools/automation-smokes.sh` vers `artifacts/remote-path-segments/smokes/`, comparé à `artifacts/entity-asset-remote/integration/smokes/` ; empreintes des réglages de l'utilisateur avant et après.
 - Validation : tous les appels de P7 refusés (`invalid_argument` pour les commandes, message d'erreur pour `--open-asset`), cible intacte ; 185 contrôles sur 185 ; contrat inchangé ; fichiers des smokes identiques octet pour octet (toute différence est listée et expliquée, sinon ⚠️).
 - Commit : `docs(ai-agent): record the launched-editor run of the path segment rule`
+- Note de validation (2026-11-19), éditeur Debug construit sur le code de `40681136e`, script `artifacts/remote-path-segments/scripts/t21_run.sh`, sorties dans `artifacts/remote-path-segments/` du dépôt du jeu (`after/`, `t22/`, `smokes/`, `t21-run.txt`) :
+  - **L'essai de P7, même montage que T0.1 sur une copie neuve (`…/after/`) : tout est refusé.** `material.get` et `asset.open`, par le chemin `Entities /probe-outside.material` et par l'identifiant : `invalid_argument`, « `'Entities /probe-outside.material' goes through '<copie>\Entities ', a name that ends with a space: …` » (par l'identifiant, le message cite le nom de fichier du catalogue) ; aucun panneau d'asset ouvert (`panel.list`). `world.open` : `invalid_argument`, le monde courant reste `DefaultWorld` (`editor.status`). Démarrage avec `--open-asset` sur le matériau puis sur le `.entity` non catalogué : journal « `Unable to open startup asset … goes through '<copie>\Entities ', a name that ends with a space inside the project folder …` », aucun panneau ouvert. `--content-folder "<copie>\Entities \"` : « `[Automation] Content folder … refused: … a name that ends with a space …` » (en T0.1 le chemin passait le contrôle). Aucun fichier de `<cible>` ni de la copie n'a changé ; jonction retirée seule, aucun lien restant à l'énumération.
+  - **Parcours** (`t22_run.py`, copie neuve, trois lancements) : 185 contrôles sur 185 ; **contrat** : 54 commandes, aucune ajoutée, retirée ni changée par rapport à `t22/commands-after.json` (descriptions à part).
+  - **Smokes d'automatisation** S1 à S8 : les 24 fichiers (`sN-automation.txt`, `sN-hashes.txt`, `sN-exit.txt`) sont identiques octet pour octet à `artifacts/entity-asset-remote/integration/smokes/`.
+  - Réglages de l'utilisateur : 9169 fichiers de `%LOCALAPPDATA%/CasaEngine/` (hors `editor-remote/`) aux mêmes empreintes avant et après l'ensemble. Chaque éditeur piloté s'est fermé seul sur `taskkill /PID`.
 
 ## Phase 3 — Jeu
 
