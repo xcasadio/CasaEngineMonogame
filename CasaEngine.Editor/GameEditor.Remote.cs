@@ -641,8 +641,10 @@ public partial class GameEditor
         public string GetEntityAssetLoadedFile(Guid assetId)
             => TryGetOpenEntityAssetPanel(assetId, out var panel) ? panel.LoadedRelativePath : null;
 
+        /// <summary>Through the editor's document method (ADR-0143), for a panel open with its tab only (security review S3-6).</summary>
         public bool IsEntityAssetModified(Guid assetId)
-            => TryGetOpenEntityAssetPanel(assetId, out var panel) && panel.IsDirty;
+            => TryGetOpenEntityAssetPanel(assetId, out var panel)
+               && _editor.IsEntityDocumentModified(EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N"), panel);
 
         public void SelectEntityAssetComponent(Guid assetId, EntityComponent component)
         {
@@ -711,17 +713,19 @@ public partial class GameEditor
                 return sound.TrySaveLoadedAsset(out error);
             }
 
-            // As project.save does for the entity panels (SaveDirtyEntityAssetEditors), for a panel open with its tab only.
+            // Through the editor's save method of the entity documents (ADR-0143), as project.save does
+            // (SaveDirtyEntityAssetEditors), for a panel open with its tab only (security review S3-6). The method writes,
+            // marks the history saved and updates the title; on a failed write it logs the reason and leaves the panel modified.
             string entityPanelId = EditorPanelIds.EntityAssetDocumentPrefix + id;
             if (_editor._entityAssetEditorPanels.TryGetValue(entityPanelId, out var entity) && FindPanel(entityPanelId) != null)
             {
-                if (!entity.TrySaveLoadedAsset(out error))
+                if (!_editor.TrySaveEntityDocument(entityPanelId, entity))
                 {
+                    error = $"'{entity.LoadedRelativePath}' was not saved: see logs.read.";
                     return false;
                 }
 
-                _editor._editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Entity, entityPanelId));
-                _editor.UpdateDockPanelTitle(entityPanelId, _editor.GetEntityDocumentTitle(entityPanelId));
+                error = null;
                 return true;
             }
 
@@ -780,9 +784,10 @@ public partial class GameEditor
             }
 
             // An entity panel registered without its dock tab (the tab could not be created) is not open (security review S3-6).
+            // Its modified state is the editor's document method (ADR-0143).
             if (_editor._entityAssetEditorPanels.TryGetValue(panelId, out var entity) && FindPanel(panelId) != null)
             {
-                modified = entity.IsDirty;
+                modified = _editor.IsEntityDocumentModified(panelId, entity);
                 return EditorRemoteAssetTypes.Entity;
             }
 

@@ -181,13 +181,15 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
     - (h) `git diff dcd91e106 -- CasaEngine.Editor/Remote CasaEngine.Editor/GameEditor.Remote.cs Tools CasaEngine.Tests/Editor/Remote` : vide.
   - Après le commit : `git ls-tree HEAD MGUI` = `2f9773d0`, `origin/main` et `dcd91e106` ancêtres de `HEAD` (sorties dans le rapport de la tâche suivante si l'un échouait ; tenus).
 
-### ⏳ T1.3 — L'hôte du pilotage enregistre un asset d'entité par la méthode de l'éditeur
+### ✅ T1.3 — L'hôte du pilotage enregistre un asset d'entité par la méthode de l'éditeur
 
 - Objectif : P6.
 - Fichiers : `CasaEngine.Editor/GameEditor.Remote.cs` seulement.
 - Étapes : branche d'entité de `TrySaveAsset` → `_editor.TrySaveEntityDocument(panelId, panel)` (panneau ouvert avec son onglet seulement ; faux → `error` = `'<fichier du catalogue>' was not saved: see logs.read`) ; `GetAssetPanelKind` et `IsEntityAssetModified` → `_editor.IsEntityDocumentModified(panelId, panel)` ; le contrôle de l'onglet reste aux trois endroits. Avant d'écrire, l'exécuteur relit dans l'arbre fusionné le corps des deux méthodes et s'arrête s'il diffère de celui cité dans l'État vérifié.
 - Validation : build 0 erreur ; tests tous verts, aucune attente changée ; le comportement se contrôle dans l'éditeur lancé en T2.1 (`written` vrai puis faux, empreinte et date du fichier ; `panel.close` d'un panneau modifié refusé).
 - Commit : `refactor(editor): save an entity asset from the remote host through the editor's save method`
+- Relecture de la tâche avant exécution (`plan-verifier` frais, sur `ab36883e7`) : **READY**.
+- Note de validation (2026-11-19) : écrit par `security-executor` ; il a d'abord comparé les deux méthodes de l'arbre fusionné à la citation du plan (`GameEditor.cs:6511-6529` et `:6969-6971`, identiques). Seul `CasaEngine.Editor/GameEditor.Remote.cs` change, à trois endroits : la branche d'entité de `TrySaveAsset` appelle `_editor.TrySaveEntityDocument` (échec : `'<fichier chargé>' was not saved: see logs.read.`), `GetAssetPanelKind` et `IsEntityAssetModified` lisent `_editor.IsEntityDocumentModified` ; le contrôle de l'onglet reste aux trois endroits. Diff relu par la session principale. `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `dotnet test` : 8182 réussis sur 8182, aucune attente changée. Le message d'échec nomme le chemin chargé par le panneau, que `OpenAsset` a contrôlé égal au fichier du catalogue. À constater en T2.1 : `written` vrai puis faux, l'échec d'écriture (fichier en lecture seule) qui laisse le panneau modifié et ne montre aucune boîte de dialogue.
 
 ### ⏳ T1.4 — Les créations refusent un dossier écrit avec `..`, `.` ou un segment vide
 
