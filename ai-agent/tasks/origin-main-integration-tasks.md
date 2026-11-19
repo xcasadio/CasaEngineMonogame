@@ -166,7 +166,7 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
 
 ## Phase 3 — Clôture
 
-### ⏳ T3.1 — Index, contrôle par lancement, clôture
+### 🧪 T3.1 — Index, contrôle par lancement, clôture
 
 - Objectif : apporter la preuve atteignable sans entrée et clore le plan.
 - Fichiers : ce plan, `ai-agent/README.md`.
@@ -178,6 +178,13 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
   5. Ajouter ce plan au tableau de `ai-agent/README.md` et noter la validation globale.
 - Validation : les contrôles ci-dessus, notés avec le fichier lu.
 - Commit : `docs(plan): record the validation of the integration of origin/main`
+- Note de validation (2026-11-19) :
+  - Index : script hors dépôt ; `docs/decisions/README.md` (144 liens), `docs/README.md` (85) et `ai-agent/README.md` (145) : aucun lien vers un fichier manquant ; 143 lignes d'ADR dans l'index des décisions, aucun numéro en double (O1 : les deux séries ne se mélangent pas).
+  - MGUI : `dotnet build MGUI/MGUI.sln` 0 erreur ; `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj` 5301 sur 5301 verts.
+  - Lancement : aucun `CasaEngine.Editor.exe` en cours ; `CasaEngine.Editor.exe --project Projects/SpriteCutsceneSample/SpriteCutsceneSample.json --open-asset Cutscenes/stagger.cutscene --activate-panel cutscenetimeline --diagnostics-out … --screenshot-out …` : code de sortie 0, sorties dans `%TEMP%/t31out2` (`diag.txt`, `shot-final.png`, hors dépôt, le nom de la capture reçoit le suffixe `-final`). La capture montre l'éditeur avec la cutscene `SpriteStagger` ouverte et la timeline au premier plan ; le diagnostic donne « Activated dock panel 'panel_cutscene_timeline' » et la timeline attachée. `git status` : aucun fichier de `Projects/` modifié (seuls les deux dossiers `.casaeditor/` non suivis, jamais indexés).
+  - Aucun test perdu : script hors dépôt (`git grep -c -E "\[(Fact|Theory)"` sur `CasaEngine.Tests`, règle `fusionné = local + origin − base` par fichier). Totaux de lignes `[Fact`/`[Theory` : base `778f6aa8` 3938 (445 fichiers), local `e4114c97` 4942 (515), `origin/main` `da32906e` 4695 (518), tête fusionnée 5699 (588). 4942 + 4695 − 3938 = 5699. **Écarts : aucun** (0 fichier sur 588), ce qui est le résultat attendu avant T2.1 et reste vrai après (T2.1 n'a ajouté ni retiré de test).
+  - Ce plan est ajouté au tableau de `ai-agent/README.md`.
+  - Validation globale : deux solutions du moteur à 0 erreur et 8031 tests verts (T1.1, T2.1), MGUI à 0 erreur et 5301 verts, ancêtres vérifiés en T1.1, lancement de contrôle fait. Reste : T3.2 (avance de `main`, après la vérification indépendante), le clic réel de T2.1 par l'auteur, la confirmation de l'écart à P4 sur `.claude/settings.json`, O2 et O3.
 
 ### ⏳ T3.2 — Avancer `main` sur la branche d'intégration
 
