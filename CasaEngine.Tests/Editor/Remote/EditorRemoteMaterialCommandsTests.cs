@@ -103,6 +103,56 @@ public sealed class EditorRemoteMaterialCommandsTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_host.ProjectDirectory!, "Materials", "Fresh.material")));
     }
 
+    /// <summary>
+    /// Plan P7, security review S4-1: a folder with an empty segment, or a segment ending with a dot or a space, is refused
+    /// before any file-system access, even when Windows would resolve it to a real folder; nothing is written or catalogued.
+    /// </summary>
+    [Theory]
+    [InlineData("Materials/../Materials")]
+    [InlineData("Materials/./Sub")]
+    [InlineData("Materials//Sub")]
+    [InlineData("Materials.")]
+    [InlineData("Materials ")]
+    [InlineData("Materials/...")]
+    [InlineData("Materials/ /Sub")]
+    public void Create_RefusesAFolderWithAnEmptySegmentOrASegmentEndingWithADotOrASpace(string folder)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Materials", "Sub"));
+        string name = "RemoteMaterial" + Guid.NewGuid().ToString("N")[..8];
+
+        RemoteResponse response = Call("material.create", new { name, folder });
+
+        Assert.Equal(RemoteErrorCodes.InvalidParams, response.Error!.Code);
+        Assert.Contains("is not a valid folder", response.Error.Message);
+        Assert.Equal(0, _host.CatalogSaves);
+        Assert.Empty(Directory.GetFiles(_host.ProjectDirectory!, "*", SearchOption.AllDirectories));
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Plan P7: the root ('', '.', '/', '//'), a plain folder and a folder with a dot inside its name are accepted as before.</summary>
+    [Theory]
+    [InlineData("", "")]
+    [InlineData(".", "")]
+    [InlineData("/", "")]
+    [InlineData("//", "")]
+    [InlineData("Materials", "Materials/")]
+    [InlineData("Materials/v1.2", "Materials/v1.2/")]
+    [InlineData("Materials/.hidden", "Materials/.hidden/")]
+    public void Create_AcceptsTheRootAPlainFolderAndAFolderWithADotInside(string folder, string expectedPrefix)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Materials", "v1.2"));
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Materials", ".hidden"));
+        string name = "RemoteMaterial" + Guid.NewGuid().ToString("N")[..8];
+
+        JsonElement result = Ok(Call("material.create", new { name, folder }));
+
+        _catalogEntries.Add(result.GetProperty("asset_id").GetGuid());
+        string expectedFile = expectedPrefix + name + ".material";
+        Assert.Equal(expectedFile, result.GetProperty("file").GetString());
+        Assert.True(File.Exists(Path.Combine(_host.ProjectDirectory!, expectedFile.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.Equal(1, _host.CatalogSaves);
+    }
+
     [Fact]
     public void Validate_BoundsEveryValueType()
     {

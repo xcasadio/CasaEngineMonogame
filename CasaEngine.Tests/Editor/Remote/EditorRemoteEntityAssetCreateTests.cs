@@ -127,8 +127,17 @@ public sealed class EditorRemoteEntityAssetCreateTests : IDisposable
     [InlineData("Entities/Cars", "Entities/Cars/")]
     [InlineData("Entities\\Cars", "Entities/Cars/")]
     [InlineData("", "")]
+    [InlineData(".", "")]
+    [InlineData("/", "")]
+    [InlineData("//", "")]
+    [InlineData("Entities/", "Entities/")]
+    [InlineData("/Entities", "Entities/")]
+    [InlineData("Entities/v1.2", "Entities/v1.2/")]
+    [InlineData("Entities/.hidden", "Entities/.hidden/")]
     public void Create_SendsTheNewFileToTheHost_AndAnswersItsIdAndFile(string folder, string expectedPrefix)
     {
+        Directory.CreateDirectory(Path.Combine(_project, "Entities", "v1.2"));
+        Directory.CreateDirectory(Path.Combine(_project, "Entities", ".hidden"));
         string name = NewName();
 
         JsonElement result = Ok(Call("entity_asset.create", new { name, folder }));
@@ -209,6 +218,118 @@ public sealed class EditorRemoteEntityAssetCreateTests : IDisposable
         Assert.Empty(Directory.GetFiles(outside));
         Assert.Empty(Directory.GetFiles(_directory));
         Assert.Empty(ProjectFiles());
+    }
+
+    /// <summary>
+    /// Plan P7, security review S4-1: a folder with an empty segment, or a segment ending with a dot or a space, is refused
+    /// before any file-system access and before the host, even when Windows would resolve it to a real folder.
+    /// </summary>
+    [Theory]
+    [InlineData("Entities/../Entities")]
+    [InlineData("Entities/./Cars")]
+    [InlineData("Entities//Cars")]
+    [InlineData("Entities.")]
+    [InlineData("Entities ")]
+    [InlineData("Entities/...")]
+    [InlineData("Entities/ /Cars")]
+    [InlineData("Entities\\..\\Entities")]
+    [InlineData("Entities/Cars\t")]
+    public void Create_RefusesAFolderWithAnEmptySegmentOrASegmentEndingWithADotOrASpace_BeforeTheHost(string folder)
+    {
+        string name = NewName();
+
+        RemoteResponse response = Call("entity_asset.create", new { name, folder });
+
+        AssertInvalidParams(response);
+        Assert.Contains("is not a valid folder", response.Error!.Message);
+        Assert.Empty(_host.CreatedEntityAssets);
+        Assert.Empty(ProjectFiles());
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Plan P7, security review S4-1 (hypothesis): Windows drops a trailing space from the last segment of a path but keeps
+    /// it on an intermediate one, so with a junction named 'Entities ' next to a real 'Entities', the folder and link checks
+    /// could read the real folder while the new file is written through the junction. The rule refuses the folder before
+    /// any file-system access. The outcome is logged whatever it is; when the junction cannot be made, the case concludes
+    /// nothing. <c>material.create</c> is called too because it writes the file itself (the test host of the other
+    /// creations writes nothing).
+    /// </summary>
+    [Fact]
+    public void Create_InAFolderEndingWithASpace_NextToAJunctionOfThatName_IsRefused_AndWritesNothing()
+    {
+        string outside = Path.Combine(_directory, "outside");
+        Directory.CreateDirectory(outside);
+        string realFolder = Path.Combine(_project, "Entities");
+        if (!TryCreateJunctionEndingWithASpace(realFolder, outside, out string junction))
+        {
+            return;
+        }
+
+        string entityName = NewName();
+        string materialName = NewName("NewMaterial");
+        RemoteResponse entity = Call("entity_asset.create", new { name = entityName, folder = "Entities " });
+        RemoteResponse material = Call("material.create", new { name = materialName, folder = "Entities " });
+        if (material.Error == null)
+        {
+            _catalogEntries.Add(material.Result!.Value.GetProperty("asset_id").GetGuid());
+        }
+
+        string[] targetEntries = Directory.GetFileSystemEntries(outside);
+        string[] realFiles = Directory.GetFiles(realFolder, "*", SearchOption.AllDirectories);
+        _log.WriteLine($"entity_asset.create in 'Entities ': {Describe(entity)}; host calls: {_host.CreatedEntityAssets.Count}");
+        _log.WriteLine($"material.create in 'Entities ': {Describe(material)}");
+        _log.WriteLine($"entries under the junction's target: [{string.Join(", ", targetEntries)}]");
+        _log.WriteLine($"files under the real 'Entities': [{string.Join(", ", realFiles)}]");
+        _log.WriteLine($"junction still in place: {Directory.Exists(junction)}");
+
+        AssertInvalidParams(entity);
+        Assert.Contains("is not a valid folder", entity.Error!.Message);
+        AssertInvalidParams(material);
+        Assert.Contains("is not a valid folder", material.Error!.Message);
+        Assert.Empty(_host.CreatedEntityAssets);
+        Assert.Empty(targetEntries);
+        Assert.Empty(realFiles);
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, entityName, StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, materialName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string Describe(RemoteResponse response)
+        => response.Error == null
+            ? $"accepted, file '{response.Result!.Value.GetProperty("file").GetString()}'"
+            : $"refused ({response.Error.Code}, {response.Error.Data?.Reason}): {response.Error.Message}";
+
+    /// <summary>
+    /// Makes a junction named like <paramref name="realFolder"/> with a trailing space, next to it. Such a name can only be
+    /// given through a '\\?\' path, and mklink normalizes it to the real folder, so the junction is made under a plain name
+    /// and renamed through '\\?\' paths. The returned '\\?\' path is registered for removal: the link only, never its target.
+    /// </summary>
+    private bool TryCreateJunctionEndingWithASpace(string realFolder, string target, out string junction)
+    {
+        junction = @"\\?\" + realFolder + " ";
+        string plain = Path.Combine(Path.GetDirectoryName(realFolder)!, "junction-" + Guid.NewGuid().ToString("N")[..8]);
+        if (!TryCreateJunction(plain, target))
+        {
+            return false;
+        }
+
+        try
+        {
+            Directory.Move(@"\\?\" + plain, junction);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _log.WriteLine($"inconclusive: the junction could not be renamed to '{junction}' ({exception.GetType().Name}: {exception.Message})");
+            return false;
+        }
+
+        _links.Remove(plain);
+        _links.Add(junction);
+        Assert.True(Directory.Exists(junction), $"The junction '{junction}' was not created.");
+        Assert.True((File.GetAttributes(junction) & FileAttributes.ReparsePoint) != 0, $"'{junction}' is not a reparse point.");
+        Assert.True(Directory.Exists(realFolder) && (File.GetAttributes(realFolder) & FileAttributes.ReparsePoint) == 0, $"'{realFolder}' is not a real folder.");
+        _log.WriteLine($"junction created: '{junction}' -> '{target}', next to the real '{realFolder}'");
+        return true;
     }
 
     /// <summary>ADR-0093 A3, security review S3-5: a folder that is a junction is refused, naming the junction; nothing is written in its target.</summary>
