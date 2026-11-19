@@ -138,7 +138,7 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
 - Commit : `docs(decisions): record the simple cameras and their behaviour components`
 - Validation (2026-11-19) : ADR-0144, numéro suivant de la série (dernière : 0143), listée dans l'index.
 
-### ⏳ T1.2 — Caméra perspective posée par sa transformation
+### ✅ T1.2 — Caméra perspective posée par sa transformation
 
 - Objectif : une nouvelle classe concrète, dérivée de `Camera3dComponent`, nommée selon O2. Sa vue est `Matrix.Invert(WorldMatrixNoScale)` : la transformation monde du composant, parents compris, sans l'échelle. Elle hérite du champ de vision et de la projection de `Camera3dComponent`, sans les modifier.
 - Fichiers :
@@ -162,6 +162,8 @@ Relevé le 2026-11-19 sur `main` `9125b438`, base de la branche `chantier/simple
   3. L'écriture par l'éditeur.
 - Validation : build des deux solutions ; tests verts ; aucun test existant modifié.
 - Commit : `feat(camera): add a perspective camera posed by its transform`
+- Validation (2026-11-19) : `PerspectiveCameraComponentTests`, 14 cas verts ; les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8045 tests, 0 échec (8031 + 14), aucun test existant modifié. Ajouts hors liste : un test du roulis vu à l'écran, et le refus par `ArgumentException` d'une cible confondue avec la position ou à la verticale (un look-at y est indéfini). Runtime : `PerspectiveCameraComponent.cs`, `CameraComponent.cs`. Éditeur : `EditorEntityJsonSerializer.cs`.
+- Limite constatée : `CameraComponent.Load` exige les clés `view_distance` et `viewport` ; une caméra écrite à la main doit les porter, comme les caméras existantes.
 
 ### ⏳ T1.3 — Décalage de l'image
 
