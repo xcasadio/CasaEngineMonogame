@@ -10,6 +10,9 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > Seconde relecture de l'enveloppe (2026-11-19, relecteur frais) : **REVISE**, un blocage ; les deux premiers blocages sont dits fermés et chaque traitement de sécurité aboutit à une proposition, une étape et un contrôle. Traitement par la session principale, puis une seule relecture de clôture :
 > - `FIX` : « pointeur du jeu = tête de la branche du moteur » et « `git status` propre » ne pouvaient pas tenir en T4.1, les notes de T3.1 et de T4.1 étant des commits du moteur postérieurs à M9. La règle du pointeur est écrite (P12) : pointeur = le commit contre lequel M9 a tourné ; il reste à jour tant que les commits suivants ne touchent que `ai-agent/` ; ` M CasaEngine` est alors attendu dans le jeu ; un dernier commit du jeu, après le dernier commit du moteur, met le pointeur sur la tête (T4.1, étape 4).
 > - `FIX`, remarques non bloquantes : `casa-editor call` partout où un id passe d'une étape à l'autre (T2.2, validation globale, M9) ; empreintes de la copie hors `.casaeditor/` et par lancement ; raison de refus d'`asset.open` d'un `.entity` en Play nommée dans P15 ; source de la validation de T2.1 ; lancements du vérificateur en une exécution bornée ; résidu de S3-4 complété.
+> Relecture de clôture de l'enveloppe (2026-11-19, relecteur frais, sur `deea59cd4`) : **READY**.
+> Relecture de la première tranche, T0.1 et T1.1 (2026-11-19, relecteur frais, sur `deea59cd4`) : **READY**.
+> **En attente de l'approbation explicite de l'auteur** : aucun code n'est modifié avant.
 
 > **Quand écrire un plan** : dès que le travail demande plus d'un commit. En dessous, exécution directe avec le rapport de fin de tâche d'`AGENTS.md`.
 > **Avant d'écrire le plan** : poser toutes les questions en une seule fois ; ne rien inventer, ne rien supposer.
