@@ -161,6 +161,30 @@ public sealed class OrbitCameraComponentTests
         AssertVectorEqual(new Vector3(0f, 7f, 18f), camera.LocalPosition, 0.01f);
     }
 
+    [Fact]
+    public void ThePositiveDistanceOfTheWorldSpaceUiDemo_GivesTheViewOfItsFormerNegativeDistance()
+    {
+        // The demo started at a distance of -18.25 with a yaw of pi and a pitch of 0.165: the navigation, which
+        // ignores the sign of the distance, then ran mirrored and the first wheel notch turned the camera around.
+        // It now starts from the same pose written with a positive distance.
+        var target = new Vector3(0f, 4f, 0f);
+        var arcBall = CreateArcBall();
+        arcBall.Target = target;
+        arcBall.Distance = -18.25f;
+        arcBall.Yaw = MathHelper.Pi;
+        arcBall.Pitch = 0.165f;
+        var (_, camera, orbit) = CreateOrbitCamera();
+
+        orbit.Target = target;
+        orbit.Distance = 18.25f;
+        orbit.Yaw = 0f;
+        orbit.Pitch = -0.165f;
+
+        AssertMatrixEqual(arcBall.ViewMatrix, camera.ViewMatrix, Tolerance);
+        // The view direction of the navigation is now the one of the camera.
+        AssertVectorEqual(Vector3.Normalize(target - camera.LocalPosition), orbit.Direction, Tolerance);
+    }
+
     public static TheoryData<float, float, float, float, float, float> CameraPlacements => new()
     {
         // The placements of ArcBallCameraComponentTests.
