@@ -1,6 +1,6 @@
 # ADR-0144: A world file can be written from entities that are not initialized
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-18
 - **Source**: this chantier: `ai-agent/tasks/offline-world-writer-tasks.md`, decision D1 (the author's answer of 2026-11-18: a small public engine API rather than reflection on a private engine field from a game tool) and propositions P1 to P4; requested by the RacingGame plan `ai-agent/tasks/rgce-worlds-as-assets-tasks.md` (decision D11)
 - Renumbered from ADR-0128 on 2026-11-19 when origin/main was merged (its ADR-0128 is another decision)

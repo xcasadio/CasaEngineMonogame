@@ -1,6 +1,6 @@
 # ADR-0145: Editor remote control edits entity assets through their panel
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-19
 - **Source**: this chantier: `ai-agent/tasks/entity-asset-remote-tasks.md` (decisions D1 to D4 settled with the author on 2026-11-19, proposals P1 to P15, security review findings S3-1 to S3-10), branch `chantier/entity-asset-remote`; requested by the RacingGame plan `ai-agent/tasks/rgce-worlds-as-assets-tasks.md` (open point O2, the author's choice of 2026-11-19: extend the engine). Extends ADR-0093.
 - Renumbered from ADR-0129 on 2026-11-19 when origin/main was merged (its ADR-0129 is another decision)
