@@ -141,6 +141,9 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>The asynchronous "save before quitting?" question of every modified document and the world (ADR-0041, ADR-0104).</summary>
     private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
 
+    /// <summary>The asynchronous "save before opening another project?" question of every modified document and the world (ADR-0104).</summary>
+    private ModifiedDocumentsGate _projectSwitchGate;
+
     /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0041).</summary>
     private bool _worldOpenQuestionPending;
 
@@ -431,8 +434,13 @@ public class GameEditor : Game, IObservableUpdate
             isAutomationActive: () => _automationOptions.HasAutomation,
             logAbandonedUnderAutomation: LogDocumentsAbandonedByAutomatedExit,
             ask: AskSaveBeforeQuitting,
-            trySaveAll: TrySaveAllModifiedDocuments,
+            trySaveAll: () => TrySaveAllModifiedDocuments("Exit cancelled: one or more modified documents could not be saved."),
             requestExit: Exit);
+        _projectSwitchGate = new ModifiedDocumentsGate(
+            modifiedTitles: GetModifiedDocumentTitles,
+            isAutomationActive: () => _automationOptions.HasAutomation,
+            ask: AskSaveBeforeOpeningProject,
+            trySaveAll: () => TrySaveAllModifiedDocuments("Project switch cancelled: one or more modified documents could not be saved."));
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
@@ -2535,8 +2543,10 @@ public class GameEditor : Game, IObservableUpdate
 
     private void QueueProjectOpen(string fileName)
     {
-        _pendingProjectLauncherAction = () =>
+        // The question comes first (P8): Cancel queues nothing and keeps the current project, without the launcher.
+        _projectSwitchGate.Request(() => _pendingProjectLauncherAction = () =>
         {
+            CloseAllDocumentsOfCurrentProject();
             try
             {
                 EditorProjectAuthoringService.LoadProject(fileName);
@@ -2546,13 +2556,14 @@ public class GameEditor : Game, IObservableUpdate
                 // The launcher comes back once the message is dismissed, as it did after the native box.
                 _messageBoxes.ShowMessage("Error", $"Failed to open project:\n{ex.Message}", OpenProjectLauncher);
             }
-        };
+        });
     }
 
     private void QueueProjectCreate(string projectName, string path)
     {
-        _pendingProjectLauncherAction = () =>
+        _projectSwitchGate.Request(() => _pendingProjectLauncherAction = () =>
         {
+            CloseAllDocumentsOfCurrentProject();
             try
             {
                 EditorProjectAuthoringService.CreateProject(projectName, path);
@@ -2562,7 +2573,7 @@ public class GameEditor : Game, IObservableUpdate
                 // The launcher comes back once the message is dismissed, as it did after the native box.
                 _messageBoxes.ShowMessage("Error", $"Failed to create project:\n{ex.Message}", OpenProjectLauncher);
             }
-        };
+        });
     }
 
     private void ProcessPendingProjectLauncherAction()
@@ -3031,9 +3042,9 @@ public class GameEditor : Game, IObservableUpdate
             answer => answered(ToModifiedScreenCloseAnswer(answer)));
     }
 
-    /// <summary>Saves every modified document and the world; false, with a warning, when one is still modified afterwards.
-    /// A running game session is stopped first: saving the project is refused during a session (P6).</summary>
-    private bool TrySaveAllModifiedDocuments()
+    /// <summary>Saves every modified document and the world; false, with <paramref name="failureWarning"/> logged, when one is
+    /// still modified afterwards. A running game session is stopped first: saving the project is refused during a session (P6).</summary>
+    private bool TrySaveAllModifiedDocuments(string failureWarning)
     {
         if (_playModeService?.IsPlaySessionActive == true)
         {
@@ -3047,71 +3058,162 @@ public class GameEditor : Game, IObservableUpdate
             return true;
         }
 
-        Logs.WriteWarning("Exit cancelled: one or more modified documents could not be saved.");
+        Logs.WriteWarning(failureWarning);
         return false;
     }
 
-    private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)
+    private void AskSaveBeforeOpeningProject(IReadOnlyList<string> titles, Action<ModifiedScreenCloseDecision.Answer> answered)
     {
-        if (string.Equals(panel.Id, EditorPanelIds.AudioProfiler, StringComparison.Ordinal))
+        string list = string.Join("\n", titles.Select(title => $"- {title}"));
+        _messageBoxes.AskSave("Open Project", $"Save changes to the modified documents before opening another project?\n\n{list}",
+            answer => answered(ToModifiedScreenCloseAnswer(answer)));
+    }
+
+    /// <summary>Closes every document of the project being left, with a tab or without one (a layout reset leaves documents
+    /// in the tables without a tab, P11), so none keeps paths relative to the old project (P8). Each tab is closed through
+    /// <see cref="MGDockHost.ClosePanel"/>, which raises <see cref="MGDockHost.PanelRemoved"/> and so
+    /// <see cref="ReleaseDocumentPanel"/>; a document with no tab is released directly. Tool panels and the world stay.</summary>
+    private void CloseAllDocumentsOfCurrentProject()
+    {
+        var panelIds = new List<string>();
+        CollectOpenDocumentPanelIds(panelIds);
+        foreach (string panelId in panelIds)
+        {
+            DockPanelNode node = FindDocumentPanelNode(panelId);
+            if (node == null || _dockHost?.ClosePanel(node) != true)
+            {
+                ReleaseDocumentPanel(panelId);
+            }
+        }
+
+        panelIds.Clear();
+        CollectOpenDocumentPanelIds(panelIds);
+        if (panelIds.Count > 0)
+        {
+            Logs.WriteWarning($"Documents of the previous project are still open: {string.Join(", ", panelIds)}");
+        }
+    }
+
+    /// <summary>The ids held by the eleven document tables: the nine modifiable kinds, the tile map and the animation clip.</summary>
+    private void CollectOpenDocumentPanelIds(List<string> panelIds)
+    {
+        panelIds.AddRange(_screenPreviewPanels.Keys);
+        panelIds.AddRange(_materialInspectorPanels.Keys);
+        panelIds.AddRange(_spriteInspectorPanels.Keys);
+        panelIds.AddRange(_particleInspectorPanels.Keys);
+        panelIds.AddRange(_soundInspectorPanels.Keys);
+        panelIds.AddRange(_audioMixerPanels.Keys);
+        panelIds.AddRange(_cutsceneInspectorPanels.Keys);
+        panelIds.AddRange(_animation2dInspectorPanels.Keys);
+        panelIds.AddRange(_entityAssetEditorPanels.Keys);
+        panelIds.AddRange(_animationClipPreviewPanels.Keys);
+        panelIds.AddRange(_tileMapEditorPanels.Keys);
+    }
+
+    /// <summary>The node of the panel <paramref name="panelId"/> wherever <see cref="MGDockHost.ClosePanel"/> looks for it, in
+    /// its order: floating windows, auto-hidden panels, then the layout tree. Null when the host holds no such panel.</summary>
+    private DockPanelNode FindDocumentPanelNode(string panelId)
+    {
+        if (_dockHost == null)
+        {
+            return null;
+        }
+
+        foreach (var floatingWindow in _dockHost.FloatingWindows)
+        {
+            foreach (DockPanelNode floatingPanel in floatingWindow.GroupNode.Panels)
+            {
+                if (string.Equals(floatingPanel.Id, panelId, StringComparison.Ordinal))
+                {
+                    return floatingPanel;
+                }
+            }
+        }
+
+        var layoutModel = _dockHost.LayoutModel;
+        if (layoutModel == null)
+        {
+            return null;
+        }
+
+        foreach (DockPanelNode autoHidden in layoutModel.GetAllAutoHidePanels())
+        {
+            if (string.Equals(autoHidden.Id, panelId, StringComparison.Ordinal))
+            {
+                return autoHidden;
+            }
+        }
+
+        return layoutModel.FindPanelById(panelId);
+    }
+
+    private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)
+        => ReleaseDocumentPanel(panel.Id);
+
+    /// <summary>Frees what the editor holds for the panel <paramref name="panelId"/>: its table entries, history and modified
+    /// state. Run by <see cref="OnDockHostPanelRemoved"/> when the dock host closes the panel, and directly for a document
+    /// that has no tab left (<see cref="CloseAllDocumentsOfCurrentProject"/>).</summary>
+    private void ReleaseDocumentPanel(string panelId)
+    {
+        if (string.Equals(panelId, EditorPanelIds.AudioProfiler, StringComparison.Ordinal))
         {
             // Closed: the meters are no longer read. The model may not be settled yet, so the flag is not recomputed from it.
             _isAudioProfilerPresent = false;
         }
 
-        if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
+        if (TryGetUIScreenPreviewPanel(panelId, out var previewPanel))
         {
-            _screenPreviewPanels.Remove(panel.Id);
-            _screenPreviewPanelTitles.Remove(panel.Id);
-            _screenCommandStacks.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
+            _screenPreviewPanels.Remove(panelId);
+            _screenPreviewPanelTitles.Remove(panelId);
+            _screenCommandStacks.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
             if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
             {
                 _activeScreenPreviewPanel = null;
             }
         }
 
-        if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
+        if (TryGetMaterialAssetInspectorPanel(panelId, out var materialInspectorPanel))
         {
             materialInspectorPanel.DirtyStateChanged -= OnMaterialInspectorDirtyStateChanged;
             materialInspectorPanel.Dispose();
-            _materialInspectorPanels.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panel.Id));
-            if (_materialViewportPanels.Remove(panel.Id, out var materialViewportPanel))
+            _materialInspectorPanels.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
+            if (_materialViewportPanels.Remove(panelId, out var materialViewportPanel))
             {
                 materialViewportPanel.Dispose();
             }
 
-            _materialInspectorPanelTitles.Remove(panel.Id);
+            _materialInspectorPanelTitles.Remove(panelId);
             if (ReferenceEquals(_activeMaterialInspectorPanel, materialInspectorPanel))
             {
                 SetActiveMaterialInspectorPanel(null);
             }
         }
 
-        if (TryGetEntityAssetEditorPanel(panel.Id, out var entityAssetEditorPanel))
+        if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel))
         {
             entityAssetEditorPanel.Dispose();
-            _entityAssetEditorPanels.Remove(panel.Id);
-            _entityAssetEditorPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panel.Id));
+            _entityAssetEditorPanels.Remove(panelId);
+            _entityAssetEditorPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId));
             if (ReferenceEquals(_activeEntityAssetEditorPanel, entityAssetEditorPanel))
             {
                 SetActiveEntityAssetEditorPanel(null);
             }
         }
 
-        if (TryGetSpriteAssetInspectorPanel(panel.Id, out var spriteInspectorPanel))
+        if (TryGetSpriteAssetInspectorPanel(panelId, out var spriteInspectorPanel))
         {
             spriteInspectorPanel.DirtyStateChanged -= OnSpriteInspectorDirtyStateChanged;
             spriteInspectorPanel.Dispose();
-            _spriteInspectorPanels.Remove(panel.Id);
-            _spriteInspectorPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panel.Id));
+            _spriteInspectorPanels.Remove(panelId);
+            _spriteInspectorPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId));
             if (ReferenceEquals(_activeSpriteInspectorPanel, spriteInspectorPanel))
             {
                 _activeSpriteInspectorPanel = null;
@@ -3119,35 +3221,35 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
-        if (TryGetParticleAssetInspectorPanel(panel.Id, out var particleInspectorPanel))
+        if (TryGetParticleAssetInspectorPanel(panelId, out var particleInspectorPanel))
         {
             particleInspectorPanel.DirtyStateChanged -= OnParticleInspectorDirtyStateChanged;
             particleInspectorPanel.Dispose();
-            _particleInspectorPanels.Remove(panel.Id);
-            _particleInspectorPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Particle, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Particle, panel.Id));
+            _particleInspectorPanels.Remove(panelId);
+            _particleInspectorPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
             if (ReferenceEquals(_activeParticleInspectorPanel, particleInspectorPanel))
             {
                 _activeParticleInspectorPanel = null;
             }
         }
 
-        if (_soundInspectorPanels.TryGetValue(panel.Id, out var soundInspectorPanel))
+        if (_soundInspectorPanels.TryGetValue(panelId, out var soundInspectorPanel))
         {
             // Disposing stops the preview: a closed tab must not keep playing.
             soundInspectorPanel.DirtyStateChanged -= OnSoundInspectorDirtyStateChanged;
             soundInspectorPanel.Dispose();
-            _soundInspectorPanels.Remove(panel.Id);
-            _soundInspectorPanelTitles.Remove(panel.Id);
+            _soundInspectorPanels.Remove(panelId);
+            _soundInspectorPanelTitles.Remove(panelId);
         }
 
-        if (TryGetAudioMixerPanel(panel.Id, out var audioMixerPanel))
+        if (TryGetAudioMixerPanel(panelId, out var audioMixerPanel))
         {
-            CloseAudioMixerPanel(panel.Id, audioMixerPanel);
+            CloseAudioMixerPanel(panelId, audioMixerPanel);
         }
 
-        if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
         {
             cutsceneInspectorPanel.DirtyStateChanged -= OnCutsceneInspectorDirtyStateChanged;
             if (ReferenceEquals(_cutsceneDetailsPanel?.Document, cutsceneInspectorPanel))
@@ -3157,10 +3259,10 @@ public class GameEditor : Game, IObservableUpdate
             }
 
             cutsceneInspectorPanel.Dispose();
-            _cutsceneInspectorPanels.Remove(panel.Id);
-            _cutsceneInspectorPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panel.Id));
+            _cutsceneInspectorPanels.Remove(panelId);
+            _cutsceneInspectorPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panelId));
             if (ReferenceEquals(_activeCutsceneInspectorPanel, cutsceneInspectorPanel))
             {
                 _activeCutsceneInspectorPanel = null;
@@ -3182,13 +3284,13 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
-        if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
+        if (TryGetAnimation2dAssetInspectorPanel(panelId, out var animation2dInspectorPanel))
         {
             animation2dInspectorPanel.DirtyStateChanged -= OnAnimation2dInspectorDirtyStateChanged;
             animation2dInspectorPanel.Dispose();
-            _animation2dInspectorPanels.Remove(panel.Id);
-            _animation2dInspectorPanelTitles.Remove(panel.Id);
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panel.Id));
+            _animation2dInspectorPanels.Remove(panelId);
+            _animation2dInspectorPanelTitles.Remove(panelId);
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panelId));
             if (ReferenceEquals(_activeAnimation2dInspectorPanel, animation2dInspectorPanel))
             {
                 _activeAnimation2dInspectorPanel = null;
@@ -3196,22 +3298,22 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
-        if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
+        if (TryGetAnimationClipPreviewPanel(panelId, out var animationClipPreviewPanel))
         {
             animationClipPreviewPanel.Dispose();
-            _animationClipPreviewPanels.Remove(panel.Id);
-            _animationClipPreviewPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panel.Id));
+            _animationClipPreviewPanels.Remove(panelId);
+            _animationClipPreviewPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panelId));
         }
 
-        if (TryGetTileMapEditorPanel(panel.Id, out var tileMapEditorPanel))
+        if (TryGetTileMapEditorPanel(panelId, out var tileMapEditorPanel))
         {
             tileMapEditorPanel.Dispose();
-            _tileMapEditorPanels.Remove(panel.Id);
-            _tileMapEditorPanelTitles.Remove(panel.Id);
-            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panel.Id));
-            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panel.Id));
+            _tileMapEditorPanels.Remove(panelId);
+            _tileMapEditorPanelTitles.Remove(panelId);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panelId));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panelId));
             if (ReferenceEquals(_activeTileMapEditorPanel, tileMapEditorPanel))
             {
                 _activeTileMapEditorPanel = null;
