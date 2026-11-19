@@ -513,13 +513,14 @@ Tests seulement, aucun code du moteur.
   - projection : 1,35799503 ; 0 ; 0 ; 0 / 0 ; 2,41421342 ; 0 ; 0 / 0 ; 0 ; −1,001001 ; −1 / 0 ; 0 ; −1,001001 ; 0
   - Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8122 tests, 0 échec (8118 + 2 lignes de données + 2 jumeaux).
 
-### ⏳ T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
+### 🧪 T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
 
 1. Éditer les deux fichiers selon la « forme migrée » de la conception. `git diff` montre exactement les quatre changements listés, les mêmes dans les deux fichiers, et rien d'autre.
 2. `EditorWorldDemo.InitializeCamera` : cadrer par `DemoCameraFraming.Frame(camera, (0, 14, 30), Vector3.Zero)`, mêmes arguments qu'aujourd'hui, et garder la pose du script.
 3. `Camera3dFieldOfViewTests` : `TheSavedCameras_LoadWithFortyFiveDegrees` charge le nœud par `ElementFactory.LoadComponent`, mêmes affirmations ; son support `CreateCamera` passe sur `new PerspectiveCameraComponent()`. Ce fichier appartient à cette tâche : après elle, il ne nomme plus `ArcBallCameraComponent`.
 4. Nouveau test : chaque `camera.entity` migré, chargé par `Entity.Load`, écrit par `EditorEntityJsonSerializer.SaveEntity` puis rechargé, donne la même vue et la même projection (les 32 termes de T3.2.4, à la même tolérance de 1e-4 par terme).
 5. Validation : les tests de T3.2.4 verts **sans modification** ; builds ; tests. Si `Projects/SampleProject` se lance par `tools/run-launcher.ps1` du dépôt hôte, une capture avant (sur `main`) et une après sont jointes au rapport comme indice, pas comme preuve ; sinon la note le dit. 🧪 jusqu'à la recette de la démo par l'auteur.
+- **Fait (2026-11-19), 🧪 jusqu'à la recette.** Les deux fichiers édités, restés identiques entre eux ; `git diff` montre les quatre changements listés et rien d'autre (position de l'orbite : −9,269146 ; 0,6204096 ; −7,543898 ; `id` du nœud d'orbite `8efcd556-e91d-4c06-bbb9-abf1d1f3804f`). `EditorWorldDemo` cadre par `DemoCameraFraming.Frame`, mêmes arguments. `Camera3dFieldOfViewTests` ne nomme plus l'ancienne caméra. Test d'aller-retour par l'éditeur ajouté (deux lignes). Le test de T3.2.4 est vert **sans modification**. Les deux solutions à 0 erreur ; 8124 tests, 0 échec. Indice : `Projects/SampleProject` lancé par le script de capture avant et après, 10 s : les deux images sont les mêmes à l'œil, mais pas octet pour octet (11 octets d'écart sur 42 Ko, cause non recherchée). La démo « World made in the editor » n'a pas été lancée : recette de l'auteur.
 
 ### ⏳ T3.4 — Convertir les tests qui prennent une ancienne caméra comme support
 

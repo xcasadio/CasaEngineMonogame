@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -16,9 +17,9 @@ public sealed class Camera3dFieldOfViewTests
     private static float VerticalFieldOfView(CameraComponent camera)
         => 2f * MathF.Atan(1f / camera.ProjectionMatrix.M22);
 
-    private static ArcBallCameraComponent CreateCamera(int width, int height)
+    private static PerspectiveCameraComponent CreateCamera(int width, int height)
     {
-        var camera = new ArcBallCameraComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(width, height);
         camera.FarPlane = 1000f;
         camera.NearPlane = 1f;
@@ -65,8 +66,8 @@ public sealed class Camera3dFieldOfViewTests
     public void TheSavedCameras_LoadWithFortyFiveDegrees(string relativePath)
     {
         var entity = JObject.Parse(File.ReadAllText(Path.Combine(FindRepositoryRoot(), relativePath)));
-        var camera = new ArcBallCameraComponent();
-        camera.Load((JObject)entity["root_component"]!);
+        var camera = Assert.IsType<PerspectiveCameraComponent>(
+            ElementFactory.LoadComponent<SceneComponent>((JObject)entity["root_component"]!));
         camera.OnScreenResized(1024, 768);
         camera.FarPlane = 1000f;
         camera.NearPlane = 1f;

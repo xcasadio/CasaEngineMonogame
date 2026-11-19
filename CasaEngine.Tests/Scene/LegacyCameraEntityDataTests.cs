@@ -1,4 +1,5 @@
 using System.Globalization;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -41,6 +42,23 @@ public sealed class LegacyCameraEntityDataTests
     public void TheSavedCamera_GivesTheViewAndTheProjectionRecordedBeforeTheMigration(string relativePath)
     {
         CameraComponent camera = LoadCamera(JObject.Parse(File.ReadAllText(Path.Combine(FindRepositoryRoot(), relativePath))));
+
+        AssertTerms(ExpectedView, camera.ViewMatrix, "view");
+        AssertTerms(ExpectedProjection, camera.ProjectionMatrix, "projection");
+    }
+
+    [Theory]
+    [InlineData("CasaEngine.Demos/Content/EditorWorld/Entities/camera.entity")]
+    [InlineData("Projects/SampleProject/Entities/camera.entity")]
+    public void TheSavedCamera_WrittenBackByTheEditor_GivesTheSameViewAndProjection(string relativePath)
+    {
+        var entity = new Entity();
+        entity.Load(JObject.Parse(File.ReadAllText(Path.Combine(FindRepositoryRoot(), relativePath))));
+        entity.Initialize();
+
+        var written = new JObject();
+        EditorEntityJsonSerializer.SaveEntity(entity, written);
+        CameraComponent camera = LoadCamera(written);
 
         AssertTerms(ExpectedView, camera.ViewMatrix, "view");
         AssertTerms(ExpectedProjection, camera.ProjectionMatrix, "projection");

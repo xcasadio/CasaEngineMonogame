@@ -75,12 +75,13 @@ public class EditorWorldDemo : Demo
     /// </summary>
     public override void InitializeCamera(CameraComponent camera)
     {
-        if (camera is not ArcBallCameraComponent arcBallCamera)
+        //  The camera saved in the world is posed by an orbit component (ADR-0148): the framing goes through it.
+        if (camera?.Owner?.GetComponent<OrbitCameraComponent>() == null)
         {
             return;
         }
 
-        arcBallCamera.SetCamera(new Vector3(0f, 14f, 30f), Vector3.Zero, Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(0f, 14f, 30f), Vector3.Zero);
 
         var cameraScript = new ScriptArcBallCamera();
         camera.Owner.SetGameplayProxy(cameraScript);
