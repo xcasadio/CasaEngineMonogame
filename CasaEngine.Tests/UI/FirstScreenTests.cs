@@ -232,7 +232,7 @@ public class FirstScreenTests
     private void AddViewWithRuntime(IUIViewRuntime? runtime)
     {
         var bounds = new Rectangle(0, 0, 320, 200);
-        _gameManager.ViewManager.Add(new RenderView(new CasaEngine.Framework.Scene.World.World(), new ArcBallCameraComponent(), new StubRenderSurface(bounds))
+        _gameManager.ViewManager.Add(new RenderView(new CasaEngine.Framework.Scene.World.World(), new PerspectiveCameraComponent(), new StubRenderSurface(bounds))
         {
             Host = new StubViewHost(bounds),
             UIView = runtime!,

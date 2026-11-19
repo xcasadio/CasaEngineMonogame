@@ -53,25 +53,25 @@ public sealed class EditorComponentNamesTests
     public void CreateUniqueName_CountsTheComponentsOfTheEntity_AndGoesOnWithThree()
     {
         var entity = new Entity();
-        var first = new CameraLookAtComponent { Name = "CameraLookAtComponent" };
-        var second = new CameraLookAtComponent { Name = "CameraLookAtComponent (2)" };
+        var first = new PerspectiveCameraComponent { Name = "PerspectiveCameraComponent" };
+        var second = new PerspectiveCameraComponent { Name = "PerspectiveCameraComponent (2)" };
         entity.AddComponent(first);
         entity.AddComponent(second);
 
-        var name = EditorComponentNames.CreateUniqueName(entity, new CameraLookAtComponent());
+        var name = EditorComponentNames.CreateUniqueName(entity, new PerspectiveCameraComponent());
 
-        Assert.Equal("CameraLookAtComponent (3)", name);
+        Assert.Equal("PerspectiveCameraComponent (3)", name);
     }
 
     [Fact]
     public void CreateUniqueName_TreatsADifferentCaseAsTaken()
     {
         var entity = new Entity();
-        entity.AddComponent(new CameraLookAtComponent { Name = "cameralookatcomponent" });
+        entity.AddComponent(new PerspectiveCameraComponent { Name = "perspectivecameracomponent" });
 
-        var name = EditorComponentNames.CreateUniqueName(entity, new CameraLookAtComponent());
+        var name = EditorComponentNames.CreateUniqueName(entity, new PerspectiveCameraComponent());
 
-        Assert.Equal("CameraLookAtComponent (2)", name);
+        Assert.Equal("PerspectiveCameraComponent (2)", name);
     }
 
     [Fact]

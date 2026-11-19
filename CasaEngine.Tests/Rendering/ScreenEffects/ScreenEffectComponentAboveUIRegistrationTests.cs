@@ -132,7 +132,7 @@ public class ScreenEffectComponentAboveUIRegistrationTests
 
     private static RenderView CreateView()
     {
-        // A sized Camera2dComponent, not ArcBallCameraComponent (a 3d camera): TryGetCameraViewSize
+        // A sized Camera2dComponent, not PerspectiveCameraComponent (a 3d camera): TryGetCameraViewSize
         // must resolve so Update never falls back to CasaEngineGame.ScreenSizeWidth/Height, which
         // reads the (headless-null) Game.Window and would NRE regardless of this task's changes.
         var camera = new Camera2dComponent();

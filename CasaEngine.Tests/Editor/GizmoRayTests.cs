@@ -24,9 +24,9 @@ public sealed class GizmoRayTests
         { 100000f, float.PositiveInfinity },
     };
 
-    private static ArcBallCameraComponent CreateCamera(float distance, float farPlane)
+    private static PerspectiveCameraComponent CreateCamera(float distance, float farPlane)
     {
-        var camera = new ArcBallCameraComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(1920, 1080);
         camera.FarPlane = farPlane;
         camera.NearPlane = 1f;
@@ -34,7 +34,7 @@ public sealed class GizmoRayTests
         float pitch = -MathHelper.Pi / 6f;
         float yaw = MathHelper.PiOver4;
         var offset = new Vector3(MathF.Cos(pitch) * MathF.Sin(yaw), -MathF.Sin(pitch), MathF.Cos(pitch) * MathF.Cos(yaw));
-        camera.SetCamera(Target + offset * distance, Target, Vector3.Up);
+        camera.SetPositionAndTarget(Target + offset * distance, Target);
         return camera;
     }
 

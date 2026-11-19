@@ -193,9 +193,6 @@ public sealed class PerspectiveCameraComponentTests
 
     [Theory]
     [InlineData(typeof(Camera2dComponent))]
-    [InlineData(typeof(ArcBallCameraComponent))]
-    [InlineData(typeof(CameraLookAtComponent))]
-    [InlineData(typeof(CameraTargeted2dComponent))]
     public void TheOtherCameras_DoNotOverrideTheViewRefreshHook(Type cameraType)
     {
         var method = cameraType.GetMethod("IsViewOutOfDate", BindingFlags.Instance | BindingFlags.NonPublic);

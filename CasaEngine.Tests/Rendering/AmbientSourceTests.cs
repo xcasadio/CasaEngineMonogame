@@ -108,7 +108,7 @@ public class AmbientSourceTests
     {
         var world = new World();
         world.EnvironmentSettings.AmbientSource = source;
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
 
         var resolved = EnvironmentResolver.Resolve(view);
 
@@ -120,7 +120,7 @@ public class AmbientSourceTests
     public void EnvironmentResolver_UsesTheViewOverrideAmbientSource()
     {
         var world = new World();
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface())
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface())
         {
             EnvironmentOverride = new WorldEnvironmentSettings { AmbientSource = AmbientSource.Flat },
         };

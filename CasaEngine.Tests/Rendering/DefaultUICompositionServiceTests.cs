@@ -71,7 +71,7 @@ public class DefaultUICompositionServiceTests
 
     private static RenderView CreateView(IUIViewRuntime uiView)
     {
-        return new RenderView(new CasaEngine.Framework.Scene.World.World(), new ArcBallCameraComponent(), new StubRenderSurface())
+        return new RenderView(new CasaEngine.Framework.Scene.World.World(), new PerspectiveCameraComponent(), new StubRenderSurface())
         {
             UIView = uiView,
         };

@@ -129,7 +129,7 @@ public class VirtualResolutionRuntimeTests
     [Fact]
     public void ResizeSingleView_WithAnotherKindOfCamera_LaysOutTheViewButLeavesTheZoomAlone()
     {
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(1920, 1080);
         var surface = new BackBufferSurface(new Rectangle(0, 0, 1920, 1080));
         var view = new RenderView(new World(), camera, surface);

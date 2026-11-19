@@ -318,7 +318,8 @@ public class FxaaGpuTests
             world.EnvironmentSettings.ColorPipeline.AntiAliasing = antiAliasing;
             world.EnvironmentSettings.MarkDirty();
 
-            var camera = new ArcBallCameraComponent();
+            var camera = new PerspectiveCameraComponent();
+            camera.SetPositionAndTarget(new Vector3(0.0f, 0.0f, -5.0f), Vector3.Zero);
             camera.OnScreenResized(width, height);
             camera.FarPlane = 1000.0f;
             camera.NearPlane = 1.0f;

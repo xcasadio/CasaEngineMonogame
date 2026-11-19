@@ -18,10 +18,10 @@ public class InfiniteFarPlaneTests
     private static readonly Viewport DepthZeroToOneViewport = new(0, 0, 1920, 1080);
 
     // Camera at Distance from Target, yaw pi/4 and pitch -pi/6 like the editor camera, built without a world as in
-    // ArcBallCameraComponentTests: FarPlane first, then NearPlane (clamped against it).
-    private static ArcBallCameraComponent CreateCamera(float distance, float farPlane)
+    // OrbitCameraPlacementTests: FarPlane first, then NearPlane (clamped against it).
+    private static PerspectiveCameraComponent CreateCamera(float distance, float farPlane)
     {
-        var camera = new ArcBallCameraComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(1920, 1080);
         camera.FarPlane = farPlane;
         camera.NearPlane = NearPlane;
@@ -29,7 +29,7 @@ public class InfiniteFarPlaneTests
         float pitch = -MathHelper.Pi / 6f;
         float yaw = MathHelper.PiOver4;
         var offset = new Vector3(MathF.Cos(pitch) * MathF.Sin(yaw), -MathF.Sin(pitch), MathF.Cos(pitch) * MathF.Cos(yaw));
-        camera.SetCamera(Target + offset * distance, Target, Vector3.Up);
+        camera.SetPositionAndTarget(Target + offset * distance, Target);
         return camera;
     }
 

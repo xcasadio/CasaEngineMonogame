@@ -6,7 +6,7 @@ namespace CasaEngine.Tests.Scene;
 
 public class ComponentCloneNameTests
 {
-    /// <summary>Clones through the copy constructor, like CameraLookAtComponent.</summary>
+    /// <summary>Clones through the copy constructor, like PerspectiveCameraComponent.</summary>
     private sealed class CopyConstructorComponent : SceneComponent
     {
         public CopyConstructorComponent()

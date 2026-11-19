@@ -164,7 +164,7 @@ public class ColorPipelineSettingsTests
     {
         var world = new World();
         ApplyNonDefault(world.EnvironmentSettings);
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
 
         var resolved = EnvironmentResolver.Resolve(view);
 
@@ -178,7 +178,7 @@ public class ColorPipelineSettingsTests
     [Fact]
     public void EnvironmentResolver_ResolvesLegacyByDefault()
     {
-        var view = new RenderView(new World(), new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(new World(), new PerspectiveCameraComponent(), new StubRenderSurface());
 
         var resolved = EnvironmentResolver.Resolve(view);
 
@@ -191,7 +191,7 @@ public class ColorPipelineSettingsTests
     public void EnvironmentResolver_UsesTheViewOverrideColorPipeline()
     {
         var world = new World();
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface())
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface())
         {
             EnvironmentOverride = CreateNonDefault(),
         };
@@ -208,7 +208,7 @@ public class ColorPipelineSettingsTests
     public void EnvironmentResolver_ReturnsTheNewValueAfterAChangeFollowedByMarkDirty()
     {
         var world = new World();
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
         Assert.False(EnvironmentResolver.Resolve(view).IsLinearHdr);
 
         world.EnvironmentSettings.ColorPipeline.Mode = ColorPipelineMode.LinearHdr;
@@ -348,7 +348,7 @@ public class ColorPipelineSettingsTests
     {
         var world = new World();
         ApplyNonDefault(world.EnvironmentSettings);
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
 
         var resolved = EnvironmentResolver.Resolve(view);
 
@@ -357,7 +357,7 @@ public class ColorPipelineSettingsTests
         Assert.Equal(0.25f, resolved.BloomIntensity);
         Assert.Equal(3.0f, resolved.BloomRadius);
 
-        var overridden = new RenderView(new World(), new ArcBallCameraComponent(), new StubRenderSurface())
+        var overridden = new RenderView(new World(), new PerspectiveCameraComponent(), new StubRenderSurface())
         {
             EnvironmentOverride = CreateNonDefault(),
         };
@@ -368,7 +368,7 @@ public class ColorPipelineSettingsTests
     public void Bloom_ResolverIsOffByDefaultAndFollowsAChangeFollowedByMarkDirty()
     {
         var world = new World();
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
         Assert.False(EnvironmentResolver.Resolve(view).BloomEnabled);
 
         world.EnvironmentSettings.ColorPipeline.BloomEnabled = true;
@@ -570,7 +570,7 @@ public class ColorPipelineSettingsTests
         world.EnvironmentSettings.ColorPipeline.SsaoBias = 0.07f;
         world.EnvironmentSettings.MarkDirty();
 
-        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var view = new RenderView(world, new PerspectiveCameraComponent(), new StubRenderSurface());
         var resolved = EnvironmentResolver.Resolve(view);
 
         Assert.True(resolved.SsaoEnabled);

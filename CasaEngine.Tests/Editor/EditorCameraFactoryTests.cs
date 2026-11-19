@@ -10,7 +10,7 @@ public sealed class EditorCameraFactoryTests
     [Fact]
     public void ApplySettings_GivesTheCameraAnInfiniteFarPlane()
     {
-        var camera = new ArcBallCameraComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(1920, 1080);
         camera.FarPlane = 1000f;
         camera.NearPlane = 1f;
@@ -26,7 +26,7 @@ public sealed class EditorCameraFactoryTests
     [Fact]
     public void ApplySettings_AfterTheDepthRangeIsReset_RestoresTheInfiniteFarPlane()
     {
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         camera.OnScreenResized(640, 360);
         camera.FarPlane = 1000f;
         camera.NearPlane = 1f;

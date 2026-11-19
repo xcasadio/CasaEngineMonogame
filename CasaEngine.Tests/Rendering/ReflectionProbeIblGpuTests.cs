@@ -37,7 +37,7 @@ public class ReflectionProbeIblGpuTests
             var world = new World();
             world.ReflectionProbes.Add(new ReflectionProbe { Position = Vector3.Zero, InfluenceRadius = 10.0f, BlendDistance = 4.0f, SpecularCubemap = cubeA });
             world.ReflectionProbes.Add(new ReflectionProbe { Position = new Vector3(16.0f, 0.0f, 0.0f), InfluenceRadius = 10.0f, BlendDistance = 4.0f, SpecularCubemap = cubeB });
-            var camera = new CameraLookAtComponent();
+            var camera = new PerspectiveCameraComponent();
             var view = new RenderView(world, camera, new StubRenderSurface());
 
             camera.SetPositionAndTarget(Vector3.Zero, Vector3.UnitZ);
@@ -77,7 +77,7 @@ public class ReflectionProbeIblGpuTests
         {
             using var cube = CreateUniformCube(8, new Vector4(1.0f, 0.0f, 0.0f, 1.0f));
             var world = new World();
-            var camera = new CameraLookAtComponent();
+            var camera = new PerspectiveCameraComponent();
             camera.SetPositionAndTarget(Vector3.Zero, Vector3.UnitZ);
             var view = new RenderView(world, camera, new StubRenderSurface());
 
@@ -113,7 +113,7 @@ public class ReflectionProbeIblGpuTests
                 EnvironmentAssetId = Guid.NewGuid(),
                 SpecularCubemap = cube,
             });
-            var camera = new CameraLookAtComponent();
+            var camera = new PerspectiveCameraComponent();
             camera.SetPositionAndTarget(Vector3.Zero, Vector3.UnitZ);
 
             ResolvedEnvironmentSettings resolved = EnvironmentResolver.Resolve(new RenderView(world, camera, new StubRenderSurface()));

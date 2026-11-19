@@ -919,9 +919,10 @@ public class SceneDepthPrepassGpuTests
             CameraComponent camera;
             if (perspective)
             {
-                var arcBall = new ArcBallCameraComponent();
-                arcBall.OnScreenResized(width, height);
-                camera = arcBall;
+                var perspectiveCamera = new PerspectiveCameraComponent();
+                perspectiveCamera.SetPositionAndTarget(new Vector3(0.0f, 0.0f, -5.0f), Vector3.Zero);
+                perspectiveCamera.OnScreenResized(width, height);
+                camera = perspectiveCamera;
             }
             else
             {
