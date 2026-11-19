@@ -227,13 +227,18 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 
 ## Phase 3 — Jeu
 
-### ⏳ T3.1 — Le jeu sur le moteur intégré
+### ✅ T3.1 — Le jeu sur le moteur intégré
 
 - Objectif : P10 et la table de correspondance de P2.
 - Fichiers (dépôt du jeu, branche `chantier/rgce-worlds-as-assets`) : pointeur `CasaEngine`, `ai-agent/HANDOVER.md`, `ai-agent/tasks/rgce-worlds-as-assets-tasks.md`, `ai-agent/README.md` ; un fichier de code du jeu seulement si P10 le demande.
 - Étapes : pointeur sur la tête de la branche du moteur ; `dotnet build RacingGame.slnx` ; `RgceAssetCooker --worlds --verify` ; `m9_run.py` sur une copie neuve ; « Validation commune (parité) » du plan du jeu, points 1 à 6, sorties sous `artifacts/worlds-as-assets/integration/`.
 - Validation : celle de P10 ; les empreintes des réglages de l'utilisateur sont celles notées en M1 avant et après.
 - Commits (jeu) : `chore(engine): point CasaEngine at the engine with origin/main integrated`, puis `docs(ai-agent): record the integration of the engine's origin/main`.
+- Note de validation (2026-11-19), sorties dans `artifacts/worlds-as-assets/integration/` et `artifacts/entity-asset-remote/integration/m9/` du dépôt du jeu ; commit du jeu `ceb0898` (pointeur `CasaEngine` = `2daac36cb`, tête de cette branche à ce moment) :
+  - `dotnet build RacingGame.slnx` : 0 erreur, **sans aucune adaptation du jeu** ; `check_gameplay_type_names.py` : 0 collision ; `RgceAssetCooker --worlds --verify` : 6 fichiers, 3341 entités, 3364 composants, 0 écart.
+  - **Parité (O2 répondu : elle tient)**, par `slice_runs.sh integration` puis `slice_check.py integration` : `RESULT: PASS`, douze points. Empreintes des réglages de l'utilisateur : celles de M1. Les 76 images des six genres (deux rejeux chacun) sont identiques octet pour octet à la référence de M1 ; `smoke` et `profile` en succès, sans `[Warning]` ni `[Error]` ; export de scène : 1437, 2033 et 4058 enregistrements appariés, 0 sans pair ; les deux rapports d'audit de voitures identiques hors la ligne `Generated: ` ; cuiseur `--verify` et `--check` à 0, générateur `--check` à 0.
+  - **M9 rejouée** sur une copie neuve (`<scratchpad>/entity-asset-remote-2/rgce/`) : 31 contrôles sur 31 ; le fichier enregistré par l'éditeur intégré est **identique octet pour octet à celui d'avant l'intégration** (`artifacts/entity-asset-remote/m9/saved-1.entity`) : les mêmes huit valeurs d'écart avec le fichier de l'outil, ni plus ni moins ; seul `Entities/PlayerCar.entity` a changé dans la copie ; `%LOCALAPPDATA%/CasaEngine/` inchangé.
+  - Table de correspondance des numéros d'ADR ajoutée au `HANDOVER.md` et au plan `rgce-worlds-as-assets` du jeu (commit du jeu de la note) ; aucun document du jeu n'est réécrit.
 
 ## Phase 4 — Vérification, clôture, push
 
@@ -268,7 +273,7 @@ Contrôlé sans constat : le nouveau refus précède tout accès au disque et ga
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Valider ou modifier P1 à P12 ; en particulier P3 (une commande git dans MGUI), P7 (`.` et segment vide refusés avec `..`), P10 (une différence de parité arrête tout avant le push) et P11 (l'approbation vaut demande de push pour les têtes produites). | Approbation |
-| O2 | La parité du jeu tient-elle sur le runtime d'`origin/main` ? Inconnu avant T3.1. | T3.1 |
+| O2 | **Répondu en T3.1 : oui**, 76 images identiques octet pour octet, export et audits identiques. Texte d'origine : La parité du jeu tient-elle sur le runtime d'`origin/main` ? Inconnu avant T3.1. | T3.1 |
 | O3 | **Répondu en T1.2 : oui**, les deux solutions compilent sans réparation et 8182 tests passent. Texte d'origine : La fusion compile-t-elle sans réparation ? Inconnu avant T1.2 (un seul conflit de texte, aucun build fait). | T1.2 |
 | O4 | **Constat de T1.4, pour l'auteur (défaut existant, hors périmètre de ce plan, non corrigé).** Le contrôle des liens `EditorRemoteValidation.IsFreeOfLinksBelowRoot`, donc `TryResolveInsideProject`, regarde chaque segment par un chemin ordinaire : pour un segment intermédiaire qui finit par un point ou une espace, Windows lit le dossier du même nom **sans** ce point ou cette espace, alors que l'accès suivant passe par le nom exact. T1.4 ferme ce trou pour les quatre commandes de création, où il était prouvé. Les autres appelants ne sont ni essayés ni corrigés : les références d'assets (`EditorRemoteAssets.Resolve`) et les chemins d'automatisation (`TryResolveAutomationPath` : `--open-asset`, `--content-folder`, `--create-particle-asset`, `--drop-particle-asset`). Conditions pour s'en servir : une jonction au nom finissant par un point ou une espace déjà présente dans le projet (créable seulement par un chemin `\\?\`, aucune commande n'en crée), et, pour une référence, une entrée de catalogue écrite avec ce nom. Suite proposée, à part : refuser de tels segments dans `TryResolveInsideProject` pour tout chemin, ou faire le contrôle des liens par des chemins `\\?\`. | Auteur |
 | R1 | Risque : conflit sémantique dans `GameEditor.cs` (fermeture et enregistrement des documents) ; atténuation : T1.3, T2.1, T4.1. | T1.2, T1.3 |
