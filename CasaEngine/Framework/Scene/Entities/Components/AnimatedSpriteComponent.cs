@@ -220,12 +220,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public bool ShouldUpdateWhenConditional(Entity owner)
     {
         ArgumentNullException.ThrowIfNull(owner);
-        return CurrentAnimation != null && owner.World?.Game?.ExecutionPolicy.UpdateAnimatedSprites == true;
+        return CurrentAnimation != null && owner.World?.ExecutionPolicy?.UpdateAnimatedSprites == true;
     }
 
     public override void Update(float elapsedTime)
     {
-        if (!Owner.World.Game.ExecutionPolicy.UpdateAnimatedSprites)
+        if (!Owner.World.ExecutionPolicy.UpdateAnimatedSprites)
         {
             return;
         }

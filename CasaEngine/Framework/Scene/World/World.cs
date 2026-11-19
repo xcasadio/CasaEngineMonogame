@@ -38,6 +38,36 @@ public sealed class World : ObjectBase
     private readonly List<PlayerController> _playerControllers = [];
 
     public CasaEngineGame Game { get; private set; }
+
+    private GameplayExecutionPolicy _executionPolicyOverride;
+
+    /// <summary>
+    /// Execution policy this world runs under instead of the one of its game, or null to follow the game.
+    /// It can only be set while the world has no game, so before <see cref="LoadContent(CasaEngineGame)"/>
+    /// runs: the load-time rules are read during that call. Setting it afterwards throws an
+    /// <see cref="InvalidOperationException"/>. It is NOT serialized and is NOT copied with the world.
+    /// </summary>
+    public GameplayExecutionPolicy ExecutionPolicyOverride
+    {
+        get => _executionPolicyOverride;
+        set
+        {
+            if (Game != null)
+            {
+                throw new InvalidOperationException(
+                    "The execution policy of a world can only be overridden before the world is loaded into a game.");
+            }
+
+            _executionPolicyOverride = value;
+        }
+    }
+
+    /// <summary>
+    /// Policy the world runs under: <see cref="ExecutionPolicyOverride"/> when it is set, otherwise the policy of
+    /// <see cref="Game"/>. It is null when the world has neither an override nor a game.
+    /// </summary>
+    public GameplayExecutionPolicy ExecutionPolicy => _executionPolicyOverride ?? Game?.ExecutionPolicy;
+
     public IPhysicsWorld PhysicsWorld { get; private set; } = null!;
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
@@ -345,14 +375,14 @@ public sealed class World : ObjectBase
         //after everything initialized entities are added
         InternalAddEntities();
 
-        if (Game.ExecutionPolicy.InitializePlayerControllers)
+        if (ExecutionPolicy.InitializePlayerControllers)
         {
             InitializePlayerControllers();
         }
 
         CreateGameplayProxy();
 
-        if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
+        if (ExecutionPolicy.InitializeGameplayOnLoad)
         {
             // The entities the world script makes appear are created under the same tolerance as the rest.
             using var tolerance = OpenScriptTypeResolutionTolerance();
@@ -525,7 +555,7 @@ public sealed class World : ObjectBase
 
     public void BeginPlay()
     {
-        if (!Game.ExecutionPolicy.RunBeginPlay)
+        if (!ExecutionPolicy.RunBeginPlay)
         {
             return;
         }
@@ -666,7 +696,7 @@ public sealed class World : ObjectBase
             InvalidateOnDemandViews();
         }
 
-        if (Game?.ExecutionPolicy.UpdateGameplayScripts ?? false)
+        if (ExecutionPolicy?.UpdateGameplayScripts ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
@@ -866,7 +896,7 @@ public sealed class World : ObjectBase
     /// </summary>
     private ScriptTypeResolutionTolerance.Scope OpenScriptTypeResolutionTolerance()
     {
-        return Game != null && !Game.ExecutionPolicy.ThrowOnScriptTypeResolution
+        return Game != null && !ExecutionPolicy.ThrowOnScriptTypeResolution
             ? ScriptTypeResolutionTolerance.Open(FileName)
             : default;
     }

@@ -143,7 +143,7 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
 
 ## Phase 1 — Runtime (`CasaEngine`)
 
-### ⏳ T1.1 — Règle d'exécution par monde
+### ✅ T1.1 — Règle d'exécution par monde
 
 - Objectif : un monde peut porter sa règle ; sans elle, rien ne change.
 - Fichiers : `CasaEngine/Framework/Scene/World/World.cs`, `CasaEngine/Framework/Scene/Entities/Entity.cs`, `CasaEngine/Framework/Scene/Entities/Components/AnimatedSpriteComponent.cs`, `PhysicsBaseComponent.cs`, `ParticleSystemComponent.cs`, tests ajoutés dans `CasaEngine.Tests/Scene/`, ce plan.
@@ -153,6 +153,11 @@ Lu dans `main` `ae2a42be`, plus le commit de clôture `adb35431` (documentation 
   3. Relancer `rg "Game\??\.ExecutionPolicy" CasaEngine/Framework/Scene` : il ne doit rester aucun lecteur par monde qui lise la règle du jeu, sauf la propriété `World.ExecutionPolicy` elle-même.
 - Validation : build des deux solutions ; `dotnet test` entier vert, aucun test existant modifié. Tests ajoutés, avec le harnais des tests existants (jeu non initialisé dont on fixe la règle ; la règle propre est posée avant le jeu) et les seules règles nommées (P17) : sous un jeu en `EditorPreview`, un monde **sans** règle propre garde le temps de son animation à la même valeur après une mise à jour, et son système de particules dont `SimulateInEditor` est faux n'émet rien ; le même monde **avec** la règle propre `EditorSimulation` voit le temps de son animation avancer du pas donné, et ses particules simulent ; sous un jeu en `Runtime`, un monde avec la règle propre `EditorPreview` ne lance rien à `BeginPlay` et ne met pas à jour le script d'une entité ; un monde sans jeu rend une règle nulle sans lever d'exception ; poser la règle propre quand le monde a un jeu lève l'exception. Si le harnais existant ne permet pas un de ces tests : le dire sous la tâche, ne pas l'inventer.
 - Commit : `feat(world): let a world run under its own execution policy`
+- Note de validation (2026-11-19) :
+  - `World.ExecutionPolicyOverride` (lève `InvalidOperationException` quand le monde a un jeu) et `World.ExecutionPolicy` (`ExecutionPolicyOverride ?? Game?.ExecutionPolicy`) ajoutés ; les douze lecteurs listés lisent désormais la règle du monde (`World.cs` ×5, `Entity.cs`, `AnimatedSpriteComponent.cs` ×2, `PhysicsBaseComponent.cs` ×3, `ParticleSystemComponent.cs`), avec la tolérance actuelle à un monde ou un jeu nul à chaque site. `rg "Game\??\.ExecutionPolicy" CasaEngine/Framework/Scene` : seule la propriété `World.ExecutionPolicy` reste. Le projet `CasaEngine` n'active pas les annotations de nullabilité : la propriété est donc typée sans `?`, sa valeur nulle est documentée dans le commentaire XML.
+  - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : **8075 réussis, 0 échec, 0 ignoré, total 8075** (8064 de départ plus 11 tests ajoutés dans `CasaEngine.Tests/Scene/WorldExecutionPolicyOverrideTests.cs`). Aucun test existant modifié.
+  - Tests ajoutés (règles nommées seulement, aucun `new GameplayExecutionPolicy`) : suivi de la règle du jeu sans règle propre ; règle propre prioritaire ; monde sans jeu rend une règle nulle sans exception ; règle propre sur un monde sans jeu ; exception à la pose après l'ajout du jeu ; animation figée sans règle propre sous un jeu `EditorPreview`, avancée du pas donné avec la règle propre `EditorSimulation` ; particules (`SimulateInEditor` faux) muettes sans règle propre, émises avec `EditorSimulation` ; sous un jeu `Runtime`, règle propre `EditorPreview` : ni `BeginPlay` ni mise à jour du script d'une entité, et le témoin sans règle propre appelle les deux. Le harnais est celui des tests existants (jeu non initialisé, règle propre posée avant le jeu par réflexion sur `World.Game`).
+  - Non vérifié : la mise à jour du script du monde lui-même (`World.Update`) n'est pas exercée, `World.Update` demandant un jeu initialisé ; seul son site de lecture a été changé, comme celui d'`Entity.Update` que le test couvre.
 
 ### ⏳ T1.2 — Règle de l'aperçu vivant et physique par monde
 

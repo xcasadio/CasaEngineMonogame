@@ -93,7 +93,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         PhysicsWorld = world.PhysicsWorld;
         System.Diagnostics.Debug.Assert(PhysicsWorld != null);
 
-    if (world.Game.ExecutionPolicy.UseExternalViewManagement)
+    if (world.ExecutionPolicy.UseExternalViewManagement)
     {
         LocalTransform.PositionChanged += OnPositionChanged;
         LocalTransform.OrientationChanged += OnOrientationChanged;
@@ -140,9 +140,9 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         base.Update(elapsedTime);
 
-        if (!Owner.World.Game.ExecutionPolicy.UpdatePhysicsComponents)
+        if (!Owner.World.ExecutionPolicy.UpdatePhysicsComponents)
         {
-            if (Owner.World.Game.ExecutionPolicy.UseExternalViewManagement && IsBoundingBoxDirty)
+            if (Owner.World.ExecutionPolicy.UseExternalViewManagement && IsBoundingBoxDirty)
             {
                 ApplyPhysicsWorldTransform();
             }

@@ -344,7 +344,7 @@ public class ParticleSystemComponent : SceneComponent
             return false;
         }
 
-        if (Owner.World.Game?.ExecutionPolicy.IsEditorPreview == true && !SimulateInEditor)
+        if (Owner.World.ExecutionPolicy?.IsEditorPreview == true && !SimulateInEditor)
         {
             return false;
         }

@@ -535,7 +535,7 @@ public class Entity : ObjectBase
             _children[i].Policies.ClearConditionalUpdateRequest();
         }
 
-        if (World?.Game?.ExecutionPolicy.UpdateGameplayScripts ?? false)
+        if (World?.ExecutionPolicy?.UpdateGameplayScripts ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
