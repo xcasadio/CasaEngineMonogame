@@ -207,7 +207,7 @@ public sealed class UINavigationInput
     private void Fire(Slot slot, ulong inputs, bool isRepeat, TimeSpan now, Func<KeyButton, bool> isHeld)
     {
         var input = (inputs & 1) != 0 ? slot.First : slot.Second;
-        Keys? key = input.InputDevice == InputDevices.Keyboard ? input.Key : null;
+        Keys? key = input.InputDevice == InputDevices.Keyboard ? input.KeyOnLayout() : null;
 
         if (key is { } typed && IsTextForAFocusedTextBox(typed))
         {
@@ -217,7 +217,7 @@ public sealed class UINavigationInput
         var action = slot.Action;
         if (slot.FollowsShift)
         {
-            InputActionMapper.TryMapKeyboardAction(input.Key, isHeld(LeftShift) || isHeld(RightShift), out action);
+            InputActionMapper.TryMapKeyboardAction(input.KeyOnLayout(), isHeld(LeftShift) || isHeld(RightShift), out action);
         }
 
         if (!isRepeat && action is InputAction.Submit or InputAction.Cancel && SubmitOrCancelPressed?.Invoke() == true)
@@ -260,7 +260,7 @@ public sealed class UINavigationInput
     private bool IsHeldOnDevices(KeyButton input)
         => input.InputDevice switch
         {
-            InputDevices.Keyboard => _desktop.InputTracker.Keyboard.CurrentState.IsKeyDown(input.Key),
+            InputDevices.Keyboard => _desktop.InputTracker.Keyboard.CurrentState.IsKeyDown(input.KeyOnLayout()),
             InputDevices.GamePad => _desktop.InputTracker.GamePad.CurrentState.IsButtonDown(input.GamePadButton),
             _ => false,
         };
@@ -405,6 +405,6 @@ public sealed class UINavigationInput
             => IsKey(First, key) || IsKey(Second, key);
 
         private static bool IsKey(KeyButton input, Keys key)
-            => input is { InputDevice: InputDevices.Keyboard } && input.Key == key;
+            => input is { InputDevice: InputDevices.Keyboard } && input.KeyOnLayout() == key;
     }
 }

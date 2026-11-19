@@ -11,6 +11,7 @@ public static class EditorPanelIds
     public const string Animation2dTimeline = "panel_animation2d_timeline";
     public const string CutsceneTimeline = "panel_cutscene_timeline";
     public const string AudioProfiler = "panel_audio_profiler";
+    public const string EditorPreferences = "panel_editor_preferences";
     public const string UIScreenDocumentPrefix = "panel_ui_screen_";
     public const string MaterialAssetDocumentPrefix = "panel_material_asset_";
     public const string EntityAssetDocumentPrefix = "panel_entity_asset_";
@@ -22,4 +23,7 @@ public static class EditorPanelIds
     public const string AudioMixerAssetDocumentPrefix = "panel_audio_mixer_asset_";
     public const string CutsceneAssetDocumentPrefix = "panel_cutscene_asset_";
     public const string TileMapAssetDocumentPrefix = "panel_tile_map_asset_";
+    public const string AssetPreviewDocumentPrefix = "panel_asset_preview_";
+    public const string TextureAssetDocumentPrefix = "panel_texture_asset_";
+    public const string StaticModelAssetDocumentPrefix = "panel_static_model_asset_";
 }

@@ -4,6 +4,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.PostProcess;
 using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -60,6 +61,18 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         bool castShadows = true,
         bool receiveShadows = true,
         LitDiffuseMaterial material = null)
+        => AddMesh(mesh, world, poseProvider, skinningModeSelection, castShadows, receiveShadows, material, null);
+
+    /// <param name="pbrMaterial">Lit-pbr material of the draw (ADR-0111); when not null it wins over <paramref name="material"/>.</param>
+    public void AddMesh(
+        RiggedModel mesh,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningModeSelection skinningModeSelection,
+        bool castShadows,
+        bool receiveShadows,
+        LitDiffuseMaterial material,
+        LitPbrMaterial pbrMaterial)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(poseProvider);
@@ -73,6 +86,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             CastShadows = castShadows,
             ReceiveShadows = receiveShadows,
             Material = material,
+            PbrMaterial = pbrMaterial,
         });
     }
 
@@ -80,6 +94,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     {
         var linearBlendShader = SkinningModeShaderResolver.Resolve(SkinningMode.LinearBlend);
         var dualQuaternionShader = SkinningModeShaderResolver.Resolve(SkinningMode.DualQuaternion);
+        var linearBlendPbrShader = SkinningModeShaderResolver.ResolvePbr(SkinningMode.LinearBlend);
+        var dualQuaternionPbrShader = SkinningModeShaderResolver.ResolvePbr(SkinningMode.DualQuaternion);
         _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.SkinEffectContentName);
         _shader = new ShaderWrapper(_effect);
 
@@ -91,6 +107,10 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             _variantLibrary.RegisterTechniqueAliases(linearBlendShader.ShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
             _shaderManager.RegisterShader(dualQuaternionShader.ShaderId, _shader);
             _variantLibrary.RegisterTechniqueAliases(dualQuaternionShader.ShaderId, ShaderVariantLibrary.BuildDualQuaternionSkinnedEffectAliases());
+            _shaderManager.RegisterShader(linearBlendPbrShader.ShaderId, _shader);
+            _variantLibrary.RegisterTechniqueAliases(linearBlendPbrShader.ShaderId, ShaderVariantLibrary.BuildSkinnedPbrEffectAliases());
+            _shaderManager.RegisterShader(dualQuaternionPbrShader.ShaderId, _shader);
+            _variantLibrary.RegisterTechniqueAliases(dualQuaternionPbrShader.ShaderId, ShaderVariantLibrary.BuildDualQuaternionSkinnedPbrEffectAliases());
             _staticMeshRendererComponent = casaEngineGame.MeshRendererComponent;
 
             // Inject skinned shadow casters between the static shadow pass and the static
@@ -102,6 +122,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
         _shaderSelector.RegisterShader(linearBlendShader.ShaderId, _shader);
         _shaderSelector.RegisterShader(dualQuaternionShader.ShaderId, _shader);
+        _shaderSelector.RegisterShader(linearBlendPbrShader.ShaderId, _shader);
+        _shaderSelector.RegisterShader(dualQuaternionPbrShader.ShaderId, _shader);
 
         // Provide a 1×1 white fallback texture for skinned meshes without textures.
         if (RiggedModel.DefaultTexture == null)
@@ -164,10 +186,13 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
             Shadows = _staticMeshRendererComponent?.ShadowResources,
+            Ibl = frame.Ibl,
+            SceneDepth = frame.SceneDepth,
             Stats = stats,
         };
 
         DrawShadowCasters(in context);
+        DrawSceneDepth(in context);
 
         foreach (var meshInfo in _meshInfos)
         {
@@ -193,6 +218,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 effectiveSkinningMode,
                 meshInfo.ReceiveShadows,
                 meshInfo.Material,
+                meshInfo.PbrMaterial,
                 in context);
         }
 
@@ -252,6 +278,146 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         }
     }
 
+    /// <summary>
+    /// Writes the view depth of every skinned mesh the colour pass will draw into the scene depth pre-pass target (ADR-0116), before
+    /// the colour draws; does nothing when the pre-pass of the view is not active. The meshes are the ones <see cref="DrawRiggedModel"/>
+    /// draws: those without a texture are skipped, as the colour pass skips them.
+    /// </summary>
+    private void DrawSceneDepth(in RenderContext context)
+    {
+        var prepass = context.SceneDepth;
+        if (prepass is null || !prepass.IsActive || !prepass.BeginDraw(context.Device))
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var meshInfo in _meshInfos)
+            {
+                if (meshInfo.SkinnedMesh == null || meshInfo.PoseProvider == null)
+                {
+                    continue;
+                }
+
+                SkinningMode effectiveSkinningMode = SkinningModeSelectionResolver.ResolveEffective(
+                    meshInfo.SkinningModeSelection,
+                    meshInfo.SkinnedMesh.SkinningMode,
+                    meshInfo.PoseProvider.CanUseDualQuaternionSkinning);
+
+                MaterialBase material = meshInfo.PbrMaterial ?? (MaterialBase)(meshInfo.Material ?? _defaultMaterial);
+                Texture2D materialTexture = meshInfo.PbrMaterial is not null
+                    ? meshInfo.PbrMaterial.BaseColorTexture
+                    : (meshInfo.Material ?? _defaultMaterial).BasColor;
+
+                var riggedModel = meshInfo.SkinnedMesh;
+                for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
+                {
+                    var mesh = riggedModel.Meshes[meshIndex];
+                    if (mesh.Texture == null)
+                    {
+                        continue;
+                    }
+
+                    // Same cutoff the colour pass ends up with: the per-mesh glTF cutoff wins, else the material's when it is alpha tested.
+                    float alphaCutoff = mesh.AlphaCutoff >= 0f
+                        ? mesh.AlphaCutoff
+                        : (material.Queue == RenderQueue.AlphaTest ? material.AlphaCutoff : 0.0f);
+
+                    DrawSceneDepthMesh(
+                        _shader,
+                        mesh,
+                        meshInfo.World,
+                        meshInfo.PoseProvider,
+                        effectiveSkinningMode,
+                        materialTexture ?? mesh.Texture,
+                        alphaCutoff,
+                        mesh.IsDoubleSided ? RasterizerState.CullNone : (material.RasterizerState ?? RasterizerState.CullCounterClockwise),
+                        mesh.UseNearestFiltering ? SamplerState.PointClamp : (material.SamplerState ?? SamplerState.AnisotropicClamp),
+                        in context);
+                }
+            }
+        }
+        finally
+        {
+            prepass.EndDraw(context.Device);
+        }
+    }
+
+    /// <summary>
+    /// Draws one skinned mesh into the scene depth pre-pass target with the <c>RiggedModelSceneDepth</c> technique of
+    /// <paramref name="shader"/> (<c>skinEffect.fx</c>) for the skinning mode: the view depth in the red channel, the pixels whose
+    /// texture alpha is under <paramref name="alphaCutoff"/> discarded (a value of 0 or less disables the cut). The pre-pass must be
+    /// between <see cref="SceneDepthPrepass.BeginDraw"/> and <see cref="SceneDepthPrepass.EndDraw"/>.
+    /// </summary>
+    internal static void DrawSceneDepthMesh(
+        ShaderWrapper shader,
+        RiggedModel.RiggedModelMesh mesh,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningMode skinningMode,
+        Texture2D maskTexture,
+        float alphaCutoff,
+        RasterizerState rasterizerState,
+        SamplerState samplerState,
+        in RenderContext context)
+    {
+        var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
+        mesh.Initialize(context.Device, vertexDeclaration);
+        if (mesh.IndexBuffer == null)
+        {
+            return;
+        }
+
+        var vertexBuffer = poseProvider.GetVertexBufferOverride(mesh, context.Device, vertexDeclaration) ?? mesh.VertexBuffer;
+        if (vertexBuffer == null)
+        {
+            return;
+        }
+
+        Matrix meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
+
+        context.Device.RasterizerState = rasterizerState;
+        context.Device.SamplerStates[0] = samplerState;
+
+        shader.SelectTechnique(skinningMode == SkinningMode.DualQuaternion
+            ? SceneDepthPrepass.SkinnedDualQuaternionTechniqueName
+            : SceneDepthPrepass.SkinnedTechniqueName);
+        shader.SetParameter(ShaderParameterNames.WorldViewProj, meshWorld * context.Frame.ViewProjection);
+        shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, maskTexture, context.Stats);
+        shader.SetParameter(ShaderParameterNames.AlphaCutoff, alphaCutoff);
+
+        if (skinningMode == SkinningMode.DualQuaternion && shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
+        {
+            shader.SetParameter(ShaderParameterNames.BonesDualQuaternion, poseProvider.DualQuaternionSkinningPalette);
+        }
+        else
+        {
+            shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+        }
+
+        context.Device.SetVertexBuffer(vertexBuffer);
+        context.Device.Indices = mesh.IndexBuffer;
+
+        for (int passIndex = 0; passIndex < shader.PassCount; passIndex++)
+        {
+            shader.ApplyPass(passIndex);
+            context.Device.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                mesh.NumberOfVertices,
+                0,
+                mesh.NumberOfIndices / 3);
+        }
+
+        if (context.Stats is not null)
+        {
+            context.Stats.SceneDepthSkinnedDraws++;
+            context.Stats.DrawCalls++;
+        }
+    }
+
     private void DrawRiggedModel(
         RiggedModel riggedModel,
         Matrix world,
@@ -259,6 +425,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         SkinningMode skinningMode,
         bool receiveShadows,
         LitDiffuseMaterial materialOverride,
+        LitPbrMaterial pbrMaterial,
         in RenderContext context)
     {
         for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
@@ -270,7 +437,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, skinningMode, receiveShadows, materialOverride, in context);
+            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, skinningMode, receiveShadows, materialOverride, pbrMaterial, in context);
         }
     }
 
@@ -304,6 +471,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         SkinningMode skinningMode,
         bool receiveShadows,
         LitDiffuseMaterial materialOverride,
+        LitPbrMaterial pbrMaterial,
         in RenderContext context)
     {
         var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
@@ -319,16 +487,29 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             return;
         }
 
-        var material = materialOverride ?? _defaultMaterial;
+        // A lit-pbr material wins over the lit-diffuse override and the default material (ADR-0111); it takes the mesh
+        // texture around its own Bind (BindPbrMaterial).
+        MaterialBase material;
+        LitDiffuseMaterial diffuseMaterial = null;
+        Texture2D originalBasColor = null;
 
-        // The mesh texture must win only when the material carries none of its own.
-        // We temporarily set/restore BasColor instead of mutating it permanently so that
-        // a user-provided material (materialOverride) is never left holding a stray
-        // reference to this mesh's texture.
-        var originalBasColor = material.BasColor;
-        if (originalBasColor == null)
+        if (pbrMaterial is not null)
         {
-            material.BasColor = texture;
+            material = pbrMaterial;
+        }
+        else
+        {
+            // The mesh texture must win only when the material carries none of its own.
+            // We temporarily set/restore BasColor instead of mutating it permanently so that
+            // a user-provided material (materialOverride) is never left holding a stray
+            // reference to this mesh's texture.
+            diffuseMaterial = materialOverride ?? _defaultMaterial;
+            material = diffuseMaterial;
+            originalBasColor = diffuseMaterial.BasColor;
+            if (originalBasColor == null)
+            {
+                diffuseMaterial.BasColor = texture;
+            }
         }
 
         // glTF-authored per-mesh overrides (double-sided / nearest filtering / alpha cutoff).
@@ -344,15 +525,32 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         if (!resolvedShader.TechniqueSelectedBySelector)
         {
-            material.SelectTechnique(resolvedShader.Shader, in context, features);
+            if (pbrMaterial is not null)
+            {
+                // LitPbrMaterial.SelectTechnique names the techniques of LitPbr.fx: the skinning effect has its own.
+                resolvedShader.Shader.SelectTechnique(skinningMode == SkinningMode.DualQuaternion
+                    ? "RiggedModelDrawPbrDualQuaternion"
+                    : "RiggedModelDrawPbr");
+            }
+            else
+            {
+                material.SelectTechnique(resolvedShader.Shader, in context, features);
+            }
         }
 
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
-        material.Bind(resolvedShader.Shader, in context, meshWorld);
-
-        if (originalBasColor == null)
+        if (pbrMaterial is not null)
         {
-            material.BasColor = originalBasColor;
+            BindPbrMaterial(pbrMaterial, resolvedShader.Shader, in context, meshWorld, texture);
+        }
+        else
+        {
+            material.Bind(resolvedShader.Shader, in context, meshWorld);
+
+            if (originalBasColor == null)
+            {
+                diffuseMaterial.BasColor = null;
+            }
         }
 
         // Per-mesh alpha cutoff wins over whatever the material bound above (0 = disabled).
@@ -390,6 +588,32 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         if (context.Stats is not null)
         {
             context.Stats.DrawCalls++;
+        }
+    }
+
+    /// <summary>
+    /// Binds a lit-pbr material for a skinned draw. When the material carries no base colour texture the texture of the mesh is
+    /// bound in its place (HasBaseColorTexture = 1) for the duration of the bind, then the material is given back untouched
+    /// (<see cref="LitPbrMaterial.BaseColorTexture"/> null again), as the lit-diffuse path does with <c>BasColor</c>. No allocation.
+    /// </summary>
+    internal static void BindPbrMaterial(
+        LitPbrMaterial pbrMaterial,
+        ShaderWrapper shader,
+        in RenderContext context,
+        Matrix meshWorld,
+        Texture2D meshTexture)
+    {
+        bool borrowMeshTexture = pbrMaterial.BaseColorTexture == null;
+        if (borrowMeshTexture)
+        {
+            pbrMaterial.BaseColorTexture = meshTexture;
+        }
+
+        pbrMaterial.Bind(shader, in context, meshWorld);
+
+        if (borrowMeshTexture)
+        {
+            pbrMaterial.BaseColorTexture = null;
         }
     }
 
@@ -463,5 +687,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         /// <summary>Per-component material override; null uses the renderer's default material.</summary>
         public LitDiffuseMaterial Material { get; set; }
+
+        /// <summary>Per-component lit-pbr material (ADR-0111); when not null it wins over <see cref="Material"/>.</summary>
+        public LitPbrMaterial PbrMaterial { get; set; }
     }
 }

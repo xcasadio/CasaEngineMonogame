@@ -1,4 +1,6 @@
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using CasaEngine.Core.Serialization;
 
 namespace CasaEngine.Framework.Rendering.Shadows;
 
@@ -12,6 +14,11 @@ public sealed class ShadowSettings
     private float _depthBias = 0.001f;
     private float _normalBias;
     private float _maxDistance = 100.0f;
+    private Vector3 _shadowColor = Vector3.Zero;
+    private float _filterRadius;
+    private int _filterTaps = 12;
+    private float _fadeDistance;
+    private float _depthRange;
 
     public bool Enabled { get; set; } = false;
 
@@ -39,6 +46,66 @@ public sealed class ShadowSettings
         set => _maxDistance = NormalizeNonNegative(value);
     }
 
+    /// <summary>
+    /// How the shadow factor is applied to lit surfaces. <see cref="ShadowMode.OccludeDirectLight"/> (default) is the
+    /// historical behaviour.
+    /// </summary>
+    public ShadowMode Mode { get; set; } = ShadowMode.OccludeDirectLight;
+
+    /// <summary>
+    /// Colour a fully shadowed pixel is multiplied by in <see cref="ShadowMode.MultiplyLitColor"/> (default black). Each
+    /// component is kept in [0, 1]; a non-finite component becomes 0.
+    /// </summary>
+    public Vector3 ShadowColor
+    {
+        get => _shadowColor;
+        set => _shadowColor = NormalizeColor(value);
+    }
+
+    /// <summary>
+    /// Radius, in shadow-map texels, of the Poisson-disc filter that softens shadow edges. 0 (default) keeps the 4-tap filter
+    /// of earlier versions; a negative or non-finite value becomes 0.
+    /// </summary>
+    public float FilterRadius
+    {
+        get => _filterRadius;
+        set => _filterRadius = NormalizeNonNegative(value);
+    }
+
+    /// <summary>
+    /// Number of shadow-map reads of the soft-edge filter when <see cref="FilterRadius"/> is above 0: 12 (default, the fixed
+    /// Poisson disc of earlier versions), 32 or 64 (a Vogel disc, which turns the banded penumbra of a shadow seen at a grazing
+    /// angle into a smooth gradient, at a proportional cost). Any other value becomes the nearest of the three: 12 below 22, 32
+    /// from 22 to 47, 64 from 48.
+    /// </summary>
+    public int FilterTaps
+    {
+        get => _filterTaps;
+        set => _filterTaps = NormalizeFilterTaps(value);
+    }
+
+    /// <summary>
+    /// Width, in world units, of the band before <see cref="MaxDistance"/> over which the shadow fades linearly to "lit",
+    /// measured from the centre of the shadow map as a square. 0 (default) keeps the sharp cut at the edge of the map. A
+    /// negative or non-finite value becomes 0 and a value above <see cref="MaxDistance"/> reads back as <see cref="MaxDistance"/>.
+    /// </summary>
+    public float FadeDistance
+    {
+        get => MathF.Min(_fadeDistance, _maxDistance);
+        set => _fadeDistance = NormalizeNonNegative(value);
+    }
+
+    /// <summary>
+    /// Depth extent of the shadow map, in world units, kept separate from its lateral extent (<see cref="MaxDistance"/>). 0
+    /// (default) makes the depth follow <see cref="MaxDistance"/> as in earlier versions; a positive value places the light that
+    /// far upstream of the camera and the far plane at twice that distance (at least 1). A negative or non-finite value becomes 0.
+    /// </summary>
+    public float DepthRange
+    {
+        get => _depthRange;
+        set => _depthRange = NormalizeNonNegative(value);
+    }
+
     public void ResetToDefaults()
     {
         Enabled = false;
@@ -46,6 +113,12 @@ public sealed class ShadowSettings
         DepthBias = 0.001f;
         NormalBias = 0.0f;
         MaxDistance = 100.0f;
+        Mode = ShadowMode.OccludeDirectLight;
+        ShadowColor = Vector3.Zero;
+        FilterRadius = 0.0f;
+        FilterTaps = 12;
+        FadeDistance = 0.0f;
+        DepthRange = 0.0f;
     }
 
     public void Load(JObject element)
@@ -81,6 +154,36 @@ public sealed class ShadowSettings
         {
             MaxDistance = maxDistanceNode.Value<float>();
         }
+
+        if (element.TryGetValue("mode", StringComparison.OrdinalIgnoreCase, out var modeNode))
+        {
+            Mode = modeNode.GetEnum<ShadowMode>();
+        }
+
+        if (element.TryGetValue("shadow_color", StringComparison.OrdinalIgnoreCase, out var shadowColorNode))
+        {
+            ShadowColor = shadowColorNode.GetVector3();
+        }
+
+        if (element.TryGetValue("filter_radius", StringComparison.OrdinalIgnoreCase, out var filterRadiusNode))
+        {
+            FilterRadius = filterRadiusNode.Value<float>();
+        }
+
+        if (element.TryGetValue("filter_taps", StringComparison.OrdinalIgnoreCase, out var filterTapsNode))
+        {
+            FilterTaps = filterTapsNode.Value<int>();
+        }
+
+        if (element.TryGetValue("fade_distance", StringComparison.OrdinalIgnoreCase, out var fadeDistanceNode))
+        {
+            FadeDistance = fadeDistanceNode.Value<float>();
+        }
+
+        if (element.TryGetValue("depth_range", StringComparison.OrdinalIgnoreCase, out var depthRangeNode))
+        {
+            DepthRange = depthRangeNode.Value<float>();
+        }
     }
 
     public void Save(JObject element)
@@ -92,6 +195,67 @@ public sealed class ShadowSettings
         element["depth_bias"] = DepthBias;
         element["normal_bias"] = NormalBias;
         element["max_distance"] = MaxDistance;
+
+        // The fields below are optional in the file: written only when they differ from the defaults, so existing worlds keep
+        // their format, and a stale key is removed.
+        if (Mode != ShadowMode.OccludeDirectLight)
+        {
+            element["mode"] = Mode.ToString();
+        }
+        else
+        {
+            element.Remove("mode");
+        }
+
+        if (ShadowColor != Vector3.Zero)
+        {
+            element["shadow_color"] = new JObject
+            {
+                ["x"] = ShadowColor.X,
+                ["y"] = ShadowColor.Y,
+                ["z"] = ShadowColor.Z,
+            };
+        }
+        else
+        {
+            element.Remove("shadow_color");
+        }
+
+        if (FilterRadius > 0.0f)
+        {
+            element["filter_radius"] = FilterRadius;
+        }
+        else
+        {
+            element.Remove("filter_radius");
+        }
+
+        if (FilterTaps != 12)
+        {
+            element["filter_taps"] = FilterTaps;
+        }
+        else
+        {
+            element.Remove("filter_taps");
+        }
+
+        if (FadeDistance > 0.0f)
+        {
+            element["fade_distance"] = FadeDistance;
+        }
+        else
+        {
+            element.Remove("fade_distance");
+        }
+
+        if (DepthRange > 0.0f)
+        {
+            element["depth_range"] = DepthRange;
+        }
+        else
+        {
+            element.Remove("depth_range");
+        }
     }
 
     public void CopyFrom(ShadowSettings other)
@@ -103,10 +267,32 @@ public sealed class ShadowSettings
         DepthBias = other.DepthBias;
         NormalBias = other.NormalBias;
         MaxDistance = other.MaxDistance;
+        Mode = other.Mode;
+        ShadowColor = other.ShadowColor;
+        FilterRadius = other.FilterRadius;
+        FilterTaps = other.FilterTaps;
+        FadeDistance = other.FadeDistance;
+        DepthRange = other.DepthRange;
     }
 
     private static int NormalizeResolution(int value)
         => Math.Max(1, value);
+
+    private static Vector3 NormalizeColor(Vector3 value)
+        => new(NormalizeUnit(value.X), NormalizeUnit(value.Y), NormalizeUnit(value.Z));
+
+    private static int NormalizeFilterTaps(int value)
+        => value < 22 ? 12 : value < 48 ? 32 : 64;
+
+    private static float NormalizeUnit(float value)
+    {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+        {
+            return 0.0f;
+        }
+
+        return MathF.Min(1.0f, MathF.Max(0.0f, value));
+    }
 
     private static float NormalizeNonNegative(float value)
     {

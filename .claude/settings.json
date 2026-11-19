@@ -17,7 +17,12 @@
       "Bash(git worktree *)",
       "Bash(git checkout -b *)",
       "Bash(dotnet build *)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "mcp__codegraph__*"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "serena",
+    "codegraph"
+  ]
 }

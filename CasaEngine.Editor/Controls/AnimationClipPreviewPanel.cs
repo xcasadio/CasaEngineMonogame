@@ -523,16 +523,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _cameraEntity = new Entity
-        {
-            Name = "AnimationClipPreviewCamera",
-            IsVisible = false,
-        };
-
         _camera = new CameraLookAtComponent();
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("AnimationClipPreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 

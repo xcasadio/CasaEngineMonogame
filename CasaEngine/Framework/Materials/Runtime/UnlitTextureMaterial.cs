@@ -18,6 +18,8 @@ public class UnlitTextureMaterial : MaterialBase
     /// <summary>Asset ID of the BasColor texture.</summary>
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
 
+    public override Texture2D ShadowMaskTexture => Queue == RenderQueue.AlphaTest ? BasColor : null;
+
     /// <summary>Multiplicative tint applied to the texture color.</summary>
     public Color Tint { get; set; } = Color.White;
 

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.PostProcess;
 using CasaEngine.Framework.Rendering.Shadows;
 
 namespace CasaEngine.Framework.Rendering;
@@ -28,4 +29,10 @@ public struct RenderContext
 
     /// <summary>Optional forward-shadow resources resolved for the current view.</summary>
     public ForwardShadowResources Shadows;
+
+    /// <summary>Cache of the image-based-lighting textures (ADR-0110); null when the pipeline has none, in which case no IBL is bound.</summary>
+    public IblCache Ibl;
+
+    /// <summary>Host of the scene depth pre-pass (ADR-0116); null when the pipeline has none. The renderers draw their depth only when it is active.</summary>
+    public SceneDepthPrepass SceneDepth;
 }

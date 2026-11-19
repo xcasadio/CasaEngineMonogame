@@ -66,8 +66,8 @@ renderer.DrawPsxQuad(texture, new Rectangle(sx, sy, w, h), topLeft, topRight, bo
   read from the projection and the viewport): coverage by the top-left corner of the screen pixel, texel `floor(u(p) + 1/2)` with
   p = ((sx + 1/2) / k - 1/2, (sy + 1/2) / k - 1/2). Exact at k = 1; a 1:1 quad equals the rectangle path at every factor; a
   deformed quad at k > 1 is smoother than the PS1 enlarged.
-- Demo: `PSX free quads` (`CASAENGINE_PSXQUAD_ZOOM` 1 or 3, `CASAENGINE_PSXQUAD_DUMP_PATH` for the back-buffer dump), run from the
-  `CasaEngine.Demos` folder.
+- The demo `PSX free quads`, which dumped its back-buffer to prove this on a device, was removed from `CasaEngine.Demos` on
+  2026-10-08 (commit `07e354d0`); see "Demos" below.
 
 ## Limits
 
@@ -84,13 +84,13 @@ grow with the queue (they never shrink). The index buffer (six indices) does not
 
 ## Demos
 
-`PSX sprite semi-transparency`, `Sprite queue capacity` and `Background layers PSX semi-transparency` (the last one draws scrolling and
-cellular layers from PNG sheets in `CasaEngine.Demos/Content/PsxBackdropLayers/`; `CasaEngine.Demos/Demos/PsxSemiTransparency/`) read their own back-buffer
-in process and compare it with the expected pixels to within one level per channel. From the `CasaEngine.Demos` folder:
+The behaviour was proved on a device by three demos that read their own back-buffer in process and compared it with the
+expected pixels to within one level per channel: `PSX sprite semi-transparency`, `Sprite queue capacity` and
+`Background layers PSX semi-transparency` (scrolling and cellular layers from PNG sheets). They were removed from
+`CasaEngine.Demos` on 2026-10-08 with the other PSX validation demos (commit `07e354d0`), and no demo shows this feature
+today. Their sources stay in the git history, under `CasaEngine.Demos/Demos/PsxSemiTransparency/`; the PNG sheets of the
+last one are still in `CasaEngine.Demos/Content/PsxBackdropLayers/`, unused.
 
-```
-set CASAENGINE_START_DEMO=PSX sprite semi-transparency
-set CASAENGINE_CAPTURE_SCREENSHOT_PATH=psx-modes.png
-set CASAENGINE_DEMO_PIXELS_PATH=psx-modes.txt
-bin\Debug\net9.0-windows\CasaEngine.Demos.exe
-```
+What still checks the feature, without a device: `SpriteRendererComponentPsxSemiTransparencyTests`,
+`SpriteDataPsxSemiTransparencyTests`, `ScrollingLayerPsxSemiTransparencyTests` and `CellularLayerPsxSemiTransparencyTests`
+(`CasaEngine.Tests`). They check what is submitted to the renderer, not the pixels drawn.

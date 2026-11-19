@@ -356,11 +356,12 @@ public sealed class UIScreenHierarchyPanel
 
         menu.AddButton("Select", _ => _selection.Select(node.Id));
 
-        menu.AddButton("Duplicate", _ =>
+        var duplicateButton = menu.AddButton("Duplicate", _ =>
         {
             if (_document != null)
                 NodeDuplicateRequested?.Invoke(_document, node.Id);
         });
+        duplicateButton.IsEnabled = _document != null && DuplicateNodeCommand.CanDuplicate(_document, node.Id);
 
         menu.AddSeparator();
 

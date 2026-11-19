@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
@@ -245,50 +246,76 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         return true;
     }
 
-    public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
-    {
-        statusMessage = string.Empty;
+    /// <summary>One property of the loaded material, as the remote commands read it (ADR-0093).</summary>
+    public readonly record struct PropertySnapshot(
+        string Key,
+        string DisplayName,
+        MaterialPropertyType Type,
+        string Value,
+        bool IsLocal,
+        float? MinValue,
+        float? MaxValue,
+        IReadOnlyList<string> Options);
 
+    /// <summary>The properties of the material's definition with their effective value, as the inspector shows them.</summary>
+    public IReadOnlyList<PropertySnapshot> GetPropertySnapshots()
+    {
+        var snapshots = new List<PropertySnapshot>();
         if (_materialAsset == null)
         {
-            statusMessage = "No material loaded.";
+            return snapshots;
+        }
+
+        foreach (var propertyDefinition in _materialAsset.GetRequiredDefinition().Properties)
+        {
+            PropertyDisplayState state = ResolvePropertyState(propertyDefinition);
+            snapshots.Add(new PropertySnapshot(
+                propertyDefinition.Key,
+                propertyDefinition.DisplayName,
+                propertyDefinition.ValueType,
+                FormatSnapshotValue(propertyDefinition.ValueType, state.EffectiveValue),
+                _materialAsset.HasLocalPropertyValue(propertyDefinition.Key),
+                propertyDefinition.MinValue,
+                propertyDefinition.MaxValue,
+                propertyDefinition.Options.Select(option => option.Value).ToList()));
+        }
+
+        return snapshots;
+    }
+
+    /// <summary>
+    /// Sets a property from its text form through the undo history of this panel, as an edit in the inspector does
+    /// (ADR-0093 P5). <paramref name="validate"/> returns null when the parsed value is allowed, otherwise the reason.
+    /// </summary>
+    public bool TryApplyPropertyValue(string propertyKey, string rawValue, Func<MaterialPropertyDefinition, MaterialValue, string> validate, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(validate);
+        if (_materialAsset == null)
+        {
+            error = "No material loaded.";
             return false;
         }
 
         if (!TryFindPropertyDefinition(propertyKey, out var propertyDefinition))
         {
-            statusMessage = $"Property '{propertyKey}' not found.";
+            error = $"Property '{propertyKey}' not found.";
             return false;
         }
 
-        if (!TryCreateAutomationValue(propertyDefinition, rawValue, out var value))
+        if (!TryCreateAutomationValue(propertyDefinition, rawValue ?? string.Empty, out var value))
         {
-            statusMessage = $"Unable to parse '{rawValue}' for property '{propertyDefinition.Key}'.";
+            error = $"Unable to parse '{rawValue}' for property '{propertyDefinition.Key}'.";
             return false;
         }
 
-        try
+        error = validate(propertyDefinition, value);
+        if (error != null)
         {
-            _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
-            UpdateDirtyStateFromCurrentMaterial();
-            if (!TrySaveLoadedAsset(out string saveError))
-            {
-                statusMessage = saveError ?? "Unable to save material asset.";
-                return false;
-            }
-
-            RefreshEditedProperty(propertyDefinition, refreshEditorValue: true);
-            statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
-                ? $"Saved property '{propertyDefinition.Key}'."
-                : $"Saved {EscapeMarkup(_loadedRelativePath)} ({propertyDefinition.Key}={rawValue})";
-            return true;
-        }
-        catch (Exception exception)
-        {
-            Logs.WriteException(exception);
-            statusMessage = exception.Message;
             return false;
         }
+
+        ApplyPropertyValue(propertyDefinition, value, refreshEditorValue: true);
+        return true;
     }
 
     private void RefreshInspector()
@@ -1111,6 +1138,45 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// The text of a value as <c>material.get</c> returns it, in the form <see cref="TryApplyPropertyValue"/> parses back:
+    /// invariant numbers, <c>true</c>/<c>false</c>, <c>r,g,b,a</c> bytes for a colour, comma-separated components for a
+    /// vector, the asset id for a texture. Empty when there is no value.
+    /// </summary>
+    internal static string FormatSnapshotValue(MaterialPropertyType type, MaterialValue value)
+    {
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        switch (type)
+        {
+            case MaterialPropertyType.Float when value.TryGetFloat(out float floatValue):
+                return floatValue.ToString("R", CultureInfo.InvariantCulture);
+            case MaterialPropertyType.Integer when value.TryGetInteger(out int intValue):
+                return intValue.ToString(CultureInfo.InvariantCulture);
+            case MaterialPropertyType.Boolean when value.TryGetBoolean(out bool boolValue):
+                return boolValue ? "true" : "false";
+            case MaterialPropertyType.Color when value.TryGetColor(out Color color):
+                return string.Create(CultureInfo.InvariantCulture, $"{color.R},{color.G},{color.B},{color.A}");
+            case MaterialPropertyType.Vector2 when value.TryGetVector2(out Vector2 vector2):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector2.X:R},{vector2.Y:R}");
+            case MaterialPropertyType.Vector3 when value.TryGetVector3(out Vector3 vector3):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector3.X:R},{vector3.Y:R},{vector3.Z:R}");
+            case MaterialPropertyType.Vector4 when value.TryGetVector4(out Vector4 vector4):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector4.X:R},{vector4.Y:R},{vector4.Z:R},{vector4.W:R}");
+            case MaterialPropertyType.Texture when value.TryGetTextureId(out Guid textureId):
+                return textureId == Guid.Empty ? string.Empty : textureId.ToString("D");
+            case MaterialPropertyType.Enum when value.TryGetEnum(out string enumValue):
+                return enumValue ?? string.Empty;
+            case MaterialPropertyType.String when value.TryGetString(out string text):
+                return text ?? string.Empty;
+            default:
+                return string.Empty;
+        }
     }
 
     private static bool TryParseTextValue(MaterialPropertyDefinition propertyDefinition, string rawValue, out MaterialValue value)

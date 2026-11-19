@@ -1,0 +1,24 @@
+{
+  "id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1",
+  "name": "NewLitDiffuseMaterial",
+  "definition_id": "lit-diffuse",
+  "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+  "is_transparent": false,
+  "queue": "Opaque",
+  "cast_shadows": true,
+  "receive_shadows": true,
+  "blend_state": "Opaque",
+  "depth_stencil_state": "Default",
+  "rasterizer_state": "CullCounterClockwise",
+  "sampler_state": "AnisotropicClamp",
+  "properties": {
+    "base_color_texture": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+    "alpha_cutoff": 0.8154762,
+    "specular_color": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "specular_power": 103.61905
+  }
+}

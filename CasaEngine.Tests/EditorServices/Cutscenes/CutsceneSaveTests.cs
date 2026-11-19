@@ -23,7 +23,7 @@ public sealed class CutsceneSaveTests
     [Fact]
     public void TheSaveSourceOfTheCutsceneEditorIsTheNextValue()
     {
-        Assert.Equal(9, (int)EditorAssetSaveSource.CutsceneEditorPanel);
+        Assert.Equal(11, (int)EditorAssetSaveSource.CutsceneEditorPanel);
     }
 
     [Fact]

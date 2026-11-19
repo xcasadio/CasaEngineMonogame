@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
@@ -57,8 +58,9 @@ internal sealed class HeadlessGame : Game, IObservableUpdate
 
 /// <summary>Owns the single dedicated thread that every real-GPU test of <see cref="CasaEngine.Tests"/> must use.<para/>
 /// MonoGame records the thread that first touches it as its "UI thread" and <c>GraphicsDevice</c> draw calls throw on any other
-/// thread; nothing pumps <c>Threading.Run()</c> in this host, so all MonoGame work (device creation, drawing, GetData, disposal)
-/// goes through <see cref="Invoke(Action)"/> on one long-lived background thread, whichever thread xunit runs a test on.</summary>
+/// thread, so all MonoGame work (device creation, drawing, GetData, disposal)
+/// goes through <see cref="Invoke(Action)"/> on one long-lived background thread, whichever thread xunit runs a test on. The
+/// same thread runs the actions MonoGame queues for its UI thread (<c>Threading.Run()</c>), after each work item and while idle.</summary>
 internal sealed class GpuDeviceHost
 {
     public static readonly GpuDeviceHost Instance = new();
@@ -67,7 +69,10 @@ internal sealed class GpuDeviceHost
     private readonly Thread _thread;
     private readonly Lazy<(bool Available, string Reason)> _probe;
 
+    private const int IdlePumpIntervalMilliseconds = 20;
+
     private HeadlessGame _game;
+    private Action _pumpMonoGameQueue;
 
     private GpuDeviceHost()
     {
@@ -149,10 +154,38 @@ internal sealed class GpuDeviceHost
 
     private void RunLoop()
     {
-        foreach (Action action in _work.GetConsumingEnumerable())
+        while (!_work.IsCompleted)
         {
-            action();
+            if (_work.TryTake(out Action action, IdlePumpIntervalMilliseconds))
+            {
+                action();
+            }
+
+            PumpMonoGameQueue();
         }
+    }
+
+    /// <summary>Runs the actions MonoGame queued for its UI thread. The finalizer of a GPU resource that a test did not dispose
+    /// (a <see cref="RenderTarget2D"/> for instance) blocks until this thread runs its deletion; without this pump a test that
+    /// calls <c>GC.WaitForPendingFinalizers()</c> deadlocks the whole run.</summary>
+    private void PumpMonoGameQueue()
+    {
+        if (_game == null)
+        {
+            return;
+        }
+
+        _pumpMonoGameQueue ??= ResolveMonoGameQueuePump();
+        _pumpMonoGameQueue();
+    }
+
+    private static Action ResolveMonoGameQueuePump()
+    {
+        var method = typeof(Game).Assembly
+            .GetType("Microsoft.Xna.Framework.Threading", throwOnError: true)
+            .GetMethod("Run", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, Type.EmptyTypes)
+            ?? throw new InvalidOperationException("MonoGame's Threading.Run() was not found: the GPU test thread cannot run the actions queued for it.");
+        return method.CreateDelegate<Action>();
     }
 }
 

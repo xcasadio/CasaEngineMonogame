@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Application.Components;
 
-public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
+public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer, IPostTonemapRenderer
 {
     private struct SpriteDisplayData
     {
@@ -109,6 +109,20 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
     /// <inheritdoc/>
     public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
+        FlushQueues(depthTest: true);
+    }
+
+    /// <summary>
+    /// Linear HDR colour pipeline (ADR-0107): the sprites, texts and lines are flushed on the tonemapped destination, where
+    /// the depth of the scene is not available, so nothing is tested against depth.
+    /// </summary>
+    public void FlushPostTonemap(in RenderFrame frame, RenderStats stats = null)
+    {
+        FlushQueues(depthTest: false);
+    }
+
+    private void FlushQueues(bool depthTest)
+    {
         if (_spritesData.Count == 0
             && _textsData.Count == 0
             && _lines.Count == 0)
@@ -123,13 +137,13 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
         var hotspot = Vector2.Zero;
 
         Game.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        Game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+        Game.GraphicsDevice.DepthStencilState = depthTest ? DepthStencilState.Default : DepthStencilState.None;
 
         SpriteBatch.Begin(
             GameSettings.GraphicsSettings.SpriteSortMode,
             GameSettings.GraphicsSettings.BlendState,
             GameSettings.GraphicsSettings.SamplerState,
-            GameSettings.GraphicsSettings.DepthStencilState,
+            depthTest ? GameSettings.GraphicsSettings.DepthStencilState : DepthStencilState.None,
             GameSettings.GraphicsSettings.RasterizerState);
 
         //sprite2D

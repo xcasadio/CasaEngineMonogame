@@ -63,18 +63,27 @@ public struct RenderItem
     /// <summary>64-bit sort key (queue + shader + material + mesh + distance).</summary>
     public ulong SortKey;
 
+    /// <summary>
+    /// Rank of this item in the frame's submission order (its index in the list it was added to). The draw order compares
+    /// it after <see cref="SortKey"/>, which makes the order total: items of equal key keep their submission order.
+    /// </summary>
+    internal int SubmissionIndex;
+
     /// <summary>Distance from camera (used for back-to-front sorting of transparent items).</summary>
     public float DistanceToCamera;
 
     /// <summary>
     /// Active shader features for this draw call (Phase 7).
     /// Used to select the correct shader variant via <see cref="ShaderVariantLibrary"/>.
+    /// The producer sets the value it resolved against the drawn mesh (see
+    /// <see cref="RenderFeatureResolver.AdjustToMesh(ShaderFeature, in RenderFeatureInput)"/>);
+    /// it is not read back from <see cref="CompiledMaterial"/>.
     /// </summary>
     private ShaderFeature _features;
 
     public ShaderFeature Features
     {
-        readonly get => CompiledMaterial?.Features ?? _features;
+        readonly get => _features;
         set => _features = value;
     }
 

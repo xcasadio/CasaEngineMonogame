@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shadows;
 using Microsoft.Xna.Framework;
 
@@ -23,7 +24,12 @@ public sealed class ForwardLightBinder
     private readonly Vector4[] _spotLightDiffuseData = new Vector4[LightingContext.MaxSpotLights];
     private readonly Vector4[] _spotLightSpecularAndOuterConeCosData = new Vector4[LightingContext.MaxSpotLights];
 
-    public void Bind(ShaderWrapper shader, LightingContext lighting, ForwardShadowResources shadows, RenderStats stats = null)
+    /// <param name="decodeColors">
+    /// True when the view renders in the linear colour pipeline (<c>ResolvedEnvironmentSettings.LinearColorActive</c>): light
+    /// colours and the shadow tint are decoded to linear light BEFORE they are multiplied by their intensity (ADR-0106). The
+    /// ambient colour of <paramref name="lighting"/> is already decoded when it was collected. False binds today's values.
+    /// </param>
+    public void Bind(ShaderWrapper shader, LightingContext lighting, ForwardShadowResources shadows, RenderStats stats = null, bool decodeColors = false)
     {
         ArgumentNullException.ThrowIfNull(shader);
 
@@ -40,6 +46,7 @@ public sealed class ForwardLightBinder
             _spotLightDirectionAndInnerConeCosData,
             _spotLightDiffuseData,
             _spotLightSpecularAndOuterConeCosData,
+            decodeColors,
             out int activeDirectionalLightCount,
             out int activePointLightCount,
             out int activeSpotLightCount,
@@ -50,6 +57,11 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
+            out float shadowFilterRadius,
+            out float shadowFilterTaps,
+            out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         shader.SetParameter(ShaderParameterNames.ActiveDirectionalLightCount, (float)activeDirectionalLightCount);
@@ -61,6 +73,11 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.ShadowDepthBias, shadowDepthBias);
         shader.SetParameter(ShaderParameterNames.ShadowNormalBias, shadowNormalBias);
         shader.SetParameter(ShaderParameterNames.ShadowMapTexelSize, shadowMapTexelSize);
+        shader.SetParameter(ShaderParameterNames.ShadowApplyMode, shadowApplyMode);
+        shader.SetParameter(ShaderParameterNames.ShadowTintColor, shadowTintColor);
+        shader.SetParameter(ShaderParameterNames.ShadowFilterRadius, shadowFilterRadius);
+        shader.SetParameter(ShaderParameterNames.ShadowFilterTaps, shadowFilterTaps);
+        shader.SetParameter(ShaderParameterNames.ShadowFadeWidth, shadowFadeWidth);
         shader.SetTextureParameter(ShaderParameterNames.ShadowMapTexture, shadowMapTexture, stats);
 
         for (int i = 0; i < LightingContext.MaxDirectionalLights; i++)
@@ -97,7 +114,7 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.AmbientColor, ambientColor);
     }
 
-    internal static ForwardLightBindingSnapshot CreateSnapshot(LightingContext lighting, ForwardShadowResources shadows = null)
+    internal static ForwardLightBindingSnapshot CreateSnapshot(LightingContext lighting, ForwardShadowResources shadows = null, bool decodeColors = false)
     {
         var snapshot = new ForwardLightBindingSnapshot();
         PopulateBindingData(
@@ -113,6 +130,7 @@ public sealed class ForwardLightBinder
             snapshot.SpotLightDirectionAndInnerConeCosData,
             snapshot.SpotLightDiffuseData,
             snapshot.SpotLightSpecularAndOuterConeCosData,
+            decodeColors,
             out int activeDirectionalLightCount,
             out int activePointLightCount,
             out int activeSpotLightCount,
@@ -123,6 +141,11 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
+            out float shadowFilterRadius,
+            out float shadowFilterTaps,
+            out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         snapshot.ActiveDirectionalLightCount = activeDirectionalLightCount;
@@ -135,8 +158,17 @@ public sealed class ForwardLightBinder
         snapshot.ShadowDepthBias = shadowDepthBias;
         snapshot.ShadowNormalBias = shadowNormalBias;
         snapshot.ShadowMapTexelSize = shadowMapTexelSize;
+        snapshot.ShadowApplyMode = shadowApplyMode;
+        snapshot.ShadowTintColor = shadowTintColor;
+        snapshot.ShadowFilterRadius = shadowFilterRadius;
+        snapshot.ShadowFilterTaps = shadowFilterTaps;
+        snapshot.ShadowFadeWidth = shadowFadeWidth;
         return snapshot;
     }
+
+    /// <summary>A display colour as the shader expects it: decoded to linear light in the linear pipeline, untouched otherwise.</summary>
+    private static Vector3 PrepareColor(Vector3 color, bool decodeColors)
+        => decodeColors ? ColorSpace.Decode(color) : color;
 
     private static void PopulateBindingData(
         LightingContext lighting,
@@ -151,6 +183,7 @@ public sealed class ForwardLightBinder
         Vector4[] spotLightDirectionAndInnerConeCosData,
         Vector4[] spotLightDiffuseData,
         Vector4[] spotLightSpecularAndOuterConeCosData,
+        bool decodeColors,
         out int activeDirectionalLightCount,
         out int activePointLightCount,
         out int activeSpotLightCount,
@@ -161,6 +194,11 @@ public sealed class ForwardLightBinder
         out float shadowDepthBias,
         out float shadowNormalBias,
         out Vector2 shadowMapTexelSize,
+        out float shadowApplyMode,
+        out Vector3 shadowTintColor,
+        out float shadowFilterRadius,
+        out float shadowFilterTaps,
+        out float shadowFadeWidth,
         out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture)
     {
         activeDirectionalLightCount = lighting is null
@@ -179,6 +217,11 @@ public sealed class ForwardLightBinder
         shadowDepthBias = 0.0f;
         shadowNormalBias = 0.0f;
         shadowMapTexelSize = Vector2.Zero;
+        shadowApplyMode = 0.0f;
+        shadowTintColor = Vector3.Zero;
+        shadowFilterRadius = 0.0f;
+        shadowFilterTaps = 12.0f;
+        shadowFadeWidth = 0.0f;
         shadowMapTexture = null;
 
         if (shadows is not null
@@ -196,6 +239,14 @@ public sealed class ForwardLightBinder
                 shadowMapTexelSize = new Vector2(
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Width),
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Height));
+                shadowApplyMode = shadows.Settings.Mode == ShadowMode.MultiplyLitColor ? 1.0f : 0.0f;
+                shadowTintColor = PrepareColor(shadows.Settings.ShadowColor, decodeColors);
+                shadowFilterRadius = shadows.Settings.FilterRadius;
+                shadowFilterTaps = shadows.Settings.FilterTaps;
+
+                // Fade band as a fraction of the half-extent of the map (the map covers +-extent around the camera).
+                float lateralExtent = ShadowPass.ResolveLateralExtent(shadows.Settings.MaxDistance);
+                shadowFadeWidth = Math.Min(shadows.Settings.FadeDistance, lateralExtent) / lateralExtent;
                 shadowMapTexture = shadows.ShadowMapAtlas;
             }
         }
@@ -206,8 +257,8 @@ public sealed class ForwardLightBinder
             {
                 var directionalLight = lighting.DirectionalLights[i];
                 directionalLightDirections[i] = directionalLight.Direction;
-                directionalLightDiffuseColors[i] = directionalLight.DiffuseColor * directionalLight.Intensity;
-                directionalLightSpecularColors[i] = directionalLight.SpecularColor * directionalLight.Intensity;
+                directionalLightDiffuseColors[i] = PrepareColor(directionalLight.DiffuseColor, decodeColors) * directionalLight.Intensity;
+                directionalLightSpecularColors[i] = PrepareColor(directionalLight.SpecularColor, decodeColors) * directionalLight.Intensity;
             }
             else
             {
@@ -223,8 +274,8 @@ public sealed class ForwardLightBinder
             {
                 var pointLight = lighting.PointLights[i];
                 pointLightPositionAndRangeData[i] = new Vector4(pointLight.Position, pointLight.Range);
-                pointLightDiffuseData[i] = new Vector4(pointLight.DiffuseColor * pointLight.Intensity, 0.0f);
-                pointLightSpecularData[i] = new Vector4(pointLight.SpecularColor * pointLight.Intensity, 0.0f);
+                pointLightDiffuseData[i] = new Vector4(PrepareColor(pointLight.DiffuseColor, decodeColors) * pointLight.Intensity, 0.0f);
+                pointLightSpecularData[i] = new Vector4(PrepareColor(pointLight.SpecularColor, decodeColors) * pointLight.Intensity, 0.0f);
             }
             else
             {
@@ -241,9 +292,9 @@ public sealed class ForwardLightBinder
                 var spotLight = lighting.SpotLights[i];
                 spotLightPositionAndRangeData[i] = new Vector4(spotLight.Position, spotLight.Range);
                 spotLightDirectionAndInnerConeCosData[i] = new Vector4(spotLight.Direction, MathF.Cos(spotLight.InnerConeAngle));
-                spotLightDiffuseData[i] = new Vector4(spotLight.DiffuseColor * spotLight.Intensity, 0.0f);
+                spotLightDiffuseData[i] = new Vector4(PrepareColor(spotLight.DiffuseColor, decodeColors) * spotLight.Intensity, 0.0f);
                 spotLightSpecularAndOuterConeCosData[i] = new Vector4(
-                    spotLight.SpecularColor * spotLight.Intensity,
+                    PrepareColor(spotLight.SpecularColor, decodeColors) * spotLight.Intensity,
                     MathF.Cos(spotLight.OuterConeAngle));
             }
             else
@@ -269,6 +320,11 @@ internal sealed class ForwardLightBindingSnapshot
     public float ShadowDepthBias { get; set; }
     public float ShadowNormalBias { get; set; }
     public Vector2 ShadowMapTexelSize { get; set; }
+    public float ShadowApplyMode { get; set; }
+    public Vector3 ShadowTintColor { get; set; }
+    public float ShadowFilterRadius { get; set; }
+    public float ShadowFilterTaps { get; set; }
+    public float ShadowFadeWidth { get; set; }
 
     public Vector3[] DirectionalLightDirections { get; } = new Vector3[LightingContext.MaxDirectionalLights];
     public Vector3[] DirectionalLightDiffuseColors { get; } = new Vector3[LightingContext.MaxDirectionalLights];

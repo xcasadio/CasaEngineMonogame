@@ -475,16 +475,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _cameraEntity = new Entity
-        {
-            Name = "ParticlePreviewCamera",
-            IsVisible = false,
-        };
-
         _camera = new CameraLookAtComponent();
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("ParticlePreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 

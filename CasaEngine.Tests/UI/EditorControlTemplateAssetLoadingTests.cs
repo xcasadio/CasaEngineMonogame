@@ -400,7 +400,7 @@ public class EditorControlTemplateAssetLoadingTests
             _textEngine = new EditorThemeTestTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => new EditorThemeNoOpDrawTransaction(this, settings ?? DrawSettings.Default);
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)
@@ -506,17 +506,20 @@ public class EditorControlTemplateAssetLoadingTests
             CurrentSettings = settings ?? DrawSettings.Default;
         }
 
-        public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
+        private readonly CallbackDrawStateOwner _DrawStateScopes = new();
+        private readonly CallbackClipHandleOwner _ClipScopes = new();
+
+        public DrawStateHandle SetDrawSettingsTemporary(DrawSettings settings)
         {
             DrawSettings previous = CurrentSettings;
             CurrentSettings = settings ?? DrawSettings.Default;
-            return new DisposableAction(() => CurrentSettings = previous);
+            return _DrawStateScopes.Push(() => CurrentSettings = previous);
         }
 
-        public IDisposable SetRenderTargetTemporary(IUIRenderTarget renderTarget, Color? clearColor)
-            => new DisposableAction(() => { });
+        public DrawStateHandle SetRenderTargetTemporary(IUIRenderTarget renderTarget, Color? clearColor)
+            => default;
 
-        public IDisposable SetTransformTemporary(Matrix transform)
+        public DrawStateHandle SetTransformTemporary(Matrix transform)
             => SetDrawSettingsTemporary(CurrentSettings with { Transform = transform });
 
         public ClipResolveResult ResolveClip(ClipDefinition definition)
@@ -525,15 +528,15 @@ public class EditorControlTemplateAssetLoadingTests
             return new(effective, effective, ClipStrategy.Scissor, false);
         }
 
-        public ClipScope PushClipTemporary(ClipDefinition definition)
+        public ClipHandle PushClipTemporary(ClipDefinition definition)
         {
             ClipResolveResult resolution = ResolveClip(definition);
             Rectangle? previous = _currentClipBounds;
             _currentClipBounds = resolution.Effective.Kind == ClipKind.None ? null : resolution.Effective.Shape.Bounds;
-            return new(resolution, () => _currentClipBounds = previous);
+            return _ClipScopes.Push(resolution, () => _currentClipBounds = previous);
         }
 
-        public ClipScope PushRectangleClip(Rectangle? bounds, bool intersectWithCurrentClipTarget)
+        public ClipHandle PushRectangleClip(Rectangle? bounds, bool intersectWithCurrentClipTarget)
         {
             ClipDefinition definition = bounds.HasValue
                 ? ClipDefinition.Rectangle(bounds.Value, intersectWithCurrentClipTarget)
@@ -541,7 +544,7 @@ public class EditorControlTemplateAssetLoadingTests
             return PushClipTemporary(definition);
         }
 
-        public IDisposable SetClipTargetTemporary(Rectangle? bounds, bool intersectWithCurrentClipTarget)
+        public ClipHandle SetClipTargetTemporary(Rectangle? bounds, bool intersectWithCurrentClipTarget)
             => PushRectangleClip(bounds, intersectWithCurrentClipTarget);
 
         public void Dispose()
@@ -644,28 +647,6 @@ public class EditorControlTemplateAssetLoadingTests
 
         public void InvalidateCache()
         {
-        }
-    }
-
-    private sealed class DisposableAction : IDisposable
-    {
-        private readonly Action _disposeAction;
-        private bool _disposed;
-
-        public DisposableAction(Action disposeAction)
-        {
-            _disposeAction = disposeAction;
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            _disposeAction();
         }
     }
 }

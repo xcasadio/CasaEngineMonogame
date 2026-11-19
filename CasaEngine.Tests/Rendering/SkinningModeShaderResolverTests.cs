@@ -28,6 +28,20 @@ public class SkinningModeShaderResolverTests
     }
 
     [Fact]
+    public void ResolvePbr_ReturnsTheSkinningEffectUnderItsPbrIds()
+    {
+        var linear = SkinningModeShaderResolver.ResolvePbr(SkinningMode.LinearBlend);
+        var dualQuaternion = SkinningModeShaderResolver.ResolvePbr(SkinningMode.DualQuaternion);
+
+        Assert.Equal(EffectiveShaderResolver.LinearBlendSkinnedPbrEffectShaderId, linear.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.DualQuaternionSkinnedPbrEffectShaderId, dualQuaternion.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.LinearBlendSkinnedEffectContentName, linear.ContentName);
+        Assert.Equal(EffectiveShaderResolver.DualQuaternionSkinnedEffectContentName, dualQuaternion.ContentName);
+        Assert.True(linear.IsBuiltIn);
+        Assert.True(dualQuaternion.IsBuiltIn);
+    }
+
+    [Fact]
     public void ResolveVertexDeclaration_ReturnsLinearBlendVertexContract()
     {
         var declaration = SkinningModeShaderResolver.ResolveVertexDeclaration(SkinningMode.LinearBlend);

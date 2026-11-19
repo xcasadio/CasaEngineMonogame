@@ -22,7 +22,8 @@ demo, Esc or the gamepad Select (Back) button returns to the main screen. Every 
 | Main screen | Quit, closing the window | Quits. Esc and Back do not quit from the main screen. |
 | Demo | Esc, Select (Back) | Returns to the main screen. |
 
-The demo's own keys are listed in its description and in its HUD.
+The keys and buttons of a demo are on its sheet and in its help panel; both are written from the input configuration
+(see "Input" below).
 
 ## Worlds
 
@@ -36,35 +37,118 @@ The demo's own keys are listed in its description and in its HUD.
 
 ## Themes
 
+The themes and their demos are a learning path, in this order (ADR-0090). The registration order in
+`DemosGame.LoadContentPrivate` is the order of the tree.
+
 | Theme | Demos |
 | --- | --- |
-| Rendering | Static model, Material system, Particle system, Environment showcase, Static shadow validation |
+| Getting started | Hello world, Moving an entity, Loading a model, World made in the editor: the minimal, commented demos to read first. |
+| Rendering | Static model, Material system, Particle system, Environment showcase |
 | Animation | Skinned mesh, Animation blend, Animation IK, Skeletal animation blending |
 | Physics | Collision 3d basic, Collision 2d basic, Top down elevation |
-| Scene and views | Scene management, Split-screen (2 views), Render-to-texture, ViewManager v2 Sandbox |
+| Gameplay | Player input and possession demo, Coroutine demo, Save game demo |
+| Scene and views | Scene management, Split-screen (2 views), Render-to-texture |
 | Cutscenes | Cutscene MoveTo, Cutscene NavigateTo |
-| 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen |
-| UI | World-space UI, MGUI UI Overlay |
+| 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen, 2D layers demo |
+| UI | MGUI UI Overlay, World-space UI |
 | Audio | Audio demo |
+| Engine validation | Static shadow validation, ViewManager v2 Sandbox, Frozen frame: scenes that check the engine rather than teach a feature. |
+
+## A world made in the editor
+
+"World made in the editor" is the one demo that builds nothing in code. `Demo.CreateWorld` returns the world of a demo:
+a new empty `World` by default, and for this demo a copy loaded from the asset catalogue, the way the engine loads
+`FirstWorldLoaded`:
+
+```csharp
+AssetInfo worldAsset = AssetCatalog.GetByFileName(@"EditorWorld\EditorWorld.world");
+return game.AssetContentManager.LoadCopy<World>(worldAsset.Id);
+```
+
+- The world and its assets are in `CasaEngine.Demos/Content/EditorWorld/`, listed in `Content/AssetInfos.json`. They are
+  a copy of the first world of `Projects/SampleProject` (a ground with a collider, three instances of `Box.entity`, two
+  lights, a camera).
+- The demo creates no camera: the view shows the camera saved in the world, and `InitializeCamera` receives it. That
+  camera was saved under the ground, so the demo frames the scene and gives it the demos' camera script.
+- `CasaEngine.Demos/Content/DemosGame.json` is the project file to open in the editor to change the world.
+- Limit: the editor automation has no command that creates a world or an entity, so this world could not be authored
+  by a script; it is a copy.
 
 ## Adding a demo
 
 ```csharp
-// DemosGame.LoadContentPrivate: the registration order is the index CASAENGINE_START_DEMO uses.
+// DemosGame.LoadContentPrivate: the registration order is the order of the main screen. Name a demo by its title in
+// scripts and documentation: its index changes when a demo is added before it.
 AddDemo(new MyDemo(), ThemeRendering);
 ```
 
 - `Title` is the tree entry and the sheet title, `Description` the sheet text (plain text, no MGUI markup).
 - Build the scene in `Initialize` on `game.GameManager.CurrentWorld`: it is the demo's new world, not yet loaded.
-- Read the keyboard with `DemoKeyboard.Read(game)`, not `Keyboard.GetState()`. Esc belongs to the demos app.
+- Read input with `DemoInput.IsDown(game, action)` and `DemoInput.WasPressed(game, action)`, never a key or a button:
+  add the action to `Content/demos-input.buttonsMapping`, and name it in `Controls` with `DemoControl.ForActions`.
+  Esc, F1 and Enter belong to the demos app.
 - Release in `Clean` what the world does not own; the world itself is already cleared when `Clean` runs.
+- A demo that reads its own back buffer to check itself overrides `ReadsItsOwnImage`: the app then draws neither the
+  reminder nor the help panel over it (the Frozen frame demo). Count from the state found in `Initialize`, not from
+  zero: a service of the game keeps its counters from one visit of the demo to the next.
+- Keep the demo file for what the demo teaches. A text overlay, a stress run or meshes built in code go in a
+  neighbour file of the same partial class: `AudioDemo.Hud.cs`, `AudioDemo.Stress.cs`, `AnimationBlendDemo.Hud.cs`,
+  `MaterialDemo.Procedural.cs`.
+
+## Input
+
+Every demo, the main screen and the help panel read named actions; the keys and the gamepad buttons are in one file,
+`CasaEngine.Demos/Content/demos-input.buttonsMapping`. It is an ordinary `.buttonsMapping` asset of the engine:
+`DemoInput.Load` reads it with `AssetContentManager.LoadCopy<ButtonsMapping>` and adds its actions to the game's
+`InputMappingManager`, which the engine updates once per frame.
+
+```csharp
+if (DemoInput.WasPressed(game, "Collision.Throw")) { ... }   // the frame the key or the button goes down
+if (DemoInput.IsDown(game, DemoInput.MoveLeft)) { ... }      // while it is held
+
+public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+{
+    DemoControl.ForActions("throw a ball", "Collision.Throw"),                 // sheet: "Space / A: throw a ball"
+    DemoControl.ForActions("move the cube", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+};
+```
+
+- To change a key or a button, edit the file: the demo and its sheet follow. An action is `Group.Name`
+  (`Move.Left`, `Audio.OneShot`); `key_button` is its key, `alternative_key_button` its gamepad button, a second
+  key, or nothing (`NoDevice`).
+- An action holds one key and one alternative, and no combination of keys. Three demos have more actions than a
+  gamepad has buttons: the Audio, Animation blend and Animation IK demos give a button to their main actions only,
+  and the rest stay on the keyboard (their sheet then shows a key alone).
+- Nothing is read while the window is inactive.
+- While a demo shows a modal screen (the pause menu of the UI overlay demo), the engine routes the keyboard to that
+  screen only, so the demo's actions do not answer. The three actions of the app (back to the menu, help, launch) take
+  their key and button from the same file but read the devices themselves, so that leaving a demo always works.
+- A key in the file is a key position on a US QWERTY keyboard, read on the active layout (ADR-0096): `W` is the key
+  above `S` whatever it types, `Z` on AZERTY. The sheets, the help panel and the text overlays of the Audio, Animation
+  blend and Animation IK demos name the key of the active layout.
+- Not in the file: the mouse and W A S D of the default camera (`ScriptArcBallCamera`, engine code, also read by
+  position), the navigation of the tree of the main screen (MGUI) and the footer line of the main screen
+  (`main-menu.xaml`).
+- `CasaEngine.Tests/UI/DemoInputConfigurationTests.cs` checks that every action a demo names is in the file and that
+  every action of the file is read.
 
 ## Automation
 
-- `CASAENGINE_START_DEMO` (index or title) starts that demo directly, without the main screen.
+- `CASAENGINE_START_DEMO` (title, or index) starts that demo directly, without the main screen. Use the title: the
+  index of a demo is its place in the learning path and is not stable (ADR-0090).
 - `CASAENGINE_CAPTURE_SCREENSHOT_PATH` (and `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS`) captures the main screen, or the
-  demo started by `CASAENGINE_START_DEMO`, then quits. The in-demo reminder "Esc / Select: back to the menu" is hidden
+  demo started by `CASAENGINE_START_DEMO`, then quits. A path ending in `.jpg` or `.jpeg` writes a JPEG, any other a PNG. The in-demo reminder "Esc / Select: back to the menu" is hidden
   while the back buffer is captured or probed (`CASAENGINE_DEMO_PIXELS_PATH`).
+- `CASAENGINE_THEN_DEMO=<title>` switches, once, to that demo after `CASAENGINE_THEN_DEMO_FRAME` updates (default 120) of the demo
+  started by `CASAENGINE_START_DEMO`, through the same path as a request from the menu. With a capture path, the capture is of
+  the demo switched to, which proves what the first demo leaves behind.
+- `CASAENGINE_DEMO_FRAME_STATS=1` measures the cost of the demo started by `CASAENGINE_START_DEMO` (`DemoFrameStats`): vertical
+  synchronisation and the fixed step are off, updates 101 to 700 are added up (CPU time of `Update` and of `Draw`, wall time per
+  image, pipeline CPU time of the first view), one `[FrameStats]` line with the last image's `RenderStats` counters is logged
+  and the game quits. The line ends with the activation counters of the first view (`fxaaDraws`, `ssaoStaticDraws`,
+  `ssaoSkinnedDraws`, `ssaoPasses`), and a `[DemoConfig]` line follows it with the settings in effect at the last measured image
+  (`mode`, `aa`, `ssao`, and for the PBR demo `clearCoatRow`): a cost line whose counters do not match its configuration
+  (at least 1 when the feature is on, 0 when off) does not count. Meant for `Release` builds, built just before the measure.
 - `CASAENGINE_DEMO_CYCLE=<frames>` goes from the main screen to every demo and back, twice, `<frames>` frames per world
   (default 60). It checks every world change and exits with code 0, or 1 when a check failed or an error was logged:
   - the new world is a new instance and the world left holds no entity;

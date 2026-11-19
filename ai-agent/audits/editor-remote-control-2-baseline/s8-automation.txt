@@ -1,0 +1,21 @@
+[Info] [PlaySmoke] baseline: world='DefaultWorld' entities=7 camera=ArcBallCameraComponent owner=EditorViewportCamera
+[Info] [PlaySmoke] baseline scripts: <none>
+[Info] [PlaySmoke] PASS - play session started
+[Info] [PlaySmoke] PASS - world swapped to play copy
+[Info] [PlaySmoke] PASS - play world materialized
+[Info] [PlaySmoke] PASS - policy is EditorSimulation
+[Info] [PlaySmoke] PASS - viewport in play mode
+[Info] [PlaySmoke] play: entities=7 camera=ArcBallCameraComponent owner=camera
+[Info] [PlaySmoke] play scripts: <none>
+[Info] [PlaySmoke] play world proxy: <none>
+[Info] [PlaySmoke] PASS - paused state reached
+[Info] [PlaySmoke] PASS - timescale is 0 while paused
+[Info] [PlaySmoke] PASS - resumed state reached
+[Info] [PlaySmoke] PASS - timescale restored on resume
+[Info] [PlaySmoke] PASS - editing state after stop
+[Info] [PlaySmoke] PASS - edit world restored (same instance)
+[Info] [PlaySmoke] PASS - edit entities intact
+[Info] [PlaySmoke] PASS - policy back to EditorPreview
+[Info] [PlaySmoke] PASS - timescale restored after stop
+[Info] [PlaySmoke] PASS - viewport left play mode
+[Info] [PlaySmoke] restored: camera=ArcBallCameraComponent owner=EditorViewportCamera

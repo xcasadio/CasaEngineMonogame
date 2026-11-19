@@ -1,4 +1,5 @@
 using MGUI.Shared.Rendering.Clipping;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Clipping;
 
@@ -22,6 +23,20 @@ internal sealed class CasaClipManager
         _MaskExecutor = new CasaMaskClipExecutor(owner);
     }
 
+    /// <summary>Puts the manager in the state its constructor gives it: the counts and the depths the diagnostics report are back to zero.
+    /// The clips in force are forgotten by the transaction, which owns their slots.</summary>
+    public void Rearm()
+    {
+        _ScissorClipCount = 0;
+        _StencilClipCount = 0;
+        _MaskClipCount = 0;
+        _StencilExecutor.Rearm();
+        _MaskExecutor.Rearm();
+    }
+
+    /// <summary>Ends a stencil clip whose slot was released.</summary>
+    public void RestoreStencil(in ClipSlotState state) => _StencilExecutor.Restore(in state);
+
     public ClipResolveResult Resolve(ClipDefinition definition)
         => ClipStrategyResolver.Resolve(definition, _Capabilities);
 
@@ -29,13 +44,13 @@ internal sealed class CasaClipManager
         => new(_ScissorClipCount, _StencilClipCount, _MaskClipCount, _StencilExecutor.MaxObservedDepth,
             _MaskExecutor.TemporaryRenderTargetRentCount, _MaskExecutor.TemporaryRenderTargetReuseCount);
 
-    public ClipScope Push(ClipDefinition definition)
+    public ClipHandle Push(ClipDefinition definition)
     {
         ClipResolveResult resolution = Resolve(definition);
 
         return resolution.Strategy switch
         {
-            ClipStrategy.None => new(resolution, () => { }),
+            ClipStrategy.None => PushNoClip(resolution),
             ClipStrategy.Scissor => PushScissor(resolution),
             ClipStrategy.Stencil => PushStencil(resolution),
             ClipStrategy.Mask => PushMask(resolution),
@@ -43,19 +58,32 @@ internal sealed class CasaClipManager
         };
     }
 
-    private ClipScope PushScissor(ClipResolveResult resolution)
+    /// <summary>Pushes the clip that <see cref="Push(ClipDefinition)"/> pushes for <see cref="ClipDefinition.Rectangle"/> (default strategy preference, scissor
+    /// available), counted the same, without creating the definition.</summary>
+    public ClipHandle PushRectangle(Rectangle bounds, bool intersectWithCurrentClip)
+    {
+        _ScissorClipCount++;
+        return _Owner.PushRectangleClipCore(bounds, intersectWithCurrentClip);
+    }
+
+    private ClipHandle PushNoClip(ClipResolveResult resolution)
+    {
+        return _Owner.ClipSlots.Push(ClipSlotState.None(resolution));
+    }
+
+    private ClipHandle PushScissor(ClipResolveResult resolution)
     {
         _ScissorClipCount++;
         return _ScissorExecutor.Push(resolution);
     }
 
-    private ClipScope PushStencil(ClipResolveResult resolution)
+    private ClipHandle PushStencil(ClipResolveResult resolution)
     {
         _StencilClipCount++;
         return _StencilExecutor.Push(resolution);
     }
 
-    private ClipScope PushMask(ClipResolveResult resolution)
+    private ClipHandle PushMask(ClipResolveResult resolution)
     {
         _MaskClipCount++;
         return _MaskExecutor.Push(resolution);

@@ -57,6 +57,10 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
    - `MaterialBase.Bind(...)` pousse les parametres,
    - le `MaterialPropertyBlock` est applique en dernier pour les overrides par instance.
 
+## Draw order
+
+`StaticMeshRendererComponent.Flush` sorts its items by a 64-bit `SortKey` (queue, then shader, material and mesh for the opaque and alpha-test queues; queue, then reversed distance, shader, material and mesh for the transparent ones), then by `RenderItem.SubmissionIndex`, the rank in which the item was added (ADR-0125). The order is therefore fully determined by what is submitted and in which order: the sort is not stable, but equal keys cannot tie. The material and mesh parts of the key are ids given by order of first appearance in the frame (`RenderItemOrder`), not identity hashes or the random `MaterialBase.Id` of a generated material, so two runs that submit the same things in the same order draw in the same order.
+
 ## Overrides par objet
 
 - `StaticModelComponent` persiste les `MaterialSlotOverride` par slot.
@@ -96,6 +100,10 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 - Normal map:
   - la simple presence d'une normal map dans le material ne suffit pas.
   - le mesh doit fournir un layout tangent-compatible pour que `RenderFeatureResolver` conserve `ShaderFeature.NormalMap`.
+  - cette regle vit dans `RenderFeatureResolver.AdjustToMesh`, utilisee pour un material compile (a partir de `CompiledMaterial.Features`) comme pour un material construit en code ; `RenderItem.Features` porte le resultat.
+- Reflexion (`lit-diffuse`):
+  - `reflection_texture` (cubemap `.dds`) ou `use_scene_reflection_cube` (cubemap speculaire de l'environnement du monde) choisissent les techniques `*_Reflection` de `LitForward.fx`.
+  - `reflection_add_amount` (1), `reflection_multiply_base` (1) et `reflection_multiply_factor` (0) dosent la reflexion ajoutee et multipliee ; ces valeurs par defaut sont celles du runtime, un `.material` qui ne les ecrit pas garde son rendu.
 - Lighting forward:
   - `LightingContext` expose un plafond fixe de 8 directional lights pour rester compatible avec MonoGame/mgfxc.
   - `ActiveDirectionalLightCount` pilote le sous-ensemble actif sans reconfigurer les shaders ni les materials.
@@ -135,8 +143,13 @@ Nettoyage optionnel:
 Remove-Item Env:CASAENGINE_START_DEMO
 ```
 
+## lit-pbr material
+
+The `lit-pbr` material (`LitPbrMaterial`, ADR-0109) complements `lit-diffuse` without replacing it: same `MaterialAsset` to `MaterialCompiler` to `CompiledMaterial` chain, but the `LitPbr` family resolves the `LitPbr` shader and the material names its own technique (`LitPbr[_NormalMap][_AlphaTest|_Transparent]`). Seventeen keys (two of them the clear coat, ADR-0115, two the detail texture, ADR-0117, one the shadowed emissive, ADR-0126), six per-instance overrides (`base_color`, `metallic`, `roughness`, `emissive_color`, `clear_coat`, `clear_coat_roughness`), glTF import as `lit-pbr` on request through the API (ADR-0112). Details, IBL and limits: `docs/engine/pbr-rendering.md`.
+
 ## Documents associes
 
 - `docs/engine/effect-file-inventory.md` pour la cartographie effect -> consumers et la separation material/debug.
 - `docs/engine/shader-naming-convention.md` pour la convention de nommage appliquee aux shaders actifs et aux shaders archives.
 - `ai-agent/tasks/shader-source-hot-reload-tasks.md` pour le backlog du hot reload des sources `.fx` / `.fxh`.
+- `docs/engine/pbr-rendering.md` for PBR rendering (`lit-pbr`, IBL, bloom, limits).

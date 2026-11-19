@@ -242,8 +242,20 @@ public sealed class ThumbnailCache : IDisposable
     public static bool SupportsThumbnail(ContentItem item)
         => item != null
         && !item.IsDirectory
-        && (item.Type == ContentItemType.Texture || item.Type == ContentItemType.Particle || item.Type == ContentItemType.Sprite)
+        && ((item.Type == ContentItemType.Texture && IsGdiDecodableImage(item.FullPath))
+            || item.Type == ContentItemType.Particle
+            || item.Type == ContentItemType.Sprite)
         && File.Exists(item.FullPath);
+
+    // GDI+ cannot decode .tga or .dds: requesting them would only throw inside the loader.
+    private static bool IsGdiDecodableImage(string path)
+    {
+        string extension = Path.GetExtension(path);
+        return string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".bmp", StringComparison.OrdinalIgnoreCase);
+    }
 
     private async Task LoadThumbnailAsync(string path, long requestId)
     {

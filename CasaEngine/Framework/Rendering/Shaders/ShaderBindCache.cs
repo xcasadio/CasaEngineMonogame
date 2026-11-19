@@ -30,8 +30,8 @@ public sealed class ShaderBindCache
         // Per-frame global parameters
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
 
-        _forwardLightBinder.Bind(shader, context.Lighting, context.Shadows, context.Stats);
-        EnvironmentShaderBinder.Bind(shader, in context.Environment, context.Stats);
+        _forwardLightBinder.Bind(shader, context.Lighting, context.Shadows, context.Stats, context.Environment.LinearColorActive);
+        EnvironmentShaderBinder.Bind(shader, in context.Environment, context.Stats, context.Ibl);
 
         if (context.Stats is not null)
         {

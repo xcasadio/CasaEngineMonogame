@@ -102,6 +102,33 @@ public class AssimpToGltfConverterTests
         }
     }
 
+    [Fact]
+    public void Convert_ObjWithMissingTexture_StillProducesAGlbWithAPlaceholder()
+    {
+        string tempDirectory = Path.Combine(Path.GetTempPath(), "CasaEngineConvObj", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDirectory);
+        try
+        {
+            string objPath = Path.Combine(tempDirectory, "quad.obj");
+            File.WriteAllText(objPath,
+                "mtllib quad.mtl\no Quad\nv 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\n"
+                + "vt 0 0\nvt 1 0\nvt 1 1\nvt 0 1\nvn 0 0 1\nusemtl Mat\nf 1/1/1 2/2/1 3/3/1 4/4/1\n");
+            File.WriteAllText(Path.Combine(tempDirectory, "quad.mtl"), "newmtl Mat\nKd 1 1 1\nmap_Kd nowhere.png\n");
+
+            string glbPath = Path.Combine(tempDirectory, "output", "quad.glb");
+            AssimpToGltfConverter.Convert(objPath, glbPath);
+
+            var model = SharpGLTF.Schema2.ModelRoot.Load(glbPath);
+            var image = Assert.Single(model.LogicalImages);
+            Assert.True(image.Content.IsPng);
+            Assert.Single(model.LogicalMeshes);
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(tempDirectory);
+        }
+    }
+
     /// <summary>
     /// Best-effort cleanup: the native importer reads the source file through an inheritable
     /// handle, so a child process started meanwhile by another test (a <c>dotnet build</c>) can

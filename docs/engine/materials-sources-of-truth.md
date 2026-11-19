@@ -43,7 +43,7 @@ Decisions: see [ADR-0012](../decisions/0012-materials-shaders-sources-of-truth.m
 | Queue / transparency / explicit GPU state | `MaterialAsset` resolved by `MaterialRenderStateResolver` | Reflected into both `CompiledMaterial` and `MaterialBase` |
 | Runtime parameter upload | `MaterialBase.Bind(...)` | Still the real draw-time source |
 | Runtime technique choice | `MaterialBase.SelectTechnique(...)` plus `ShaderVariantLibrary` | Overlapping/transitional |
-| Shader features | `RenderFeatureResolver` in practice | `CompiledMaterial.Features` and `MaterialBase.GetFeatures()` overlap |
+| Shader features | `RenderFeatureResolver` in practice | A compiled material starts from `CompiledMaterial.Features`, a code-built one from `ResolveMaterialFeatures`; both go through `RenderFeatureResolver.AdjustToMesh` (tangents, vertex colours) and the result is set on `RenderItem.Features`, which the passes read. `MaterialBase.GetFeatures()` overlaps |
 | Effective shader id | `EffectiveShaderResolver` in practice | `CompiledMaterial.ShaderContentName` mirrors it |
 | Resolved textures | `MaterialBase` at draw time | `CompiledMaterial.Textures` is partial for reflection |
 | Hot reload invalidation scope | `MaterialDependencyIndex` + caches | `CasaEngineGame.ReloadMaterialAsset` is the integration point |

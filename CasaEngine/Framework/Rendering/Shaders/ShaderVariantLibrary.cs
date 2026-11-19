@@ -94,6 +94,14 @@ public sealed class ShaderVariantLibrary
     public static Dictionary<string, string> BuildLitForwardAliases()
         => BuildCanonicalAliasMap(ResolveLitForwardTechnique);
 
+    /// <summary>
+    /// Returns alias map for mapping canonical technique names to LitPbr.fx ones: the canonical names without alpha test go to
+    /// <c>LitPbr</c>, those with alpha test to <c>LitPbr_AlphaTest</c>. The normal map techniques stay under material control
+    /// (<c>LitPbr_NormalMap</c> and <c>LitPbr_NormalMap_AlphaTest</c> are chosen by the material, not by the canonical name).
+    /// </summary>
+    public static Dictionary<string, string> BuildLitPbrAliases()
+        => BuildCanonicalAliasMap(ResolveLitPbrTechnique);
+
     /// <summary>Returns alias map for mapping canonical technique names to UnlitTexture.fx ones.</summary>
     public static Dictionary<string, string> BuildUnlitTextureAliases()
         => BuildCanonicalAliasMap(ResolveUnlitTechnique);
@@ -105,6 +113,14 @@ public sealed class ShaderVariantLibrary
     /// <summary>Returns alias map for mapping canonical technique names to the dual-quaternion skinning techniques.</summary>
     public static Dictionary<string, string> BuildDualQuaternionSkinnedEffectAliases()
         => BuildCanonicalAliasMap(_ => "RiggedModelDrawDualQuaternion");
+
+    /// <summary>Returns alias map sending every canonical technique name to the lit-pbr linear blend skinning technique of skinEffect.fx.</summary>
+    public static Dictionary<string, string> BuildSkinnedPbrEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDrawPbr");
+
+    /// <summary>Returns alias map sending every canonical technique name to the lit-pbr dual quaternion skinning technique of skinEffect.fx.</summary>
+    public static Dictionary<string, string> BuildDualQuaternionSkinnedPbrEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDrawPbrDualQuaternion");
 
     // Lookup -------------------------------------------------------------
 
@@ -216,6 +232,9 @@ public sealed class ShaderVariantLibrary
             ? "LitForward_PixelLighting_VertexColor"
             : "LitForward_PixelLighting";
     }
+
+    private static string ResolveLitPbrTechnique(ShaderFeature features)
+        => (features & ShaderFeature.AlphaTest) != 0 ? "LitPbr_AlphaTest" : "LitPbr";
 
     private static string ResolveUnlitTechnique(ShaderFeature features)
         => (features & ShaderFeature.BasColorTexture) != 0 ? "Unlit_Textured" : "Unlit_Colored";

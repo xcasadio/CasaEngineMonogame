@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -12,6 +13,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using ColorSpace = CasaEngine.Framework.Rendering.ColorSpace;
 using Size = CasaEngine.Core.Math.Size;
 
 namespace CasaEngine.EditorServices;
@@ -24,9 +26,21 @@ public static class EditorAssetImportService
         string sourceFilePath,
         string destinationFilePath,
         ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
+        => ImportFile(sourceFilePath, destinationFilePath, legacyMaterialImportProfile, new EditorAssetImportOptions());
+
+    /// <summary>
+    /// Imports a file like <see cref="ImportFile(string, string, ILegacyMaterialImportProfile?)"/>, with import options.
+    /// The material template of the options only applies to the materials of static models (ADR-0112).
+    /// </summary>
+    public static bool ImportFile(
+        string sourceFilePath,
+        string destinationFilePath,
+        ILegacyMaterialImportProfile? legacyMaterialImportProfile,
+        EditorAssetImportOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceFilePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
+        ArgumentNullException.ThrowIfNull(options);
 
         bool catalogChanged = EnsureFileAssetRegistered(destinationFilePath);
         LastTiledMapImportResult = null;
@@ -55,9 +69,9 @@ public static class EditorAssetImportService
             return catalogChanged;
         }
 
-        var importedTextureAssets = ImportTextureAssets(result.Materials, destinationFilePath);
+        var importedTextureAssets = ImportTextureAssets(result.Materials, destinationFilePath, options.MaterialTemplate);
         ApplyDiffuseTextureSlots(model, importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex);
-        ApplyMaterialImports(model, result.Materials, importedTextureAssets, destinationFilePath);
+        ApplyMaterialImports(model, result.Materials, importedTextureAssets, destinationFilePath, options.MaterialTemplate);
 
         string staticModelFullPath = Path.ChangeExtension(destinationFilePath, Constants.FileNameExtensions.StaticModel);
         string staticModelRelativePath = GetRelativeProjectPath(staticModelFullPath);
@@ -362,36 +376,58 @@ public static class EditorAssetImportService
     private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)
     {
         var riggedModelReader = new GltfRiggedModelReader(null, null);
-        if (!riggedModelReader.IsFileSupported(sourceFilePath) && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
+        bool requiresConversion = !riggedModelReader.IsFileSupported(sourceFilePath);
+        if (requiresConversion && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
         {
             return false;
         }
 
-        RiggedModel riggedModel;
-
+        string? temporaryGlbPath = requiresConversion ? CreateTemporaryGlbPath() : null;
         try
         {
-            riggedModel = ReadRiggedModelWithConversion(riggedModelReader, sourceFilePath);
-        }
-        catch
-        {
-            return false;
-        }
+            RiggedModel riggedModel;
 
-        if (riggedModel == null)
-        {
-            return false;
-        }
+            try
+            {
+                if (temporaryGlbPath == null)
+                {
+                    riggedModel = riggedModelReader.LoadAsset(sourceFilePath);
+                }
+                else
+                {
+                    AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
+                    riggedModel = riggedModelReader.LoadAsset(temporaryGlbPath);
+                }
+            }
+            catch (Exception exception)
+            {
+                // Not every model can be read as a rig: the caller then imports it as a static model.
+                Logs.WriteWarning($"Model '{sourceFilePath}' could not be read as a rigged model, importing it as a static model: {exception.Message}");
+                return false;
+            }
 
-        bool hasRealBones = riggedModel.NumberOfBonesInUse > 1;
-        bool hasAnimations = riggedModel.AnimationClips.Count > 0 || riggedModel.OriginalAnimations.Count > 0;
-        if (!hasRealBones && !hasAnimations)
-        {
-            return false;
-        }
+            if (riggedModel == null)
+            {
+                return false;
+            }
 
-        ImportSeparatedAnimationAssets(destinationFilePath, riggedModel);
-        return true;
+            bool hasRealBones = riggedModel.NumberOfBonesInUse > 1;
+            bool hasAnimations = riggedModel.AnimationClips.Count > 0 || riggedModel.OriginalAnimations.Count > 0;
+            if (!hasRealBones && !hasAnimations)
+            {
+                return false;
+            }
+
+            ImportSeparatedAnimationAssets(destinationFilePath, riggedModel, temporaryGlbPath);
+            return true;
+        }
+        finally
+        {
+            if (temporaryGlbPath != null)
+            {
+                TryDeleteFile(temporaryGlbPath);
+            }
+        }
     }
 
     /// <summary>
@@ -412,28 +448,6 @@ public static class EditorAssetImportService
         {
             AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
             return reader.ReadWithMetadata(temporaryGlbPath, legacyMaterialImportProfile);
-        }
-        finally
-        {
-            TryDeleteFile(temporaryGlbPath);
-        }
-    }
-
-    /// <summary>
-    /// Reads a rigged model, converting non-glTF sources to a temporary <c>.glb</c> first.
-    /// </summary>
-    private static RiggedModel ReadRiggedModelWithConversion(GltfRiggedModelReader reader, string sourceFilePath)
-    {
-        if (reader.IsFileSupported(sourceFilePath))
-        {
-            return reader.LoadAsset(sourceFilePath);
-        }
-
-        string temporaryGlbPath = CreateTemporaryGlbPath();
-        try
-        {
-            AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
-            return reader.LoadAsset(temporaryGlbPath);
         }
         finally
         {
@@ -463,14 +477,29 @@ public static class EditorAssetImportService
         }
     }
 
-    private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel)
+    /// <summary>
+    /// Writes the skeleton, animation clip and skinned mesh assets of <paramref name="riggedModel"/> next to
+    /// <paramref name="destinationFilePath"/>. The runtime reads the geometry as glTF only: when the source was
+    /// converted, <paramref name="convertedGlbPath"/> is kept next to the source as <c>&lt;name&gt;.glb</c>, registered
+    /// in the catalog, and becomes the geometry of the skinned mesh; otherwise the source itself is the geometry.
+    /// </summary>
+    private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel, string? convertedGlbPath)
     {
         ArgumentNullException.ThrowIfNull(riggedModel);
 
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
-        string rawAssetRelativePath = GetRelativeProjectPath(destinationFilePath);
-        var rawAssetInfo = AssetCatalog.GetByFileName(rawAssetRelativePath)
-            ?? EnsureAssetInfo(rawAssetRelativePath, modelBaseName);
+        string geometryFullPath = destinationFilePath;
+        if (convertedGlbPath != null)
+        {
+            geometryFullPath = Path.ChangeExtension(destinationFilePath, ".glb");
+            Directory.CreateDirectory(Path.GetDirectoryName(geometryFullPath)!);
+            File.Copy(convertedGlbPath, geometryFullPath, overwrite: true);
+            EnsureFileAssetRegistered(geometryFullPath);
+        }
+
+        string geometryRelativePath = GetRelativeProjectPath(geometryFullPath);
+        var geometryAssetInfo = AssetCatalog.GetByFileName(geometryRelativePath)
+            ?? EnsureAssetInfo(geometryRelativePath, modelBaseName);
 
         Guid skeletonAssetId = Guid.Empty;
         string animationDirectory = Path.GetDirectoryName(destinationFilePath)!;
@@ -530,7 +559,7 @@ public static class EditorAssetImportService
             Name = modelAssetInfo.Name,
             FileName = modelRelativePath,
             SkeletonAssetId = skeletonAssetId,
-            GeometryAssetId = rawAssetInfo.Id,
+            GeometryAssetId = geometryAssetInfo.Id,
             DefaultAnimationClipAssetId = clipAssetIds.Count > 0 ? clipAssetIds[0] : Guid.Empty,
         };
 
@@ -560,7 +589,8 @@ public static class EditorAssetImportService
 
     private static ImportedTextureAssets ImportTextureAssets(
         IReadOnlyList<StaticModelImportedMaterial> materials,
-        string destinationSourceFilePath)
+        string destinationSourceFilePath,
+        ImportedMaterialTemplate materialTemplate)
     {
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
         string texturesDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
@@ -572,6 +602,30 @@ public static class EditorAssetImportService
         var diffuseTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
         var normalTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
         var reflectionTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+        var metallicRoughnessTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+        var occlusionTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+        var emissiveTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+
+        void ImportPbrTexture(string? sourceTexturePath, int materialIndex, Dictionary<int, Guid> textureAssetIdsByMaterialIndex)
+        {
+            if (string.IsNullOrWhiteSpace(sourceTexturePath))
+            {
+                return;
+            }
+
+            Guid textureAssetId = ImportTexture(
+                sourceTexturePath,
+                texturesDirectory,
+                modelBaseName,
+                importedTexturesBySourcePath,
+                usedTextureFileNames,
+                true);
+
+            if (textureAssetId != Guid.Empty)
+            {
+                textureAssetIdsByMaterialIndex[materialIndex] = textureAssetId;
+            }
+        }
 
         foreach (var material in materials)
         {
@@ -607,6 +661,13 @@ public static class EditorAssetImportService
                 }
             }
 
+            if (materialTemplate == ImportedMaterialTemplate.LitPbr)
+            {
+                ImportPbrTexture(material.MetallicRoughnessTextureFilePath, material.MaterialIndex, metallicRoughnessTextureAssetIdsByMaterialIndex);
+                ImportPbrTexture(material.OcclusionTextureFilePath, material.MaterialIndex, occlusionTextureAssetIdsByMaterialIndex);
+                ImportPbrTexture(material.EmissiveTextureFilePath, material.MaterialIndex, emissiveTextureAssetIdsByMaterialIndex);
+            }
+
             if (material.UsesReflection
                 && !string.IsNullOrWhiteSpace(material.ReflectionTextureFilePath))
             {
@@ -628,7 +689,10 @@ public static class EditorAssetImportService
         return new ImportedTextureAssets(
             diffuseTextureAssetIdsByMaterialIndex,
             normalTextureAssetIdsByMaterialIndex,
-            reflectionTextureAssetIdsByMaterialIndex);
+            reflectionTextureAssetIdsByMaterialIndex,
+            metallicRoughnessTextureAssetIdsByMaterialIndex,
+            occlusionTextureAssetIdsByMaterialIndex,
+            emissiveTextureAssetIdsByMaterialIndex);
     }
 
     private static void ApplyDiffuseTextureSlots(StaticModel model, Dictionary<int, Guid> diffuseTextureAssetIdsByMaterialIndex)
@@ -647,7 +711,8 @@ public static class EditorAssetImportService
         StaticModel model,
         IReadOnlyList<StaticModelImportedMaterial> materials,
         ImportedTextureAssets importedTextureAssets,
-        string destinationSourceFilePath)
+        string destinationSourceFilePath,
+        ImportedMaterialTemplate materialTemplate)
     {
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
         string materialsDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
@@ -658,7 +723,6 @@ public static class EditorAssetImportService
 
         foreach (var importedMaterial in materials)
         {
-            LegacyImportedMaterialPresentation presentation = LegacyImportedMaterialPresentationResolver.Resolve(importedMaterial);
             string materialFileName = CreateUniqueImportedFileName(
                 SanitizeFileName(importedMaterial.DisplayName) + Constants.FileNameExtensions.Material,
                 materialsDirectory,
@@ -668,37 +732,9 @@ public static class EditorAssetImportService
             string materialAssetName = $"{modelBaseName}_{Path.GetFileNameWithoutExtension(materialFileName)}";
             var materialAssetInfo = EnsureAssetInfo(materialRelativePath, materialAssetName);
 
-            var material = new MaterialAsset("lit-diffuse")
-            {
-                Name = materialAssetInfo.Name,
-                Queue = presentation.Queue,
-                RasterizerStateName = presentation.DisableBackfaceCulling
-                    ? "CullNone"
-                    : MaterialAsset.DefaultRasterizerStateName,
-                SamplerStateName = "AnisotropicWrap",
-            };
-            material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
-            material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(presentation.AmbientColor));
-            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(presentation.EmissiveColor));
-            material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
-            material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
-            material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(presentation.AlphaCutoff));
-
-            if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
-            {
-                material.SetPropertyValue("base_color_texture", MaterialValue.FromTextureId(diffuseTextureAssetId));
-            }
-
-            if (importedTextureAssets.NormalTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var normalTextureAssetId))
-            {
-                material.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(normalTextureAssetId));
-            }
-
-            if (importedMaterial.UsesReflection
-                && importedTextureAssets.ReflectionTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var reflectionTextureAssetId))
-            {
-                material.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureAssetId));
-            }
+            MaterialAsset material = materialTemplate == ImportedMaterialTemplate.LitPbr
+                ? CreateLitPbrMaterial(importedMaterial, importedTextureAssets, materialAssetInfo.Name)
+                : CreateLitDiffuseMaterial(importedMaterial, importedTextureAssets, materialAssetInfo.Name);
 
             var materialDocument = SerializeAsset(material, materialAssetInfo.Id, materialAssetInfo.Name);
             EditorAssetWriterService.SaveDocument(materialRelativePath, materialDocument);
@@ -714,6 +750,132 @@ public static class EditorAssetImportService
             }
         }
     }
+
+    private static MaterialAsset CreateLitDiffuseMaterial(
+        StaticModelImportedMaterial importedMaterial,
+        ImportedTextureAssets importedTextureAssets,
+        string assetName)
+    {
+        LegacyImportedMaterialPresentation presentation = LegacyImportedMaterialPresentationResolver.Resolve(importedMaterial);
+        var material = new MaterialAsset("lit-diffuse")
+        {
+            Name = assetName,
+            Queue = presentation.Queue,
+            RasterizerStateName = presentation.DisableBackfaceCulling
+                ? "CullNone"
+                : MaterialAsset.DefaultRasterizerStateName,
+            SamplerStateName = "AnisotropicWrap",
+        };
+        material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(ResolveImportedBaseColor(importedMaterial)));
+        material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(presentation.AmbientColor));
+        material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(presentation.EmissiveColor));
+        material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
+        material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
+        material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(presentation.AlphaCutoff));
+
+        if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
+        {
+            material.SetPropertyValue("base_color_texture", MaterialValue.FromTextureId(diffuseTextureAssetId));
+        }
+
+        if (importedTextureAssets.NormalTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var normalTextureAssetId))
+        {
+            material.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(normalTextureAssetId));
+        }
+
+        if (importedMaterial.UsesReflection
+            && importedTextureAssets.ReflectionTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var reflectionTextureAssetId))
+        {
+            material.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureAssetId));
+        }
+
+        return material;
+    }
+
+    // Every key of the lit-pbr definition that the glTF material carries is written explicitly (ADR-0112); a texture the material
+    // does not have produces no texture key. The base colour and the emissive colour are encoded to display colours.
+    private static MaterialAsset CreateLitPbrMaterial(
+        StaticModelImportedMaterial importedMaterial,
+        ImportedTextureAssets importedTextureAssets,
+        string assetName)
+    {
+        RenderQueue queue = importedMaterial.AlphaMode switch
+        {
+            StaticModelAlphaMode.Mask => RenderQueue.AlphaTest,
+            StaticModelAlphaMode.Blend => RenderQueue.Transparent,
+            _ => RenderQueue.Opaque,
+        };
+
+        var material = new MaterialAsset("lit-pbr")
+        {
+            Name = assetName,
+            Queue = queue,
+            RasterizerStateName = importedMaterial.DoubleSided
+                ? "CullNone"
+                : MaterialAsset.DefaultRasterizerStateName,
+            SamplerStateName = "AnisotropicWrap",
+        };
+
+        Color linearBaseColor = ResolveImportedBaseColor(importedMaterial);
+        material.SetPropertyValue("base_color", MaterialValue.FromColor(new Color(
+            EncodeToDisplay(linearBaseColor.R / 255.0f),
+            EncodeToDisplay(linearBaseColor.G / 255.0f),
+            EncodeToDisplay(linearBaseColor.B / 255.0f),
+            linearBaseColor.A / 255.0f)));
+        material.SetPropertyValue("metallic", MaterialValue.FromFloat(importedMaterial.MetallicFactor));
+        material.SetPropertyValue("roughness", MaterialValue.FromFloat(importedMaterial.RoughnessFactor));
+        material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(new Vector3(
+            EncodeToDisplay(importedMaterial.EmissiveColor.X),
+            EncodeToDisplay(importedMaterial.EmissiveColor.Y),
+            EncodeToDisplay(importedMaterial.EmissiveColor.Z))));
+        material.SetPropertyValue("occlusion_strength", MaterialValue.FromFloat(importedMaterial.OcclusionStrength));
+        material.SetPropertyValue("normal_scale", MaterialValue.FromFloat(importedMaterial.NormalScale));
+        material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(importedMaterial.AlphaCutoff));
+
+        // KHR_materials_clearcoat (ADR-0115): the two keys are written only for a material that has a clear coat, so every other
+        // imported material keeps the file it had before.
+        if (importedMaterial.ClearCoatFactor > 0.0f)
+        {
+            material.SetPropertyValue("clear_coat", MaterialValue.FromFloat(importedMaterial.ClearCoatFactor));
+            material.SetPropertyValue("clear_coat_roughness", MaterialValue.FromFloat(importedMaterial.ClearCoatRoughnessFactor));
+        }
+
+        int materialIndex = importedMaterial.MaterialIndex;
+        SetTextureIfImported(material, "base_color_texture", importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex, materialIndex);
+        SetTextureIfImported(material, "normal_texture", importedTextureAssets.NormalTextureAssetIdsByMaterialIndex, materialIndex);
+        SetTextureIfImported(material, "metallic_roughness_texture", importedTextureAssets.MetallicRoughnessTextureAssetIdsByMaterialIndex, materialIndex);
+        SetTextureIfImported(material, "occlusion_texture", importedTextureAssets.OcclusionTextureAssetIdsByMaterialIndex, materialIndex);
+        SetTextureIfImported(material, "emissive_texture", importedTextureAssets.EmissiveTextureAssetIdsByMaterialIndex, materialIndex);
+        return material;
+    }
+
+    // glTF 2.0, "Alpha Coverage" (alphaMode): in the OPAQUE mode the alpha value of the base colour is ignored and the rendered output
+    // is fully opaque. The material runtime treats a colour alpha below 255 as transparent, so an OPAQUE material is written with an
+    // alpha of 255; MASK and BLEND keep the alpha of the factor. The decision reads the alpha mode, never the render queue: the queue
+    // of the lit-diffuse path comes from legacy hints.
+    private static Color ResolveImportedBaseColor(StaticModelImportedMaterial importedMaterial)
+    {
+        Color baseColor = importedMaterial.DiffuseColor;
+        return importedMaterial.AlphaMode == StaticModelAlphaMode.Opaque
+            ? new Color(baseColor.R, baseColor.G, baseColor.B, byte.MaxValue)
+            : baseColor;
+    }
+
+    private static void SetTextureIfImported(
+        MaterialAsset material,
+        string propertyKey,
+        Dictionary<int, Guid> textureAssetIdsByMaterialIndex,
+        int materialIndex)
+    {
+        if (textureAssetIdsByMaterialIndex.TryGetValue(materialIndex, out var textureAssetId))
+        {
+            material.SetPropertyValue(propertyKey, MaterialValue.FromTextureId(textureAssetId));
+        }
+    }
+
+    // glTF factors are linear; lit-pbr stores display colours that the shader decodes with the 2.2 power (ColorSpace).
+    private static float EncodeToDisplay(float linearValue)
+        => MathF.Pow(Math.Clamp(linearValue, 0.0f, 1.0f), 1.0f / ColorSpace.DisplayGamma);
 
     private static Guid ImportTexture(
         string sourceTexturePath,
@@ -966,12 +1128,24 @@ public static class EditorAssetImportService
         public ImportedTextureAssets(
             Dictionary<int, Guid> diffuseTextureAssetIdsByMaterialIndex,
             Dictionary<int, Guid> normalTextureAssetIdsByMaterialIndex,
-            Dictionary<int, Guid> reflectionTextureAssetIdsByMaterialIndex)
+            Dictionary<int, Guid> reflectionTextureAssetIdsByMaterialIndex,
+            Dictionary<int, Guid> metallicRoughnessTextureAssetIdsByMaterialIndex,
+            Dictionary<int, Guid> occlusionTextureAssetIdsByMaterialIndex,
+            Dictionary<int, Guid> emissiveTextureAssetIdsByMaterialIndex)
         {
             DiffuseTextureAssetIdsByMaterialIndex = diffuseTextureAssetIdsByMaterialIndex;
             NormalTextureAssetIdsByMaterialIndex = normalTextureAssetIdsByMaterialIndex;
             ReflectionTextureAssetIdsByMaterialIndex = reflectionTextureAssetIdsByMaterialIndex;
+            MetallicRoughnessTextureAssetIdsByMaterialIndex = metallicRoughnessTextureAssetIdsByMaterialIndex;
+            OcclusionTextureAssetIdsByMaterialIndex = occlusionTextureAssetIdsByMaterialIndex;
+            EmissiveTextureAssetIdsByMaterialIndex = emissiveTextureAssetIdsByMaterialIndex;
         }
+
+        public Dictionary<int, Guid> MetallicRoughnessTextureAssetIdsByMaterialIndex { get; }
+
+        public Dictionary<int, Guid> OcclusionTextureAssetIdsByMaterialIndex { get; }
+
+        public Dictionary<int, Guid> EmissiveTextureAssetIdsByMaterialIndex { get; }
 
         public Dictionary<int, Guid> DiffuseTextureAssetIdsByMaterialIndex { get; }
 

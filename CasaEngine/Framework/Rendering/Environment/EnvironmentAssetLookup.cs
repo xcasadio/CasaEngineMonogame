@@ -25,6 +25,11 @@ internal static class EnvironmentAssetLookup
             return cachedAsset;
         }
 
+        if (AcquiredAssetHandleCache<T>.HasFailed(assetContentManager, assetId))
+        {
+            return null;
+        }
+
         if (AssetCatalog.Get(assetId) is null)
         {
             return null;
@@ -38,6 +43,8 @@ internal static class EnvironmentAssetLookup
         }
         catch (Exception exception)
         {
+            // Logged once: the id is not tried again for this asset content manager (the lookup runs every frame for a probe).
+            AcquiredAssetHandleCache<T>.RememberFailure(assetContentManager, assetId);
             Logs.WriteException(exception);
             return null;
         }

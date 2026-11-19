@@ -12,6 +12,6 @@ internal sealed class CasaScissorClipExecutor
         _owner = owner;
     }
 
-    public ClipScope Push(ClipResolveResult resolution)
+    public ClipHandle Push(ClipResolveResult resolution)
         => _owner.PushRectangleClipCore(resolution.Effective.Shape.Bounds, resolution.Effective.IntersectWithCurrentClip, resolution);
 }

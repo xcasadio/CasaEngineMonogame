@@ -47,8 +47,13 @@
 #define SAMPLE_TEXTURE(Name, texCoord)  tex2D(Name##Sampler, texCoord)
 #define SAMPLE_TEXTURE_LEVEL(Name, texCoord, level)  tex2D(Name##Sampler, texCoord)
 #define SAMPLE_CUBEMAP(Name, texCoord)  texCUBE(Name##Sampler, texCoord)
+// Cube sampled at an explicit mip level. WARNING: on the OpenGL chain (DesktopGL, ps_3_0) the compiler translates texCUBElod to a
+// plain textureCube, so the level is IGNORED there (plan T6.1 step 1b, pinned by IblCubeGeneratorGpuTests). Never rely on it to pick a
+// mip: the IBL stores its roughness levels in a 2D atlas instead (ADR-0110). Use it only to read level 0 of a cube without mips.
+#define SAMPLE_CUBEMAP_LEVEL(Name, texCoord, level)  texCUBElod(Name##Sampler, float4(texCoord, level))
 #else
 #define SAMPLE_TEXTURE(Name, texCoord)  Name.Sample(Name##Sampler, texCoord)
 #define SAMPLE_TEXTURE_LEVEL(Name, texCoord, level)  Name.SampleLevel(Name##Sampler, texCoord, level)
 #define SAMPLE_CUBEMAP(Name, texCoord)  Name.Sample(Name##Sampler, texCoord)
+#define SAMPLE_CUBEMAP_LEVEL(Name, texCoord, level)  Name.SampleLevel(Name##Sampler, texCoord, level)
 #endif

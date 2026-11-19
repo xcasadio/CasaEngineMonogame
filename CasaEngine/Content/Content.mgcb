@@ -67,6 +67,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/LitForward.fx
 
+#begin Shaders/LitPbr.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/LitPbr.fx
+
 #begin Shaders/SkyCubemap.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -91,6 +97,48 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /build:Shaders/SpriteBatch.fx
+
+#begin Shaders/Tonemap.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Tonemap.fx
+
+#begin Shaders/Bloom.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Bloom.fx
+
+#begin Shaders/Fxaa.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Fxaa.fx
+
+#begin Shaders/SceneDepth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/SceneDepth.fx
+
+#begin Shaders/Ssao.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Ssao.fx
+
+#begin Shaders/IblConvolution.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/IblConvolution.fx
 
 #begin Shaders/PsxQuad.fx
 /importer:EffectImporter

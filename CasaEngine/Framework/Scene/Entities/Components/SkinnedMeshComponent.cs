@@ -81,6 +81,14 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     /// </summary>
     public LitDiffuseMaterial Material { get; set; }
 
+    /// <summary>
+    /// Optional lit-pbr material (ADR-0111). When not null the renderer draws this component with the PBR techniques of the
+    /// skinning effect and <see cref="Material"/> is ignored: direct lights, received shadows, flat ambient and emissive, no
+    /// image-based lighting, no normal map. A null <see cref="LitPbrMaterial.BaseColorTexture"/> takes the texture of the mesh.
+    /// Not serialized; set at runtime/authoring time.
+    /// </summary>
+    public LitPbrMaterial PbrMaterial { get; set; }
+
     public SkeletonDefinition SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
 
     public SkeletonPoseModel CurrentModelPose => _animationRuntime?.ModelPose;
@@ -145,6 +153,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         _rootMotionMode = other._rootMotionMode;
         _skinningModeSelection = other._skinningModeSelection;
         Material = other.Material;
+        PbrMaterial = other.PbrMaterial;
 
         for (var constraintIndex = 0; constraintIndex < other._twoBoneIkConstraints.Count; constraintIndex++)
         {
@@ -232,7 +241,8 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
             SkinningModeSelection,
             CastShadows,
             ReceiveShadows,
-            Material);
+            Material,
+            PbrMaterial);
     }
 
     public override BoundingBox GetBoundingBox()

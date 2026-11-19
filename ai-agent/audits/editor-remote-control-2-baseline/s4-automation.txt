@@ -1,0 +1,1 @@
+[Info] [Automation] Created and opened particle asset='Particles\NewParticleEffect.particle' preset='Default'

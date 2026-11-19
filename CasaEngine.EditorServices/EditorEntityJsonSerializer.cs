@@ -210,8 +210,19 @@ internal static class EditorEntityJsonSerializer
 
     private static void SaveComponent(EntityComponent component, JObject node)
     {
+        SaveComponentCore(component, node);
+        //  Properties marked [SerializedProperty] (ADR-0118), which ElementFactory.Load reads back after the type's own keys.
+        EditorSerializedPropertyWriter.Save(component, node);
+    }
+
+    private static void SaveComponentCore(EntityComponent component, JObject node)
+    {
         switch (component)
         {
+            case UnresolvedComponent unresolvedComponent:
+                SaveUnresolvedComponent(unresolvedComponent, node);
+                return;
+
             case ArcBallCameraComponent arcBallCameraComponent:
                 SaveArcBallCameraComponent(arcBallCameraComponent, node);
                 return;
@@ -291,6 +302,25 @@ internal static class EditorEntityJsonSerializer
             default:
                 SaveEntityComponent(component, node);
                 return;
+        }
+    }
+
+    /// <summary>Writes back the node the component was loaded from (ADR-0119), with the component's current id (a clone
+    /// has a new one) and its current transform (the entity may have been moved).</summary>
+    private static void SaveUnresolvedComponent(UnresolvedComponent component, JObject node)
+    {
+        foreach (var property in component.GetSourceNode().Properties())
+        {
+            node.Add(property.Name, property.Value);
+        }
+
+        node["id"] = component.Id.ToString();
+        var transformKey = node.ContainsKey("coordinates") ? "coordinates" : "local_transform";
+        if (node.ContainsKey(transformKey))
+        {
+            var transformNode = new JObject();
+            component.LocalTransform.Save(transformNode);
+            node[transformKey] = transformNode;
         }
     }
 

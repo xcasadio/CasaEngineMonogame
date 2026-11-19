@@ -10,6 +10,7 @@ using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -193,6 +194,8 @@ public class WorldViewportPanel : IDisposable
     private readonly EditorViewport2dCameraController _camera2dController = new();
     private readonly EditorViewportGizmoController _gizmoController;
     private readonly Action _releaseViewInputAction;
+    private readonly EditorPreferencesStore _preferences;
+    private readonly Action<EditorPreferences> _applyPreferencesAction;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
     private EditorViewportCameraState? _savedPlayModeCameraState;
     private CameraComponent _playModeCamera;
@@ -217,6 +220,36 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.DeleteEntitiesRequested += OnGizmoDeleteEntitiesRequested;
         _gizmoController.ActiveModeChanged += OnGizmoActiveModeChanged;
         _gizmoController.ActiveSpaceChanged += OnGizmoActiveSpaceChanged;
+
+        // ADR-0091: every viewport follows the one preferences store, and leaves it in Dispose.
+        _preferences = editorRuntime?.Preferences;
+        if (_preferences != null)
+        {
+            _applyPreferencesAction = ApplyPreferences;
+            _preferences.Changed += _applyPreferencesAction;
+            ApplyPreferences(_preferences.Current);
+        }
+    }
+
+    private void ApplyPreferences(EditorPreferences preferences)
+    {
+        _cameraController.ApplyPreferences(preferences.Camera3d);
+        _camera2dController.ApplyPreferences(preferences.Camera2d);
+    }
+
+    /// <summary>Right button + wheel changed this viewport's fly speed: share it through the store (written later).</summary>
+    private void SyncFlySpeedToPreferences()
+    {
+        if (_preferences == null)
+        {
+            return;
+        }
+
+        EditorPreferences current = _preferences.Current;
+        if (_cameraController.FlySpeed != current.Camera3d.FlySpeed)
+        {
+            _preferences.Update(current with { Camera3d = current.Camera3d with { FlySpeed = _cameraController.FlySpeed } });
+        }
     }
 
     public MGElement CreateContent()
@@ -346,6 +379,9 @@ public class WorldViewportPanel : IDisposable
     /// <summary>True while a play-in-editor session drives this viewport.</summary>
     public bool IsPlayModeActive => _isPlayModeActive;
 
+    /// <summary>The render target the viewport draws into, for the remote viewport capture (ADR-0092); null before the first view.</summary>
+    internal Microsoft.Xna.Framework.Graphics.RenderTarget2D ViewportRenderTarget => _surface?.RenderTarget;
+
     /// <summary>
     /// Enters play mode: the editor camera state is saved, the player is routed to this
     /// view and the gizmo is deactivated. The game camera is bound later, once the play
@@ -421,6 +457,9 @@ public class WorldViewportPanel : IDisposable
         _isPlayModeActive = false;
         _playModeCamera = null;
         SetPlayModeBorderVisible(false);
+
+        // Notice A4: the camera controller did not run during play; a button still held must not jump the camera.
+        _cameraController.ResetInput();
 
         if (_renderView != null)
         {
@@ -532,6 +571,12 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
+        // Per-frame order (ADR-0089, plan P8): the gizmo's hovered handle (refreshed by the previous frame's gizmo
+        // update) is read first, the camera runs with it, then the camera result reaches the gizmo, which selects on a
+        // click release. The 2D views pass no result and keep their press-time selection (D9).
+        ViewportNavigationResult? navigationResult = null;
+        bool gizmoReceivesInput = !HasWorldOverride || EnablePreviewGizmo;
+
         if (UsesCamera2d)
         {
             if (_camera2d != null)
@@ -550,7 +595,7 @@ public class WorldViewportPanel : IDisposable
         }
         else if (_camera != null)
         {
-            _cameraController.Update(
+            navigationResult = _cameraController.Update(
                 gameTime,
                 _camera,
                 inputContext,
@@ -559,16 +604,22 @@ public class WorldViewportPanel : IDisposable
                 !UseFront2dCamera,
                 !editorShellCapturesKeyboard,
                 ActivateThisView,
-                _releaseViewInputAction);
+                _releaseViewInputAction,
+                gizmoReceivesInput && _gizmoController.IsHoveringHandle);
+
+            SyncFlySpeedToPreferences();
+
+            // F frames the selection (ADR-0089); with the right button held F flies down instead, and the
+            // navigation then reports no focus request.
+            if (navigationResult.HasValue && navigationResult.Value.FocusRequested && _selectedEntity != null)
+            {
+                FocusEntity(_selectedEntity);
+            }
         }
 
-        if (!HasWorldOverride)
+        if (gizmoReceivesInput)
         {
-            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
-        }
-        else if (EnablePreviewGizmo)
-        {
-            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused, navigationResult);
         }
     }
 
@@ -1108,6 +1159,7 @@ public class WorldViewportPanel : IDisposable
             Position = spawnPosition,
         };
 
+        staticModelComponent.Name = EditorComponentNames.CreateUniqueName(entity, staticModelComponent);
         entity.RootComponent = staticModelComponent;
         return entity;
     }
@@ -1316,17 +1368,8 @@ public class WorldViewportPanel : IDisposable
 
         var world = GetRenderWorld();
 
-        _cameraEntity = new Entity
-        {
-            Name = "EditorViewportCamera",
-            IsVisible = false,
-        };
-
         _camera = _cameraController.CreateCameraComponent();
-
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(world);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("EditorViewportCamera", _camera, world);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
         _surface = new RenderTargetSurface(
@@ -1758,7 +1801,11 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView.World = desiredWorld;
-        _cameraEntity?.InitializeWithWorld(desiredWorld);
+        if (_cameraEntity != null)
+        {
+            EditorCameraFactory.InitializeWithWorld(_cameraEntity, _camera, desiredWorld);
+        }
+
         _camera?.OnScreenResized(_rtWidth, _rtHeight);
         _camera2dEntity?.InitializeWithWorld(desiredWorld);
         _camera2d?.OnScreenResized(_rtWidth, _rtHeight);
@@ -2138,9 +2185,9 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.Synchronize(ActiveCamera, _surface, _renderView?.World);
     }
 
-    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused)
+    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused, ViewportNavigationResult? navigationResult)
     {
-        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, ActiveCamera, _surface, _renderView?.World);
+        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, ActiveCamera, _surface, _renderView?.World, navigationResult);
     }
 
     private bool ShouldSynchronizeGizmo()
@@ -2160,6 +2207,11 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.SelectedEntityChanged -= OnGizmoSelectedEntityChanged;
         _gizmoController.ActiveModeChanged -= OnGizmoActiveModeChanged;
         _gizmoController.ActiveSpaceChanged -= OnGizmoActiveSpaceChanged;
+
+        if (_preferences != null)
+        {
+            _preferences.Changed -= _applyPreferencesAction;
+        }
 
         if (_viewportHost != null)
         {

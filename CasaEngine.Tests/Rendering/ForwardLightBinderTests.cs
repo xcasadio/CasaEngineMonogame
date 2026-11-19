@@ -52,6 +52,11 @@ public class ForwardLightBinderTests
         Assert.Equal(Vector3.Zero, snapshot.DirectionalLightDirections[0]);
         Assert.Equal(Vector4.Zero, snapshot.PointLightPositionAndRangeData[0]);
         Assert.Equal(Vector4.Zero, snapshot.SpotLightPositionAndRangeData[0]);
+        Assert.Equal(0.0f, snapshot.ShadowApplyMode);
+        Assert.Equal(Vector3.Zero, snapshot.ShadowTintColor);
+        Assert.Equal(0.0f, snapshot.ShadowFilterRadius);
+        Assert.Equal(12.0f, snapshot.ShadowFilterTaps);
+        Assert.Equal(0.0f, snapshot.ShadowFadeWidth);
     }
 
     [Fact]
@@ -64,6 +69,9 @@ public class ForwardLightBinderTests
         Assert.Contains("ShadowedDirectionalLightIndex", source, StringComparison.Ordinal);
         Assert.Contains("ShadowLightViewProjection", source, StringComparison.Ordinal);
         Assert.Contains("ShadowMapTexelSize", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderParameterNames.ShadowApplyMode", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderParameterNames.ShadowTintColor", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderParameterNames.ShadowFilterTaps, shadowFilterTaps", source, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

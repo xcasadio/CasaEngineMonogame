@@ -5,6 +5,7 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.Text;
 using MGUI.Shared.Input.Mouse;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
@@ -170,6 +171,36 @@ public class LogsPanel
         return _rootContent;
     }
 
+    /// <summary>Selects the filter named <paramref name="filterName"/> (<c>All</c> or a <see cref="LogVerbosity"/> name,
+    /// case-insensitive), as if picked in the filter box. Returns false when the name is unknown or the content does not
+    /// exist yet.</summary>
+    public bool TrySetFilter(string filterName)
+    {
+        if (_filterCombo == null || !TryResolveFilterItem(filterName, out var item))
+        {
+            return false;
+        }
+
+        _filterCombo.SelectedItem = item;
+        return true;
+    }
+
+    /// <summary>The item of the filter box named <paramref name="filterName"/>, case-insensitive.</summary>
+    internal static bool TryResolveFilterItem(string filterName, out string item)
+    {
+        foreach (var candidate in FilterItems)
+        {
+            if (string.Equals(candidate, filterName, StringComparison.OrdinalIgnoreCase))
+            {
+                item = candidate;
+                return true;
+            }
+        }
+
+        item = null;
+        return false;
+    }
+
     public void Refresh()
     {
         if (_rootContent == null)
@@ -200,14 +231,16 @@ public class LogsPanel
         return menu;
     }
 
-    private string FormatMarkupEntry(LogEntry entry)
+    /// <summary>The entry as MGUI formatted text: its visible text (<see cref="FormatClipboardEntry"/>) escaped with
+    /// <see cref="FTTokenizer.EscapeMarkdown"/>, so that the verbosity brackets and any '[' of the message stay text, in the
+    /// colour of its verbosity.</summary>
+    internal static string FormatMarkupEntry(LogEntry entry)
     {
         var colorTag = VerbosityColor(entry.Verbosity);
-        var ts = entry.Timestamp.ToString("HH:mm:ss");
-        return $"[c={colorTag}]{ts} [{entry.Verbosity,-7}] {EscapeMarkup(entry.Message)}[/c]";
+        return $"[c={colorTag}]{FTTokenizer.EscapeMarkdown(FormatClipboardEntry(entry))}[/c]";
     }
 
-    private static string FormatClipboardEntry(LogEntry entry) =>
+    internal static string FormatClipboardEntry(LogEntry entry) =>
         $"{entry.Timestamp:HH:mm:ss} [{entry.Verbosity,-7}] {entry.Message}";
 
     private static string VerbosityColor(LogVerbosity v) => v switch
@@ -219,8 +252,6 @@ public class LogsPanel
         LogVerbosity.Error   => "Red",
         _                    => "White",
     };
-
-    private static string EscapeMarkup(string msg) => msg.Replace("[", "[[");
 
     // ─────────────────────────────────────────────────────────────────────────
     // Event handlers

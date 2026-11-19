@@ -85,6 +85,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private Effect _effect;
     private Effect _alphaWindowEffect;
     private Effect _psxQuadEffect;
+    private bool _linearColor;
     private EffectParameter _alphaWindowParameter;
     private readonly CasaEngineGame _game;
 
@@ -213,6 +214,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         var previousBlendState = graphicsDevice.BlendState;
 
         UpdateBuffer();
+        _linearColor = frame.Environment.LinearColorActive;
         Draw(frame.View, frame.Projection);
 
         graphicsDevice.DepthStencilState = previousDepthStencilState;
@@ -228,6 +230,10 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         // The effect keeps its parameters from one draw to the next: start from the neutral window, whatever the last
         // draw that used the effect left behind.
         PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+
+        // The sprites of the scene decode their display colours only in a view that really draws through the HDR target
+        // (ADR-0106); the constant lives on the shared effects, so it is posed on every flush.
+        PoseColorPipeline(_effect, _linearColor);
         var currentAlphaMin = NeutralAlphaMin;
         var currentAlphaMax = NeutralAlphaMax;
 
@@ -296,6 +302,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
                 if (!psxQuadFramePosed)
                 {
                     PosePsxQuadFrame(quadEffect, view * projection, projection, graphicsDevice);
+                    PoseColorPipeline(quadEffect, _linearColor);
                     psxQuadFramePosed = true;
                 }
 
@@ -329,6 +336,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         {
             PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
         }
+    }
+
+    private static void PoseColorPipeline(Effect effect, bool linearColor)
+    {
+        effect.Parameters[ShaderParameterNames.ColorPipelineIsLinear]?.SetValue(linearColor ? 1.0f : 0.0f);
     }
 
     /// <summary>
@@ -375,6 +387,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     public void DrawDirectly(Texture2D texture)
     {
         PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+        // No frame here: a full-screen texture display keeps its own colours whatever a previous flush left on the shared effect.
+        PoseColorPipeline(_effect, false);
 
         var graphicsDevice = _effect.GraphicsDevice;
 
@@ -430,6 +444,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
 
         PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+        PoseColorPipeline(_effect, frame.Environment.LinearColorActive);
 
         var graphicsDevice = _effect.GraphicsDevice;
         var previousDepthStencilState = graphicsDevice.DepthStencilState;

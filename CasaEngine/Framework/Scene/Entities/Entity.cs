@@ -191,14 +191,14 @@ public class Entity : ObjectBase
         IsVisible = entity.IsVisible;
         Policies = entity.Policies.Clone();
         Parent = entity.Parent;
-        RootComponent = entity.RootComponent?.Clone() as SceneComponent;
+        RootComponent = entity.RootComponent?.CloneWithName() as SceneComponent;
         GameplayProxyClassName = entity.GameplayProxyClassName;
         GameplayProxy = entity.GameplayProxy?.Clone();
         _gameplayProxyState = entity._gameplayProxyState;
 
         foreach (var component in entity._components)
         {
-            AddComponent(component.Clone());
+            AddComponent(component.CloneWithName());
         }
 
         foreach (var child in entity._children)
@@ -630,12 +630,12 @@ public class Entity : ObjectBase
         var node = element["root_component"];
         if (node.Type == JTokenType.Object)
         {
-            RootComponent = ElementFactory.Load<SceneComponent>((JObject)node);
+            RootComponent = ElementFactory.LoadComponent<SceneComponent>((JObject)node);
         }
 
         foreach (var componentNode in element["components"])
         {
-            var entityComponent = ElementFactory.Load<EntityComponent>((JObject)componentNode);
+            var entityComponent = ElementFactory.LoadComponent<EntityComponent>((JObject)componentNode);
             //_components.Add(entityComponent);
             AddComponent(entityComponent);
         }

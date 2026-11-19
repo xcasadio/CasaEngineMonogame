@@ -6,10 +6,13 @@ using System.Reflection;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -27,8 +30,6 @@ namespace CasaEngine.Editor.Controls;
 public sealed class EntityDetailsPanel
 {
     private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
-
-    private static readonly Lazy<IReadOnlyDictionary<string, Type>> ComponentTypes = new(CreateComponentTypeLookup);
 
     private readonly MGWindow _window;
     private readonly bool _includeComponentTree;
@@ -736,6 +737,16 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Intensity", ambientIntensityEditor);
 
+        var ambientSourceCombo = CreateStringCombo(Enum.GetNames<AmbientSource>(), settings.AmbientSource.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Environment Ambient Source",
+                static s => s.AmbientSource,
+                static (s, selectedSource) => s.AmbientSource = selectedSource,
+                Enum.Parse<AmbientSource>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Source", ambientSourceCombo);
+
         var specularIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -747,6 +758,142 @@ public sealed class EntityDetailsPanel
             static (s, intensity) => s.SpecularIntensity = intensity,
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Specular Intensity", specularIntensityEditor);
+
+        var colorPipelineModeCombo = CreateStringCombo(Enum.GetNames<ColorPipelineMode>(), settings.ColorPipeline.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Color Pipeline Mode",
+                static s => s.ColorPipeline.Mode,
+                static (s, mode) => s.ColorPipeline.Mode = mode,
+                Enum.Parse<ColorPipelineMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Color Pipeline", colorPipelineModeCombo);
+
+        var tonemapperCombo = CreateStringCombo(Enum.GetNames<TonemapOperator>(), settings.ColorPipeline.Tonemapper.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Tonemapper",
+                static s => s.ColorPipeline.Tonemapper,
+                static (s, tonemapper) => s.ColorPipeline.Tonemapper = tonemapper,
+                Enum.Parse<TonemapOperator>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Tonemapper", tonemapperCombo);
+
+        var exposureEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.Exposure,
+        };
+        exposureEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Exposure",
+            static s => s.ColorPipeline.Exposure,
+            static (s, exposure) => s.ColorPipeline.Exposure = exposure,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Exposure", exposureEditor);
+
+        var bloomEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.BloomEnabled,
+        };
+        bloomEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle Bloom",
+            static s => s.ColorPipeline.BloomEnabled,
+            static (s, enabled) => s.ColorPipeline.BloomEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom", bloomEnabledCheckBox);
+
+        var bloomThresholdEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomThreshold,
+        };
+        bloomThresholdEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Threshold",
+            static s => s.ColorPipeline.BloomThreshold,
+            static (s, threshold) => s.ColorPipeline.BloomThreshold = threshold,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Threshold", bloomThresholdEditor);
+
+        var bloomIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomIntensity,
+        };
+        bloomIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Intensity",
+            static s => s.ColorPipeline.BloomIntensity,
+            static (s, intensity) => s.ColorPipeline.BloomIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Intensity", bloomIntensityEditor);
+
+        var bloomRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomRadius,
+        };
+        bloomRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Radius",
+            static s => s.ColorPipeline.BloomRadius,
+            static (s, radius) => s.ColorPipeline.BloomRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Radius", bloomRadiusEditor);
+
+        var antiAliasingCombo = CreateStringCombo(Enum.GetNames<AntiAliasingMode>(), settings.ColorPipeline.AntiAliasing.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Anti-Aliasing",
+                static s => s.ColorPipeline.AntiAliasing,
+                static (s, antiAliasing) => s.ColorPipeline.AntiAliasing = antiAliasing,
+                Enum.Parse<AntiAliasingMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Anti-Aliasing", antiAliasingCombo);
+
+        var ssaoEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.SsaoEnabled,
+        };
+        ssaoEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle SSAO",
+            static s => s.ColorPipeline.SsaoEnabled,
+            static (s, enabled) => s.ColorPipeline.SsaoEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO", ssaoEnabledCheckBox);
+
+        var ssaoRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoRadius,
+        };
+        ssaoRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Radius",
+            static s => s.ColorPipeline.SsaoRadius,
+            static (s, radius) => s.ColorPipeline.SsaoRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Radius", ssaoRadiusEditor);
+
+        var ssaoIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoIntensity,
+        };
+        ssaoIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Intensity",
+            static s => s.ColorPipeline.SsaoIntensity,
+            static (s, intensity) => s.ColorPipeline.SsaoIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Intensity", ssaoIntensityEditor);
+
+        var ssaoBiasEditor = new NumericField(_window, min: 0.0f, step: 0.01f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoBias,
+        };
+        ssaoBiasEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Bias",
+            static s => s.ColorPipeline.SsaoBias,
+            static (s, bias) => s.ColorPipeline.SsaoBias = bias,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Bias", ssaoBiasEditor);
 
         _detailsContent.TryAddChild(grid);
 
@@ -826,6 +973,70 @@ public sealed class EntityDetailsPanel
             static (s, distance) => s.Shadows.MaxDistance = distance,
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Max Distance", shadowMaxDistanceEditor);
+
+        var shadowModeCombo = CreateStringCombo(Enum.GetNames<ShadowMode>(), settings.Shadows.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Mode",
+                static s => s.Shadows.Mode,
+                static (s, mode) => s.Shadows.Mode = mode,
+                Enum.Parse<ShadowMode>(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Mode", shadowModeCombo);
+
+        var shadowColorEditor = new Vector3ColorEditor(_window, settings.Shadows.ShadowColor);
+        shadowColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Color",
+            static s => s.Shadows.ShadowColor,
+            static (s, color) => s.Shadows.ShadowColor = color,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Shadow Color", shadowColorEditor);
+
+        var shadowFilterRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.5f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FilterRadius,
+        };
+        shadowFilterRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Filter Radius",
+            static s => s.Shadows.FilterRadius,
+            static (s, radius) => s.Shadows.FilterRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Radius", shadowFilterRadiusEditor);
+
+        var shadowFilterTapsCombo = CreateStringCombo(new[] { "12", "32", "64" }, settings.Shadows.FilterTaps.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Filter Taps",
+                static s => s.Shadows.FilterTaps,
+                static (s, taps) => s.Shadows.FilterTaps = taps,
+                int.Parse(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Taps", shadowFilterTapsCombo);
+
+        var shadowFadeDistanceEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FadeDistance,
+        };
+        shadowFadeDistanceEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Fade Distance",
+            static s => s.Shadows.FadeDistance,
+            static (s, distance) => s.Shadows.FadeDistance = distance,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Fade Distance", shadowFadeDistanceEditor);
+
+        var shadowDepthRangeEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.DepthRange,
+        };
+        shadowDepthRangeEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Depth Range",
+            static s => s.Shadows.DepthRange,
+            static (s, range) => s.Shadows.DepthRange = range,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Depth Range", shadowDepthRangeEditor);
 
         _detailsContent.TryAddChild(shadowGrid);
 
@@ -1327,7 +1538,9 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        var componentNames = ComponentTypes.Value.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        //  Built at every opening: a script reload replaces the gameplay assembly's component types.
+        var componentTypes = BuildAddableComponentTypes();
+        var componentNames = componentTypes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
         if (componentNames.Count == 0)
         {
             return;
@@ -1370,7 +1583,7 @@ public sealed class EntityDetailsPanel
         var addButton = new MGButton(dialog, _ =>
         {
             var selectedName = listBox.SelectedValue;
-            if (selectedName == null || !ComponentTypes.Value.TryGetValue(selectedName, out var componentType))
+            if (selectedName == null || !componentTypes.TryGetValue(selectedName, out var componentType))
             {
                 return;
             }
@@ -1378,6 +1591,11 @@ public sealed class EntityDetailsPanel
             if (Activator.CreateInstance(componentType) is not EntityComponent component)
             {
                 return;
+            }
+
+            if (_selectedEntity != null)
+            {
+                component.Name = EditorComponentNames.CreateUniqueName(_selectedEntity, component);
             }
 
             AddComponent(component);
@@ -1407,23 +1625,21 @@ public sealed class EntityDetailsPanel
         }
 
         var entity = _selectedEntity;
-        var previousComponent = _selectedComponent;
         var selectedSceneComponent = _selectedComponent as SceneComponent;
         bool attachAsChild = selectedSceneComponent != null && component is SceneComponent;
         bool attachAsRoot = !attachAsChild && component is SceneComponent && entity.RootComponent == null;
+        ComponentPlacement placement = attachAsChild ? ComponentPlacement.Child
+            : attachAsRoot ? ComponentPlacement.Root
+            : ComponentPlacement.List;
 
-        ExecuteHistoryCommand(
-            "Add Component",
-            () =>
-            {
-                AttachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
-                ApplyComponentMutationSelection(component);
-            },
-            () =>
-            {
-                DetachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
-                ApplyComponentMutationSelection(previousComponent);
-            });
+        EditorWorldOperations.AddComponent(
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
+            entity,
+            component,
+            placement,
+            selectedSceneComponent,
+            _selectedComponent,
+            ApplyComponentMutationSelection);
     }
 
     private void ExecuteHistoryCommand(string description, Action execute, Action undo)
@@ -1439,45 +1655,6 @@ public sealed class EntityDetailsPanel
         RebuildComponentTree();
         SetSelectedComponent(component);
         SelectedComponentChanged?.Invoke(component);
-    }
-
-    private static void AttachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
-    {
-        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
-        {
-            selectedSceneComponent.AddChildComponent(childSceneComponent);
-        }
-        else if (attachAsRoot && component is SceneComponent rootSceneComponent)
-        {
-            entity.RootComponent = rootSceneComponent;
-        }
-        else
-        {
-            entity.AddComponent(component);
-        }
-
-        component.Initialize();
-        if (entity.World != null)
-        {
-            component.InitializeWithWorld(entity.World);
-        }
-    }
-
-    private static void DetachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
-    {
-        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
-        {
-            selectedSceneComponent.RemoveChildComponent(childSceneComponent);
-            return;
-        }
-
-        if (attachAsRoot && component is SceneComponent rootSceneComponent && ReferenceEquals(entity.RootComponent, rootSceneComponent))
-        {
-            entity.RootComponent = null;
-            return;
-        }
-
-        entity.RemoveComponent(component);
     }
 
     private void UpdateSummary()
@@ -1532,15 +1709,16 @@ public sealed class EntityDetailsPanel
         }
     }
 
-    private static IReadOnlyDictionary<string, Type> CreateComponentTypeLookup()
+    /// <summary>
+    /// The components the Add Component dialog offers, by display name: the concrete component types of the assemblies
+    /// <see cref="ElementFactory"/> resolves names in (the non-collectible assemblies and the registered gameplay script
+    /// assembly), with a public parameterless constructor and not marked <c>[Browsable(false)]</c>. Built at every call, so
+    /// that a reloaded or unregistered script assembly is never offered.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, Type> BuildAddableComponentTypes()
     {
-        var componentType = typeof(EntityComponent);
-
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(GetLoadableTypes)
-            .Where(type => type is { IsClass: true, IsAbstract: false, IsGenericType: false }
-                && type.IsSubclassOf(componentType)
-                && type.GetConstructor(Type.EmptyTypes) != null
+        return ElementFactory.GetDerivedTypesFrom<EntityComponent>()
+            .Where(type => type.GetConstructor(Type.EmptyTypes) != null
                 && IsAddableComponentType(type))
             .Select(type => new
             {
@@ -1551,21 +1729,11 @@ public sealed class EntityDetailsPanel
             .ToDictionary(group => group.Key, group => group.First().Type, StringComparer.OrdinalIgnoreCase);
     }
 
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException e)
-        {
-            return e.Types.Where(type => type != null)!;
-        }
-    }
-
     private static bool IsAddableComponentType(Type type)
     {
-        return type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
+        //  An unresolved component only stands for a component of unknown type found in a file (ADR-0119).
+        return type != typeof(UnresolvedComponent)
+               && type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
     }
 
     private static string GetDisplayName(EntityComponent component)
@@ -1574,13 +1742,15 @@ public sealed class EntityDetailsPanel
             ?? component.GetType().Name;
     }
 
-    private static string GetComponentLabel(EntityComponent component)
+    /// <summary>Display name of the component type, followed by the instance name when it says something more.</summary>
+    internal static string GetComponentLabel(EntityComponent component)
     {
         var displayName = GetDisplayName(component);
         var instanceName = component.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(instanceName)
             || string.Equals(instanceName, displayName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(instanceName, component.GetType().Name, StringComparison.OrdinalIgnoreCase)
             || instanceName.StartsWith("Object ", StringComparison.OrdinalIgnoreCase))
         {
             return displayName;

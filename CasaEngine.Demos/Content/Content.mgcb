@@ -46,6 +46,33 @@
 #begin checkboard.png
 /copy:checkboard.png
 
+#begin demos-input.buttonsMapping
+/copy:demos-input.buttonsMapping
+
+#begin EditorWorld/EditorWorld.world
+/copy:EditorWorld/EditorWorld.world
+
+#begin EditorWorld/Entities/Box.entity
+/copy:EditorWorld/Entities/Box.entity
+
+#begin EditorWorld/Entities/Box.staticModel
+/copy:EditorWorld/Entities/Box.staticModel
+
+#begin EditorWorld/Entities/camera.entity
+/copy:EditorWorld/Entities/camera.entity
+
+#begin EditorWorld/Models/ground_ground1.staticModel
+/copy:EditorWorld/Models/ground_ground1.staticModel
+
+#begin EditorWorld/NewLitDiffuseMaterial.material
+/copy:EditorWorld/NewLitDiffuseMaterial.material
+
+#begin EditorWorld/Textures/checkboard.png
+/copy:EditorWorld/Textures/checkboard.png
+
+#begin EditorWorld/Textures/checkboard.texture
+/copy:EditorWorld/Textures/checkboard.texture
+
 #begin Maps/map_1_1.tileMap
 /copy:Maps/map_1_1.tileMap
 
@@ -57,6 +84,9 @@
 
 #begin Maps/tile1.tileset
 /copy:Maps/tile1.tileset
+
+#begin Materials/pbr-sample.material
+/copy:Materials/pbr-sample.material
 
 #begin paper_box_texture.jpg
 /copy:paper_box_texture.jpg

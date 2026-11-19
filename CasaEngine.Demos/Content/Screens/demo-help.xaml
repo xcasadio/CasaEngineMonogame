@@ -1,0 +1,28 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Width="360" ScreenMargin="0,0,10,60"
+        ScreenHorizontalAlignment="Right" ScreenVerticalAlignment="Bottom"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="10"
+        Background="rgba(0,0,0,190)">
+
+  <!-- The help panel every demo shows when it starts (ADR-0090): what the demo is, its controls, the default camera
+       when the demo keeps it, and what to look at. DemoHelpOverlay fills it once and collapses the parts a demo
+       leaves empty; F1 or Start hides it, and the reminder line (demo-hint.xaml) stays.
+
+       Bottom right, above the reminder line: the demos draw their own HUD at the top left or the top right.
+
+       No Height on purpose: the window sizes its height to its content. -->
+  <StackPanel Orientation="Vertical" Spacing="4">
+    <TextBlock Name="lblHelpTitle" Text="" AllowsInlineFormatting="False" IsBold="True" WrapText="True" />
+
+    <TextBlock Name="lblHelpControlsHeader" Text="Controls" AllowsInlineFormatting="False" IsBold="True" Margin="0,6,0,0" />
+    <TextBlock Name="lblHelpControls" Text="" AllowsInlineFormatting="False" WrapText="True" />
+
+    <TextBlock Name="lblHelpCameraHeader" Text="Camera" AllowsInlineFormatting="False" IsBold="True" Margin="0,6,0,0" />
+    <TextBlock Name="lblHelpCamera" Text="" AllowsInlineFormatting="False" WrapText="True" />
+
+    <TextBlock Name="lblHelpHighlightsHeader" Text="What to look at" AllowsInlineFormatting="False" IsBold="True" Margin="0,6,0,0" />
+    <TextBlock Name="lblHelpHighlights" Text="" AllowsInlineFormatting="False" WrapText="True" />
+  </StackPanel>
+</Window>

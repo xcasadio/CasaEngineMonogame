@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Logging;
+using CasaEngine.Editor.Remote;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.ContentBrowser.Models;
@@ -8,6 +9,7 @@ using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Cutscenes;
+using CasaEngine.EditorServices.AssetPreview;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
@@ -17,6 +19,8 @@ using CasaEngine.Editor.Log;
 using CasaEngine.Editor.PlayMode;
 using CasaEngine.EditorServices.PlayMode;
 using CasaEngine.EditorServices.Scripting;
+using CasaEngine.EditorServices.StaticModels;
+using CasaEngine.EditorServices.Textures;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
@@ -61,7 +65,7 @@ using Thickness = MonoGame.Extended.Thickness;
 
 namespace CasaEngine.Editor;
 
-public class GameEditor : Game, IObservableUpdate
+public partial class GameEditor : Game, IObservableUpdate
 {
     private readonly record struct AssetDocumentRoute(string Extension, Func<string, bool> TryOpenDocument);
 
@@ -164,6 +168,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly EditorDirtyStateService _editorDirtyState = EditorDirtyStateService.Current;
     private HostedEditorGameAdapter _editorRuntime;
     private EditorPlayModeService _playModeService;
+    private EditorRemoteControl _remoteControl;
     private EditorPlaySessionController _playSessionController;
     private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private EditorProjectAudioMuteSync _projectAudioMuteSync;
@@ -220,6 +225,11 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, SpriteAssetInspectorPanel> _spriteInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SoundAssetInspectorPanel> _soundInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AssetPreviewPanel> _assetPreviewPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TextureAssetDocumentPanel> _textureDocumentPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _textureDocumentPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StaticModelAssetDocumentPanel> _staticModelDocumentPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _staticModelDocumentPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _soundInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AudioMixerPanel> _audioMixerPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _audioMixerPanelTitles = new(StringComparer.Ordinal);
@@ -263,6 +273,7 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _audioProfilerContent;
     // True while the "Audio" tool panel is in the dock (docked, floating or hidden in a tab): only then are the meters read.
     private bool _isAudioProfilerPresent;
+    private EditorPreferencesPanel _editorPreferencesPanel;
     private Action _pendingProjectLauncherAction;
     private FrameCachedWindowInputSource _windowInputSource;
     private string _editorInputProbePath;
@@ -280,6 +291,10 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationSelectionAppliedAt;
     private bool _automationPanelActivationApplied;
     private TimeSpan _automationPanelActivatedAt;
+    private TimeSpan? _automationStartedAt;
+    private bool _automationTimedOut;
+    private bool _automationLogsFilterApplied;
+    private TimeSpan _automationLogsFilterAppliedAt;
     private bool _automationContentFolderSelectionAttempted;
     private bool _automationContentFolderSelectionApplied;
     private TimeSpan _automationContentFolderSelectionAppliedAt;
@@ -337,6 +352,14 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationMaterialEditAttempted;
     private bool _automationMaterialEdited;
     private TimeSpan _automationMaterialEditedAt;
+    private bool _automationTextureEditAttempted;
+    private bool _automationTextureEdited;
+    private TimeSpan _automationTextureEditedAt;
+    private string _automationTextureEditResult;
+    private bool _automationStaticModelEditAttempted;
+    private bool _automationStaticModelEdited;
+    private TimeSpan _automationStaticModelEditedAt;
+    private string _automationStaticModelEditResult;
     private bool _automationScreenEditAttempted;
     private bool _automationScreenEdited;
     private TimeSpan _automationScreenEditedAt;
@@ -350,6 +373,7 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationSaveProjectLoggedAt;
     private List<AutomationSaveProjectRecord> _automationSaveProjectRecords;
     private readonly Dictionary<string, string> _automationEditedFileSnapshots = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, byte[]> _automationEditedFileByteSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private bool _automationEditedFilesRestored;
 
     public event EventHandler<TimeSpan> PreviewUpdate;
@@ -514,6 +538,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             // Companion viewport state only: the docking layout keeps its explicit save command.
             SavePersistedViewportViewState();
+            _remoteControl?.Dispose();
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             EditorProjectAuthoringService.ProjectClosed -= OnProjectClosedDetachAudioMixers;
@@ -593,11 +618,21 @@ public class GameEditor : Game, IObservableUpdate
         {
             item.Submenu = new MGContextMenu(_mainWindow, null);
             item.Submenu.AddButton("Audio", _ => OpenAudioProfilerPanel());
+            item.Submenu.AddButton("Editor Preferences", _ => OpenEditorPreferencesPanel());
             item.Submenu.AddSeparator();
             item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
             item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
             item.Submenu.AddSeparator();
             item.Submenu.AddButton("Reset Layout", _ => ResetDockLayout());
+        });
+
+        // Tools menu: remote control for the casa-editor CLI and the MCP server (ADR-0092), off by default.
+        _menuBar.AddItem("Tools", item =>
+        {
+            item.Submenu = new MGContextMenu(_mainWindow, null)
+            {
+                ItemsFactory = BuildToolsMenu,
+            };
         });
 
         // Help menu
@@ -622,6 +657,27 @@ public class GameEditor : Game, IObservableUpdate
         menu.AddButton("Cut", _ => ExecuteCut());
         menu.AddButton("Copy", _ => ExecuteCopy());
         menu.AddButton("Paste", _ => ExecutePaste());
+    }
+
+    private void BuildToolsMenu(MGContextMenu menu)
+    {
+        MGContextMenuToggle remoteToggle = menu.AddCheckBox("Remote Control", _remoteControl?.IsRunning == true);
+        remoteToggle.OnToggled += (_, isChecked) =>
+        {
+            if (_remoteControl == null)
+            {
+                return;
+            }
+
+            if (isChecked)
+            {
+                _remoteControl.Start();
+            }
+            else
+            {
+                _remoteControl.Stop();
+            }
+        };
     }
 
     private static string BuildHistoryMenuLabel(string prefix, string description)
@@ -691,6 +747,12 @@ public class GameEditor : Game, IObservableUpdate
         _automationParticleDropped = false;
         _automationMaterialEditAttempted = false;
         _automationMaterialEdited = false;
+        _automationTextureEditAttempted = false;
+        _automationTextureEdited = false;
+        _automationTextureEditResult = null;
+        _automationStaticModelEditAttempted = false;
+        _automationStaticModelEdited = false;
+        _automationStaticModelEditResult = null;
         _automationScreenEditAttempted = false;
         _automationScreenEdited = false;
         _automationSaveProjectAttempted = false;
@@ -1120,6 +1182,7 @@ public class GameEditor : Game, IObservableUpdate
         ActivateDockPanel(EditorPanelIds.ContentBrowser);
         LoadInitialWorldIntoEditorRuntime();
         UpdateWindowTitle();
+        _remoteControl?.RefreshDiscovery();
     }
 
     private void EnsureShellChromeInitialized()
@@ -1134,9 +1197,10 @@ public class GameEditor : Game, IObservableUpdate
 
     private void UpdateWindowTitle()
     {
-        Window.Title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
+        string title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
             ? "CasaEngine Editor"
             : $"CasaEngine Editor - {GameSettings.ProjectSettings.ProjectName}";
+        Window.Title = _remoteControl?.IsRunning == true ? title + " [Remote Control]" : title;
     }
 
     private void ApplyEditorTheme()
@@ -1178,6 +1242,22 @@ public class GameEditor : Game, IObservableUpdate
         {
             ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,
         };
+
+        // ADR-0091: one per-user preferences store, created before any viewport panel. Automation runs keep the
+        // user's file untouched and use a temporary one.
+        string preferencesPath = _automationOptions.HasAutomation
+            ? Path.Combine(Path.GetTempPath(), "CasaEngine", "editor.preferences.automation.json")
+            : EditorPreferencesStore.DefaultFilePath;
+        _editorRuntime.Preferences = new EditorPreferencesStore(preferencesPath);
+        _editorRuntime.Preferences.Load();
+
+        // ADR-0092: remote control for the casa-editor CLI and the MCP server, off unless --remote or the Tools menu.
+        _remoteControl = new EditorRemoteControl(new GameEditorRemoteHost(this));
+        _remoteControl.RunningChanged += UpdateWindowTitle;
+        if (_automationOptions.StartRemoteControl)
+        {
+            _remoteControl.Start();
+        }
 
         _editorRuntime.ContentPath = Path.Combine(AppContext.BaseDirectory, "Content");
 
@@ -1786,7 +1866,8 @@ public class GameEditor : Game, IObservableUpdate
             };
             _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
             {
-                if (!TryGetActiveScreenCommandStack(out var commandStack))
+                // Checked before the command is built, so a refused duplicate leaves no empty step in the history.
+                if (!DuplicateNodeCommand.CanDuplicate(doc, nodeId) || !TryGetActiveScreenCommandStack(out var commandStack))
                 {
                     return;
                 }
@@ -2132,6 +2213,8 @@ public class GameEditor : Game, IObservableUpdate
         if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
         var document = _activeScreenPreviewPanel.CurrentDocument;
         if (document == null) return;
+        // Checked before the command is built, so a refused duplicate leaves no empty step in the history.
+        if (!DuplicateNodeCommand.CanDuplicate(document, _screenSelection.SelectedNodeId.Value)) return;
 
         var cmd = new DuplicateNodeCommand(document, _screenSelection.SelectedNodeId.Value);
         if (!TryGetActiveScreenCommandStack(out var commandStack))
@@ -2311,6 +2394,29 @@ public class GameEditor : Game, IObservableUpdate
         return _logsContent;
     }
 
+    private MGElement GetOrCreateEditorPreferencesContent()
+    {
+        // ADR-0091: the store is created with the editor runtime, before the dock layout is built.
+        _editorPreferencesPanel ??= new EditorPreferencesPanel(_mainWindow, _editorRuntime.Preferences);
+        return _editorPreferencesPanel.CreateContent();
+    }
+
+    /// <summary>Windows &gt; Editor Preferences: docks the tool panel like Windows &gt; Audio, or makes it the active tab.</summary>
+    private void OpenEditorPreferencesPanel()
+    {
+        if (_dockHost?.LayoutModel == null)
+        {
+            return;
+        }
+
+        if (!IsDockPanelPresent(EditorPanelIds.EditorPreferences))
+        {
+            EnsureContextualToolPanelPresent(EditorPanelIds.EditorPreferences);
+        }
+
+        ActivateDockPanel(EditorPanelIds.EditorPreferences);
+    }
+
     private MGElement GetOrCreateAudioProfilerContent()
     {
         // The single audio service of the editor, which the play-in-editor session shares.
@@ -2426,6 +2532,13 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Audio",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateAudioProfilerContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.EditorPreferences,
+                Title = "Editor Preferences",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = GetOrCreateEditorPreferencesContent,
             },
             new EditorPanelDescriptor
             {
@@ -2606,6 +2719,8 @@ public class GameEditor : Game, IObservableUpdate
         SaveSelectedCutsceneInspector();
         SaveDirtyScreenDocuments();
         SaveDirtyMaterialInspectors();
+        SaveDirtyTextureDocuments();
+        SaveDirtyStaticModelDocuments();
         SaveDirtySpriteInspectors();
         SaveDirtySoundInspectors();
         SaveDirtyParticleInspectors();
@@ -3016,6 +3131,8 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        _editorRuntime?.Preferences?.Flush();
+        _remoteControl?.Stop();
         base.OnExiting(sender, args);
     }
 
@@ -3242,6 +3359,25 @@ public class GameEditor : Game, IObservableUpdate
             soundInspectorPanel.Dispose();
             _soundInspectorPanels.Remove(panelId);
             _soundInspectorPanelTitles.Remove(panelId);
+        }
+
+        if (_textureDocumentPanels.TryGetValue(panelId, out var textureDocumentPanel))
+        {
+            // Disposing releases the preview texture of the image.
+            CloseTextureDocumentPanel(panelId, textureDocumentPanel);
+        }
+
+        if (_staticModelDocumentPanels.TryGetValue(panelId, out var staticModelDocumentPanel))
+        {
+            // Disposing releases the preview view and the buffers of the model.
+            CloseStaticModelDocumentPanel(panelId, staticModelDocumentPanel);
+        }
+
+        if (_assetPreviewPanels.TryGetValue(panelId, out var assetPreviewPanel))
+        {
+            // Disposing stops the audio and releases the textures and the model of the preview.
+            assetPreviewPanel.Dispose();
+            _assetPreviewPanels.Remove(panelId);
         }
 
         if (TryGetAudioMixerPanel(panelId, out var audioMixerPanel))
@@ -4824,6 +4960,8 @@ public class GameEditor : Game, IObservableUpdate
             new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Texture, TryOpenTextureAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.StaticModel, TryOpenStaticModelAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.World, TryOpenWorldAsset),
         ];
 
@@ -4856,7 +4994,9 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
-        return false;
+        // Fallback for a file without an editing document (plan P6). The classifier refuses every engine asset format, so a
+        // format that is still waiting for its own document stays unopened.
+        return TryOpenAssetPreview(fullPath);
     }
 
     private bool TryOpenWorldAsset(string fullPath) => OpenWorldAsset(fullPath, unsavedChangesHandled: false);
@@ -5193,6 +5333,328 @@ public class GameEditor : Game, IObservableUpdate
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened sound asset='{soundAsset.Name}', panel='{panelId}'");
         return true;
+    }
+
+    /// <summary>Opens the document of a <c>.texture</c> asset (plan P7): one panel per file, disposed with its tab.</summary>
+    private bool TryOpenTextureAsset(string fullPath)
+    {
+        if (!TextureAssetDocumentPanel.TryLoadAsset(fullPath, out var textureDocument, out string loadError))
+        {
+            Logs.WriteWarning(loadError);
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        var panelId = EditorPanelIds.TextureAssetDocumentPrefix + CreateAssetPreviewDocumentKey(fullPath);
+        bool createdPanel = false;
+        if (!_textureDocumentPanels.TryGetValue(panelId, out var texturePanel))
+        {
+            texturePanel = new TextureAssetDocumentPanel(_mainWindow, GraphicsDevice);
+            texturePanel.DirtyStateChanged += OnTextureDocumentDirtyStateChanged;
+            _textureDocumentPanels.Add(panelId, texturePanel);
+            createdPanel = true;
+        }
+
+        if (createdPanel)
+        {
+            texturePanel.LoadAsset(textureDocument, fullPath);
+        }
+
+        _textureDocumentPanelTitles[panelId] = Path.GetFileNameWithoutExtension(fullPath);
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    CloseTextureDocumentPanel(panelId, texturePanel);
+                }
+
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = GetTextureDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = texturePanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetTextureDocumentTitle(panelId);
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened texture asset='{Path.GetFileName(fullPath)}', panel='{panelId}'");
+        return true;
+    }
+
+    private void CloseTextureDocumentPanel(string panelId, TextureAssetDocumentPanel texturePanel)
+    {
+        texturePanel.DirtyStateChanged -= OnTextureDocumentDirtyStateChanged;
+        texturePanel.Dispose();
+        _textureDocumentPanels.Remove(panelId);
+        _textureDocumentPanelTitles.Remove(panelId);
+        _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+    }
+
+    private void OnTextureDocumentDirtyStateChanged(TextureAssetDocumentPanel texturePanel)
+    {
+        if (TryGetTextureDocumentPanelId(texturePanel, out var panelId))
+        {
+            UpdateDockPanelTitle(panelId, GetTextureDocumentTitle(panelId));
+        }
+    }
+
+    private bool TryGetTextureDocumentPanelId(TextureAssetDocumentPanel texturePanel, out string panelId)
+    {
+        foreach (var pair in _textureDocumentPanels)
+        {
+            if (ReferenceEquals(pair.Value, texturePanel))
+            {
+                panelId = pair.Key;
+                return true;
+            }
+        }
+
+        panelId = string.Empty;
+        return false;
+    }
+
+    private string GetTextureDocumentTitle(string panelId)
+    {
+        var title = _textureDocumentPanelTitles.TryGetValue(panelId, out var value) ? value : "Texture";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+        if (_textureDocumentPanels.TryGetValue(panelId, out var texturePanel))
+        {
+            isDirty |= texturePanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private void SaveDirtyTextureDocuments()
+    {
+        foreach (var pair in _textureDocumentPanels)
+        {
+            var texturePanel = pair.Value;
+            if (!texturePanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (texturePanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetTextureDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Texture asset saved: {texturePanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
+    /// <summary>Opens the document of a <c>.staticModel</c> asset (plan P8): one panel per file, disposed with its tab.</summary>
+    private bool TryOpenStaticModelAsset(string fullPath)
+    {
+        if (!StaticModelAssetDocumentPanel.TryLoadAsset(fullPath, out var staticModelDocument, out string loadError))
+        {
+            Logs.WriteWarning(loadError);
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        var panelId = EditorPanelIds.StaticModelAssetDocumentPrefix + CreateAssetPreviewDocumentKey(fullPath);
+        bool createdPanel = false;
+        if (!_staticModelDocumentPanels.TryGetValue(panelId, out var staticModelPanel))
+        {
+            staticModelPanel = new StaticModelAssetDocumentPanel(_mainWindow, GraphicsDevice, _editorRuntime);
+            staticModelPanel.DirtyStateChanged += OnStaticModelDocumentDirtyStateChanged;
+            _staticModelDocumentPanels.Add(panelId, staticModelPanel);
+            createdPanel = true;
+        }
+
+        if (createdPanel)
+        {
+            staticModelPanel.LoadAsset(staticModelDocument, fullPath);
+        }
+
+        _staticModelDocumentPanelTitles[panelId] = Path.GetFileNameWithoutExtension(fullPath);
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    CloseStaticModelDocumentPanel(panelId, staticModelPanel);
+                }
+
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = GetStaticModelDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = staticModelPanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetStaticModelDocumentTitle(panelId);
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened static model asset='{Path.GetFileName(fullPath)}', panel='{panelId}'");
+        return true;
+    }
+
+    private void CloseStaticModelDocumentPanel(string panelId, StaticModelAssetDocumentPanel staticModelPanel)
+    {
+        staticModelPanel.DirtyStateChanged -= OnStaticModelDocumentDirtyStateChanged;
+        staticModelPanel.Dispose();
+        _staticModelDocumentPanels.Remove(panelId);
+        _staticModelDocumentPanelTitles.Remove(panelId);
+        _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId));
+    }
+
+    private void OnStaticModelDocumentDirtyStateChanged(StaticModelAssetDocumentPanel staticModelPanel)
+    {
+        foreach (var pair in _staticModelDocumentPanels)
+        {
+            if (ReferenceEquals(pair.Value, staticModelPanel))
+            {
+                UpdateDockPanelTitle(pair.Key, GetStaticModelDocumentTitle(pair.Key));
+                return;
+            }
+        }
+    }
+
+    private string GetStaticModelDocumentTitle(string panelId)
+    {
+        var title = _staticModelDocumentPanelTitles.TryGetValue(panelId, out var value) ? value : "Static model";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId));
+        if (_staticModelDocumentPanels.TryGetValue(panelId, out var staticModelPanel))
+        {
+            isDirty |= staticModelPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private void SaveDirtyStaticModelDocuments()
+    {
+        foreach (var pair in _staticModelDocumentPanels)
+        {
+            var staticModelPanel = pair.Value;
+            if (!staticModelPanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (staticModelPanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetStaticModelDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Static model asset saved: {staticModelPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
+    /// <summary>Opens the read-only preview of a file that has no editing document: one panel per file, closed with its tab.</summary>
+    private bool TryOpenAssetPreview(string fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath) || GraphicsDevice == null)
+        {
+            return false;
+        }
+
+        var info = AssetPreviewReader.Read(fullPath);
+        if (info.Kind == AssetPreviewKind.None)
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        var panelId = EditorPanelIds.AssetPreviewDocumentPrefix + CreateAssetPreviewDocumentKey(fullPath);
+        bool createdPanel = false;
+        if (!_assetPreviewPanels.TryGetValue(panelId, out var previewPanel))
+        {
+            previewPanel = new AssetPreviewPanel(_mainWindow, GraphicsDevice, _editorRuntime, info, _fontStashSharpEngine);
+            _assetPreviewPanels.Add(panelId, previewPanel);
+            createdPanel = true;
+        }
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    previewPanel.Dispose();
+                    _assetPreviewPanels.Remove(panelId);
+                }
+
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = info.FileName,
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = previewPanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = info.FileName;
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened asset preview file='{info.FileName}', kind={info.Kind}, panel='{panelId}'");
+        return true;
+    }
+
+    private static string CreateAssetPreviewDocumentKey(string fullPath)
+    {
+        string normalizedPath = Path.GetFullPath(fullPath).ToLowerInvariant();
+        return Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(Encoding.UTF8.GetBytes(normalizedPath)))[..16].ToLowerInvariant();
     }
 
     private bool TryOpenAudioMixerAsset(string fullPath)
@@ -6374,6 +6836,22 @@ public class GameEditor : Game, IObservableUpdate
 
                 break;
 
+            case EditorHistoryContextKind.Texture:
+                if (_textureDocumentPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetTextureDocumentTitle(context.Id));
+                }
+
+                break;
+
+            case EditorHistoryContextKind.StaticModel:
+                if (_staticModelDocumentPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetStaticModelDocumentTitle(context.Id));
+                }
+
+                break;
+
             case EditorHistoryContextKind.ContentBrowser:
                 UpdateDockPanelTitle(EditorPanelIds.ContentBrowser, GetContentBrowserTitle());
                 break;
@@ -6932,6 +7410,9 @@ public class GameEditor : Game, IObservableUpdate
             EditorPerformanceProbe.SetContext(CreateEditorPerformanceContext());
         }
 
+        // ADR-0091: writes the preferences once, a second after the last change; a bool test when idle.
+        _editorRuntime?.Preferences?.FlushIfDue();
+
         using (EditorPerformanceProbe.BeginPhase("Input.CaptureAndPreview"))
         {
             PrepareAutomationWindowInputOverride(gameTime.TotalGameTime);
@@ -7063,6 +7544,9 @@ public class GameEditor : Game, IObservableUpdate
         {
             ProcessPendingProjectLauncherAction();
         }
+
+        // ADR-0092: remote commands run here, before the runtime and the panels update, so they see the change this frame.
+        _remoteControl?.Pump();
 
         using (EditorPerformanceProbe.BeginPhase("ShaderHotReload.Process"))
         {
@@ -7503,18 +7987,8 @@ public class GameEditor : Game, IObservableUpdate
             Directory.CreateDirectory(directory);
             string path = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(basePath)}-{suffix}.png");
 
-            int width = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferWidth);
-            int height = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferHeight);
-
-            using var renderTarget = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
-            var previousTargets = GraphicsDevice.GetRenderTargets();
-            GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            _desktop?.Draw();
-            GraphicsDevice.SetRenderTargets(previousTargets);
-
-            using var fileStream = File.OpenWrite(path);
-            renderTarget.SaveAsPng(fileStream, width, height);
+            // FileMode.Create truncates: File.OpenWrite left the end of a larger previous image in the file.
+            SaveDesktopAsPng(path, FileMode.Create, out _, out _);
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Screenshot saved to '{path}'");
         }
         catch (Exception ex)
@@ -7525,7 +7999,20 @@ public class GameEditor : Game, IObservableUpdate
 
     private void RunAutomation(TimeSpan totalGameTime)
     {
-        if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured || !_automationWorldLoaded)
+        if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured)
+        {
+            return;
+        }
+
+        //  A world that never loads, or a step that never completes, would otherwise keep the editor waiting forever.
+        _automationStartedAt ??= totalGameTime;
+        if (totalGameTime - _automationStartedAt.Value > TimeSpan.FromSeconds(_automationOptions.AutomationTimeoutSeconds))
+        {
+            StopTimedOutAutomation();
+            return;
+        }
+
+        if (!_automationWorldLoaded)
         {
             return;
         }
@@ -7550,7 +8037,7 @@ public class GameEditor : Game, IObservableUpdate
 
             if (_automationOptions.ExitAfterCapture)
             {
-                Exit();
+                ExitAutomation();
             }
 
             return;
@@ -7587,6 +8074,14 @@ public class GameEditor : Game, IObservableUpdate
                 _automationPanelActivationApplied = true;
             }
 
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.LogsFilter)
+            && !_automationLogsFilterApplied)
+        {
+            ApplyAutomationLogsFilter(totalGameTime);
+            _automationLogsFilterApplied = true;
             return;
         }
 
@@ -7663,6 +8158,20 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationTextureEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerKey)
+            && !_automationTextureEditAttempted)
+        {
+            return;
+        }
+
+        TryApplyAutomationStaticModelEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetStaticModelMaterialMeshIndex)
+            && !_automationStaticModelEditAttempted)
+        {
+            return;
+        }
+
         TryApplyAutomationScreenEdit(totalGameTime);
         if (!string.IsNullOrWhiteSpace(_automationOptions.SetScreenPropertyNodeName)
             && !_automationScreenEditAttempted)
@@ -7685,6 +8194,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationPanelActivationApplied && _automationPanelActivatedAt > readyAt)
         {
             readyAt = _automationPanelActivatedAt;
+        }
+
+        if (_automationLogsFilterApplied && _automationLogsFilterAppliedAt > readyAt)
+        {
+            readyAt = _automationLogsFilterAppliedAt;
         }
 
         if (_automationContentFolderSelectionApplied && _automationContentFolderSelectionAppliedAt > readyAt)
@@ -7710,6 +8224,16 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
         {
             readyAt = _automationMaterialEditedAt;
+        }
+
+        if (_automationTextureEdited && _automationTextureEditedAt > readyAt)
+        {
+            readyAt = _automationTextureEditedAt;
+        }
+
+        if (_automationStaticModelEdited && _automationStaticModelEditedAt > readyAt)
+        {
+            readyAt = _automationStaticModelEditedAt;
         }
 
         if (_automationScreenEdited && _automationScreenEditedAt > readyAt)
@@ -7805,7 +8329,33 @@ public class GameEditor : Game, IObservableUpdate
 
         if (_automationOptions.ExitAfterCapture)
         {
-            Exit();
+            ExitAutomation();
+        }
+    }
+
+    private int ComputeAutomationExitCode()
+        => EditorAutomationOutcome.ComputeExitCode(EditorDiagnosticsBuffer.GetEntriesSnapshot(), _automationPlaySmokeResults, _automationTimedOut);
+
+    /// <summary>Ends an automation run with the exit code of its outcome (<see cref="EditorAutomationOutcome"/>).</summary>
+    private void ExitAutomation()
+    {
+        Environment.ExitCode = ComputeAutomationExitCode();
+        Exit();
+    }
+
+    private void StopTimedOutAutomation()
+    {
+        _automationTimedOut = true;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Error,
+            $"[Automation] Timed out after {_automationOptions.AutomationTimeoutSeconds:0.#} s (world loaded: {_automationWorldLoaded}, asset opened: {_automationAssetOpened}).");
+        CaptureAutomationDiagnostics();
+        RestoreAutomationEditedFilesIfNeeded();
+        DeleteAutomationCreatedParticleAssetIfNeeded();
+        _automationDiagnosticsCaptured = true;
+
+        if (_automationOptions.ExitAfterCapture)
+        {
+            ExitAutomation();
         }
     }
 
@@ -7825,6 +8375,21 @@ public class GameEditor : Game, IObservableUpdate
 
         var desiredComponent = desiredEntity == null ? null : FindAutomationComponent(desiredEntity);
         return ReferenceEquals(_editorSelection.SelectedComponent, desiredComponent);
+    }
+
+    private void ApplyAutomationLogsFilter(TimeSpan totalGameTime)
+    {
+        GetOrCreateLogsContent();
+        if (!_logsPanel.TrySetFilter(_automationOptions.LogsFilter))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unknown logs filter '{_automationOptions.LogsFilter}'.");
+            return;
+        }
+
+        _automationLogsFilterAppliedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Logs filter '{_automationOptions.LogsFilter}' applied.");
     }
 
     private bool TryApplyAutomationDockPanelActivation(TimeSpan totalGameTime)
@@ -7855,7 +8420,13 @@ public class GameEditor : Game, IObservableUpdate
             return true;
         }
 
-        ActivateDockPanel(panelId);
+        if (!TryRunAutomationCommand("panel.activate", new { panel_id = panelId }, out _, out string activateError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Dock panel '{panelId}' was not activated: {activateError}");
+            return true;
+        }
+
         _automationPanelActivatedAt = totalGameTime;
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Automation] Activated dock panel '{panelId}'.");
@@ -8034,7 +8605,13 @@ public class GameEditor : Game, IObservableUpdate
     private bool TryApplyAutomationContentFolderSelection(TimeSpan totalGameTime)
     {
         ApplyAutomationProjectDirectory();
-        string folderPath = ResolveAutomationAssetPath(_automationOptions.ContentBrowserFolderPath!);
+        if (!TryResolveAutomationProjectPath(_automationOptions.ContentBrowserFolderPath!, out string folderPath, out _, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Content folder '{_automationOptions.ContentBrowserFolderPath}' refused: {pathError}");
+            return true;
+        }
+
         if (!Directory.Exists(folderPath))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
@@ -8327,8 +8904,15 @@ public class GameEditor : Game, IObservableUpdate
 
         _automationAssetOpenAttempted = true;
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
-        if (TryOpenEditorAsset(fullPath))
+        ApplyAutomationProjectDirectory();
+        if (!TryResolveAutomationProjectPath(_automationOptions.OpenAssetPath, out string fullPath, out string relativePath, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}': {pathError}");
+            return;
+        }
+
+        if (TryOpenAutomationAsset(fullPath, relativePath))
         {
             _automationAssetOpened = true;
             _automationAssetOpenedAt = totalGameTime;
@@ -9077,6 +9661,27 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Editor current world: {_editorRuntime?.GameManager.CurrentWorld?.Name ?? "<none>"}");
     }
 
+    /// <summary>
+    /// ADR-0093 P9: the four asset types of <c>asset.open</c> go through that command; a world and the other asset
+    /// types keep the editor's own route (<c>world.open</c> answers later, and <c>asset.open</c> has a closed list).
+    /// </summary>
+    private bool TryOpenAutomationAsset(string fullPath, string relativePath)
+    {
+        string assetType = AssetInfo.InferAssetType(fullPath);
+        if (!EditorRemoteAssetTypes.IsOpenable(assetType))
+        {
+            return TryOpenEditorAsset(fullPath);
+        }
+
+        if (TryRunAutomationCommand("asset.open", new { asset = relativePath.Replace('\\', '/') }, out _, out string error))
+        {
+            return true;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, $"[Automation] asset.open refused '{relativePath}': {error}");
+        return false;
+    }
+
     private void TryOpenStartupAssetIfRequested()
     {
         if (_startupAssetOpenAttempted
@@ -9088,7 +9693,13 @@ public class GameEditor : Game, IObservableUpdate
 
         _startupAssetOpenAttempted = true;
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
+        // ADR-0093 P11 and A3: the startup --open-asset follows the automation path rule.
+        if (!TryResolveAutomationProjectPath(_automationOptions.OpenAssetPath, out string fullPath, out _, out string pathError))
+        {
+            Logs.WriteWarning($"Unable to open startup asset '{_automationOptions.OpenAssetPath}': {pathError}");
+            return;
+        }
+
         if (!TryOpenEditorAsset(fullPath))
         {
             Logs.WriteWarning($"Unable to open startup asset '{_automationOptions.OpenAssetPath}' (resolved='{fullPath}').");
@@ -9111,21 +9722,43 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         ApplyAutomationProjectDirectory();
-        string folderPath = ResolveAutomationAssetPath(_automationOptions.CreateParticleAssetFolder);
-        if (!TryCreateParticleAssetInFolder(folderPath, presetKind, out var fullPath, out var relativePath, out var errorMessage))
+        if (!TryResolveAutomationProjectPath(_automationOptions.CreateParticleAssetFolder, out string folderPath, out string folderRelativePath, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': {pathError}");
+            return;
+        }
+
+        if (!Directory.Exists(folderPath))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': Cannot create particle asset because folder '{folderPath}' does not exist.");
+            return;
+        }
+
+        // ADR-0093 P9: particle.create, under the unique name the content browser would choose.
+        string assetName = Path.GetFileNameWithoutExtension(CreateUniqueParticleAssetPath(folderPath, presetKind));
+        if (!TryRunAutomationCommand(
+                "particle.create",
+                new { name = assetName, folder = folderRelativePath.Replace('\\', '/'), preset = _automationOptions.CreateParticlePresetName },
+                out var created,
+                out string errorMessage))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': {errorMessage}");
             return;
         }
 
+        string relativePath = created.GetProperty("file").GetString()!.Replace('/', Path.DirectorySeparatorChar);
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, relativePath);
         _automationParticleAssetCreated = true;
         _automationCreatedParticleAssetFullPath = fullPath;
         _automationCreatedParticleAssetRelativePath = relativePath;
+        RecordAutomationWrittenFile(fullPath);
         _ = GetOrCreateContentBrowserContent();
         _contentBrowserPanel?.Refresh();
 
-        if (TryOpenEditorAsset(fullPath))
+        if (TryOpenAutomationAsset(fullPath, relativePath))
         {
             _automationAssetOpened = true;
             _automationAssetOpenedAt = totalGameTime;
@@ -9160,14 +9793,19 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
-                _automationOptions.SetMaterialPropertyKey,
-                _automationOptions.SetMaterialPropertyValue,
-                out string statusMessage))
+        // ADR-0093 P9 and P13: material.set_property (the bounds of P5, the material history) then material.save.
+        string materialAsset = inspectorPanel.LoadedRelativePath.Replace('\\', '/');
+        string statusMessage = null;
+        if (TryRunAutomationCommand(
+                "material.set_property",
+                new { asset = materialAsset, property = _automationOptions.SetMaterialPropertyKey, value = _automationOptions.SetMaterialPropertyValue },
+                out _,
+                out statusMessage)
+            && TryRunAutomationCommand("material.save", new { asset = materialAsset }, out _, out statusMessage))
         {
+            RecordAutomationWrittenFile(Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath));
             if (TryGetMaterialInspectorPanelId(inspectorPanel, out var panelId))
             {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
                 UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
             }
 
@@ -9180,6 +9818,165 @@ public class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
+    }
+
+    private void TryApplyAutomationTextureEdit(TimeSpan totalGameTime)
+    {
+        string key = _automationOptions.SetTextureSamplerKey;
+        string value = _automationOptions.SetTextureSamplerValue;
+        if (_automationTextureEditAttempted
+            || string.IsNullOrWhiteSpace(key)
+            || string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        if (_automationAssetOpenAttempted && !_automationAssetOpened)
+        {
+            // The open failure is already reported ("Unable to open asset"); there is no document to edit.
+            _automationTextureEditAttempted = true;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update texture sampler '{key}': the texture asset was not opened.");
+            return;
+        }
+
+        if (!TryFindAutomationTextureDocumentPanel(out string panelId, out var texturePanel))
+        {
+            return;
+        }
+
+        _automationTextureEditAttempted = true;
+        if (!TrySnapshotAutomationEditableFile(texturePanel, out string snapshotError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update texture sampler '{key}': {snapshotError}");
+            return;
+        }
+
+        if (!texturePanel.TryApplySamplerEdit(key, value, out string errorMessage)
+            || !texturePanel.TrySaveLoadedAsset(out errorMessage))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update texture sampler '{key}'='{value}': {errorMessage}");
+            return;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+        UpdateDockPanelTitle(panelId, GetTextureDocumentTitle(panelId));
+
+        // What the diagnostics report is read back from the saved file, not echoed from the request.
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, texturePanel.LoadedRelativePath);
+        if (!TextureAssetDocument.TryReadSamplerValue(fullPath, key, out string readBack))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update texture sampler '{key}'='{value}': the saved file has no such field.");
+            return;
+        }
+
+        _automationTextureEditResult = $"{key.Trim().ToLowerInvariant()}={readBack}";
+        _automationTextureEdited = true;
+        _automationTextureEditedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Updated texture sampler '{key}'='{value}' (saved file: {_automationTextureEditResult})");
+    }
+
+    private bool TryFindAutomationTextureDocumentPanel(out string panelId, out TextureAssetDocumentPanel texturePanel)
+    {
+        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath ?? string.Empty);
+        foreach (var pair in _textureDocumentPanels)
+        {
+            if (!string.IsNullOrWhiteSpace(pair.Value.LoadedRelativePath)
+                && string.Equals(Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, pair.Value.LoadedRelativePath)), fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                panelId = pair.Key;
+                texturePanel = pair.Value;
+                return true;
+            }
+        }
+
+        panelId = null;
+        texturePanel = null;
+        return false;
+    }
+
+    private void TryApplyAutomationStaticModelEdit(TimeSpan totalGameTime)
+    {
+        string meshIndexText = _automationOptions.SetStaticModelMaterialMeshIndex;
+        string materialIdText = _automationOptions.SetStaticModelMaterialId;
+        if (_automationStaticModelEditAttempted
+            || string.IsNullOrWhiteSpace(meshIndexText)
+            || string.IsNullOrWhiteSpace(materialIdText))
+        {
+            return;
+        }
+
+        if (_automationAssetOpenAttempted && !_automationAssetOpened)
+        {
+            // The open failure is already reported ("Unable to open asset"); there is no document to edit.
+            _automationStaticModelEditAttempted = true;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update static model material '{meshIndexText}': the static model asset was not opened.");
+            return;
+        }
+
+        if (!TryFindAutomationStaticModelDocumentPanel(out string panelId, out var staticModelPanel))
+        {
+            return;
+        }
+
+        _automationStaticModelEditAttempted = true;
+        if (!TrySnapshotAutomationEditableFile(staticModelPanel, out string snapshotError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update static model material '{meshIndexText}': {snapshotError}");
+            return;
+        }
+
+        if (!staticModelPanel.TryApplyMaterialEdit(meshIndexText, materialIdText, out string errorMessage)
+            || !staticModelPanel.TrySaveLoadedAsset(out errorMessage))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update static model material '{meshIndexText}'='{materialIdText}': {errorMessage}");
+            return;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, panelId));
+        UpdateDockPanelTitle(panelId, GetStaticModelDocumentTitle(panelId));
+
+        // What the diagnostics report is read back from the saved file, not echoed from the request.
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, staticModelPanel.LoadedRelativePath);
+        if (!int.TryParse(meshIndexText.Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int meshIndex)
+            || !StaticModelAssetDocument.TryReadMeshMaterialId(fullPath, meshIndex, out Guid readBack))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update static model material '{meshIndexText}'='{materialIdText}': the saved file has no such mesh.");
+            return;
+        }
+
+        _automationStaticModelEditResult = $"mesh {meshIndex} material_asset_id={readBack:D}";
+        _automationStaticModelEdited = true;
+        _automationStaticModelEditedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Updated static model material '{meshIndexText}'='{materialIdText}' (saved file: {_automationStaticModelEditResult})");
+    }
+
+    private bool TryFindAutomationStaticModelDocumentPanel(out string panelId, out StaticModelAssetDocumentPanel staticModelPanel)
+    {
+        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath ?? string.Empty);
+        foreach (var pair in _staticModelDocumentPanels)
+        {
+            if (!string.IsNullOrWhiteSpace(pair.Value.LoadedRelativePath)
+                && string.Equals(Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, pair.Value.LoadedRelativePath)), fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                panelId = pair.Key;
+                staticModelPanel = pair.Value;
+                return true;
+            }
+        }
+
+        panelId = null;
+        staticModelPanel = null;
+        return false;
     }
 
     private void TryApplyAutomationScreenEdit(TimeSpan totalGameTime)
@@ -9212,11 +10009,21 @@ public class GameEditor : Game, IObservableUpdate
 
         string propertyName = _automationOptions.SetScreenPropertyName;
         string oldValue = node.TryGetProperty(propertyName, out var existing) ? existing?.SerializedValue : null;
+        string screenError = "the active screen has no asset id";
 
-        // Go through the panel's own command stack -- the same path a live inspector edit takes -- so this
-        // edit is undoable and marks the panel's EditorHistoryContext dirty, exactly like a real one.
-        var commandStack = GetOrCreateScreenCommandStack(_editorContext.ActiveDocument.Id);
-        commandStack.Execute(new SetPropertyCommand(node, propertyName, _automationOptions.SetScreenPropertyValue));
+        // ADR-0093 P9 and P12: screen.set_property, the panel's own command stack (undoable, marks the screen
+        // modified), restricted to the inspector's property registry.
+        if (!TryGetAssetIdFromPanelId(EditorPanelIds.UIScreenDocumentPrefix, _editorContext.ActiveDocument.Id, out Guid screenAssetId)
+            || !TryRunAutomationCommand(
+                "screen.set_property",
+                new { asset = screenAssetId.ToString(), node = node.Id.Value.ToString(), property = propertyName, value = _automationOptions.SetScreenPropertyValue },
+                out _,
+                out screenError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update screen property '{_automationOptions.SetScreenPropertyNodeName}.{propertyName}': {screenError}");
+            return;
+        }
 
         _automationScreenEdited = true;
         _automationScreenEditedAt = totalGameTime;
@@ -9273,7 +10080,12 @@ public class GameEditor : Game, IObservableUpdate
                     _editorDirtyState.IsDirty(context)));
             }
 
-            SaveCurrentProject();
+            // ADR-0093 P9: project.save, which also reports a world left unsaved.
+            if (!TryRunAutomationCommand("project.save", null, out _, out string saveError))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, $"[Automation] project.save failed: {saveError}");
+            }
+
             _automationSaveProjectFramesRemaining = 60;
             return;
         }
@@ -9319,14 +10131,19 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
-                _automationOptions.SetParticlePropertyKey,
-                _automationOptions.SetParticlePropertyValue,
-                out string statusMessage))
+        // ADR-0093 P9 and P13: particle.set_property (the bounds of P5, the particle history) then particle.save.
+        string particleAsset = inspectorPanel.LoadedRelativePath.Replace('\\', '/');
+        string statusMessage = null;
+        if (TryRunAutomationCommand(
+                "particle.set_property",
+                new { asset = particleAsset, property = _automationOptions.SetParticlePropertyKey, value = _automationOptions.SetParticlePropertyValue },
+                out _,
+                out statusMessage)
+            && TryRunAutomationCommand("particle.save", new { asset = particleAsset }, out _, out statusMessage))
         {
+            RecordAutomationWrittenFile(Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath));
             if (TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
             {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
                 UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
             }
 
@@ -9393,7 +10210,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.DropParticleAssetPath);
+        if (!TryResolveAutomationProjectPath(_automationOptions.DropParticleAssetPath, out string fullPath, out _, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to resolve particle asset drop '{_automationOptions.DropParticleAssetPath}': {pathError}");
+            return;
+        }
+
         if (!TryResolveAutomationAssetInfo(fullPath, Constants.FileNameExtensions.Particle, out var assetInfo, out string resolveError))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
@@ -9401,45 +10224,18 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        var previousEntity = _editorSelection.SelectedEntity;
-        var previousComponent = _editorSelection.SelectedComponent;
-        var existingComponent = entity.GetComponent<ParticleSystemComponent>();
-        if (existingComponent != null)
+        // ADR-0093 P9: particle.drop (one undoable world change), then the dropped component is selected as before.
+        if (!TryRunAutomationCommand("particle.drop", new { entity_id = entity.Id, asset = assetInfo.Id.ToString() }, out _, out string dropError))
         {
-            Guid previousAssetId = existingComponent.ParticleEffectAssetId;
-            EditorHistoryService.Current.Execute(
-                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
-                new EditorDelegateCommand(
-                    "Update Particle System Component",
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, assetInfo.Id);
-                        SelectAutomationParticleDropTarget(entity, existingComponent);
-                    },
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, previousAssetId);
-                        RestoreAutomationSelection(previousEntity, previousComponent);
-                    }));
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to drop particle asset '{assetInfo.FileName}' on entity='{entity.Name}': {dropError}");
+            return;
         }
-        else
+
+        var dropped = entity.GetComponent<ParticleSystemComponent>();
+        if (dropped != null)
         {
-            var component = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, Vector3.Zero);
-            var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
-            EditorHistoryService.Current.Execute(
-                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
-                new EditorDelegateCommand(
-                    "Add Particle System Component",
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
-                        SelectAutomationParticleDropTarget(entity, component);
-                    },
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
-                        RestoreAutomationSelection(previousEntity, previousComponent);
-                    }));
+            SelectAutomationParticleDropTarget(entity, dropped);
         }
 
         _automationParticleDropped = true;
@@ -9452,17 +10248,6 @@ public class GameEditor : Game, IObservableUpdate
     {
         _editorSelection.SetSelectedEntity(entity);
         _editorSelection.SetSelectedComponent(component);
-        SynchronizeAutomationWorldViewportSelection();
-    }
-
-    private void RestoreAutomationSelection(Entity entity, EntityComponent component)
-    {
-        _editorSelection.SetSelectedEntity(entity);
-        if (component != null)
-        {
-            _editorSelection.SetSelectedComponent(component);
-        }
-
         SynchronizeAutomationWorldViewportSelection();
     }
 
@@ -9489,6 +10274,65 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _automationEditedFileSnapshots.Add(fullPath, File.ReadAllText(fullPath));
+        _automationEditedFilesRestored = false;
+        return true;
+    }
+
+    private bool TrySnapshotAutomationEditableFile(TextureAssetDocumentPanel texturePanel, out string errorMessage)
+    {
+        errorMessage = null;
+
+        if (texturePanel.Document == null || string.IsNullOrWhiteSpace(texturePanel.LoadedRelativePath))
+        {
+            errorMessage = "no loaded texture file is associated with the document.";
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, texturePanel.LoadedRelativePath);
+        if (_automationEditedFileByteSnapshots.ContainsKey(fullPath))
+        {
+            return true;
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            errorMessage = $"unable to snapshot '{fullPath}' because the file does not exist.";
+            return false;
+        }
+
+        // As bytes, like the static model snapshot below, so that the restore gives back a byte order mark too.
+        _automationEditedFileByteSnapshots.Add(fullPath, File.ReadAllBytes(fullPath));
+        _automationEditedFilesRestored = false;
+        return true;
+    }
+
+    /// <summary>
+    /// The file is snapshotted as bytes, not as text: a text round trip would not give back a byte order mark or a different
+    /// encoding, and the restore must leave the file identical.
+    /// </summary>
+    private bool TrySnapshotAutomationEditableFile(StaticModelAssetDocumentPanel staticModelPanel, out string errorMessage)
+    {
+        errorMessage = null;
+
+        if (staticModelPanel.Document == null || string.IsNullOrWhiteSpace(staticModelPanel.LoadedRelativePath))
+        {
+            errorMessage = "no loaded static model file is associated with the document.";
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, staticModelPanel.LoadedRelativePath);
+        if (_automationEditedFileByteSnapshots.ContainsKey(fullPath))
+        {
+            return true;
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            errorMessage = $"unable to snapshot '{fullPath}' because the file does not exist.";
+            return false;
+        }
+
+        _automationEditedFileByteSnapshots.Add(fullPath, File.ReadAllBytes(fullPath));
         _automationEditedFilesRestored = false;
         return true;
     }
@@ -9522,15 +10366,31 @@ public class GameEditor : Game, IObservableUpdate
 
     private void RestoreAutomationEditedFilesIfNeeded()
     {
-        if (_automationEditedFilesRestored || _automationEditedFileSnapshots.Count == 0)
+        if (_automationEditedFilesRestored
+            || (_automationEditedFileSnapshots.Count == 0 && _automationEditedFileByteSnapshots.Count == 0))
         {
             return;
+        }
+
+        foreach (var pair in _automationEditedFileByteSnapshots)
+        {
+            string fullPath = pair.Key;
+            if (!File.Exists(fullPath) || !File.ReadAllBytes(fullPath).AsSpan().SequenceEqual(pair.Value))
+            {
+                File.WriteAllBytes(fullPath, pair.Value);
+            }
+
+            ReloadRestoredAutomationAsset(fullPath);
         }
 
         foreach (var pair in _automationEditedFileSnapshots)
         {
             string fullPath = pair.Key;
             string originalContent = pair.Value;
+            if (!IsAutomationFileUnchangedSinceWrite(fullPath))
+            {
+                continue;
+            }
 
             if (!File.Exists(fullPath) || !string.Equals(File.ReadAllText(fullPath), originalContent, StringComparison.Ordinal))
             {
@@ -9548,7 +10408,8 @@ public class GameEditor : Game, IObservableUpdate
         if (!_automationOptions.ExitAfterCapture
             || !_automationParticleAssetCreated
             || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetFullPath)
-            || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetRelativePath))
+            || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetRelativePath)
+            || !IsAutomationFileUnchangedSinceWrite(_automationCreatedParticleAssetFullPath))
         {
             return;
         }
@@ -9613,6 +10474,50 @@ public class GameEditor : Game, IObservableUpdate
 
             _editorRuntime.ReloadParticleAsset(particleAssetId);
             Logs.WriteInfo($"[Automation] Restored edited particle '{relativePath}' after diagnostics capture.");
+            return;
+        }
+
+        if (relativePath.EndsWith(Constants.FileNameExtensions.StaticModel, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var pair in _staticModelDocumentPanels)
+            {
+                var staticModelPanel = pair.Value;
+                if (string.IsNullOrWhiteSpace(staticModelPanel.LoadedRelativePath)
+                    || !string.Equals(NormalizeRelativePath(staticModelPanel.LoadedRelativePath), relativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (staticModelPanel.ReloadFromDisk())
+                {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.StaticModel, pair.Key));
+                    UpdateDockPanelTitle(pair.Key, GetStaticModelDocumentTitle(pair.Key));
+                }
+            }
+
+            Logs.WriteInfo($"[Automation] Restored edited static model '{relativePath}' after diagnostics capture.");
+            return;
+        }
+
+        if (relativePath.EndsWith(Constants.FileNameExtensions.Texture, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var pair in _textureDocumentPanels)
+            {
+                var texturePanel = pair.Value;
+                if (string.IsNullOrWhiteSpace(texturePanel.LoadedRelativePath)
+                    || !string.Equals(NormalizeRelativePath(texturePanel.LoadedRelativePath), relativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (texturePanel.ReloadFromDisk())
+                {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, pair.Key));
+                    UpdateDockPanelTitle(pair.Key, GetTextureDocumentTitle(pair.Key));
+                }
+            }
+
+            Logs.WriteInfo($"[Automation] Restored edited texture '{relativePath}' after diagnostics capture.");
             return;
         }
 
@@ -9751,14 +10656,20 @@ public class GameEditor : Game, IObservableUpdate
             return false;
         }
 
-        bool selectionChanged = !ReferenceEquals(_editorSelection.SelectedEntity, entity);
-        _editorSelection.SetSelectedEntity(entity);
-
         var component = FindAutomationComponent(entity);
+        bool selectionChanged = !ReferenceEquals(_editorSelection.SelectedEntity, entity)
+            || (component != null && !ReferenceEquals(_editorSelection.SelectedComponent, component));
+
+        // ADR-0093 P9: the selection goes through selection.set, with the ids the name and index lookup found.
+        if (!TryRunAutomationCommand("selection.set", new { entity_id = entity.Id, component_id = component?.Id }, out _, out string selectError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to select entity='{entity.Name}': {selectError}");
+            return false;
+        }
+
         if (component != null)
         {
-            selectionChanged |= !ReferenceEquals(_editorSelection.SelectedComponent, component);
-            _editorSelection.SetSelectedComponent(component);
             if (selectionChanged)
             {
                 EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
@@ -9812,6 +10723,26 @@ public class GameEditor : Game, IObservableUpdate
             .FirstOrDefault(component => ComponentMatches(component, expectedName));
     }
 
+    /// <summary>The warnings and errors of the engine log (the Logs panel), which the diagnostics buffer does not carry.</summary>
+    private void AppendEditorLogDiagnostics(StringBuilder builder)
+    {
+        builder.AppendLine("Logs:");
+        if (_loggerEditor == null)
+        {
+            return;
+        }
+
+        var logEntries = _loggerEditor.Entries;
+        for (int i = 0; i < logEntries.Count; i++)
+        {
+            var entry = logEntries[i];
+            if (entry.Verbosity is LogVerbosity.Warning or LogVerbosity.Error)
+            {
+                builder.AppendLine($"  - {entry.Timestamp:HH:mm:ss.fff} [{entry.Verbosity}] {entry.Message}");
+            }
+        }
+    }
+
     private void CaptureAutomationDiagnostics()
     {
         string outputPath = ResolveAutomationDiagnosticsPath();
@@ -9828,6 +10759,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
         builder.AppendLine($"Activate panel: {_automationOptions.ActivatePanelId ?? "<none>"}");
+        builder.AppendLine($"Logs filter: {_automationOptions.LogsFilter ?? "<none>"}");
         builder.AppendLine($"Content folder: {_automationOptions.ContentBrowserFolderPath ?? "<none>"}");
         builder.AppendLine($"Content scroll: {_automationOptions.ContentBrowserScrollTarget ?? "<none>"}");
         builder.AppendLine($"Dock resize target: {_automationOptions.DockResizeTarget ?? "<none>"}");
@@ -9838,6 +10770,8 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
         builder.AppendLine($"Particle undo/redo smoke: {_automationOptions.ParticleUndoRedoSmoke} undo={_automationParticleUndoSucceeded} redo={_automationParticleRedoSucceeded}");
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
+        builder.AppendLine($"Automation texture edit: {FormatAutomationTextureEdit()}");
+        builder.AppendLine($"Automation static model edit: {FormatAutomationStaticModelEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
         builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
         string activeDocumentPanelId = GetActiveDocumentPanelId();
@@ -9868,6 +10802,8 @@ public class GameEditor : Game, IObservableUpdate
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendTileMapDiagnostics(builder, activeDocumentPanelId);
         AppendAutomationSelectionDiagnostics(builder);
+        builder.AppendLine($"Automation outcome (exit code): {ComputeAutomationExitCode()}");
+        AppendEditorLogDiagnostics(builder);
         builder.AppendLine($"Entries: {entries.Count}");
         builder.AppendLine();
 
@@ -10047,6 +10983,34 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    /// <summary>The requested sampler edit and, once saved, the value read back from the file.</summary>
+    private string FormatAutomationTextureEdit()
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerKey)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerValue))
+        {
+            return "<none>";
+        }
+
+        return _automationTextureEditResult != null
+            ? $"{_automationTextureEditResult} (read back from the saved file)"
+            : $"{_automationOptions.SetTextureSamplerKey}={_automationOptions.SetTextureSamplerValue} (not applied)";
+    }
+
+    /// <summary>The requested material edit and, once saved, the id read back from the file.</summary>
+    private string FormatAutomationStaticModelEdit()
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.SetStaticModelMaterialMeshIndex)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetStaticModelMaterialId))
+        {
+            return "<none>";
+        }
+
+        return _automationStaticModelEditResult != null
+            ? $"{_automationStaticModelEditResult} (read back from the saved file)"
+            : $"{_automationOptions.SetStaticModelMaterialMeshIndex}={_automationOptions.SetStaticModelMaterialId} (not applied)";
+    }
+
     private string FormatAutomationMaterialEdit()
     {
         if (string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
@@ -10168,6 +11132,13 @@ public class GameEditor : Game, IObservableUpdate
                 builder.Append($" tint={FormatColor(unlitTextureMaterial.Tint)}");
                 builder.Append($" alpha={unlitTextureMaterial.Alpha.ToString("0.###", CultureInfo.InvariantCulture)}");
                 builder.Append($" base_color_asset={unlitTextureMaterial.BasColorAssetId}");
+                break;
+
+            case LitPbrMaterial litPbrMaterial:
+                builder.Append($" base_color={FormatColor(litPbrMaterial.BaseColor)}");
+                builder.Append($" metallic={litPbrMaterial.Metallic.ToString("0.###", CultureInfo.InvariantCulture)}");
+                builder.Append($" roughness={litPbrMaterial.Roughness.ToString("0.###", CultureInfo.InvariantCulture)}");
+                builder.Append($" base_color_asset={litPbrMaterial.BaseColorTextureAssetId}");
                 break;
         }
 
@@ -10364,6 +11335,14 @@ public class GameEditor : Game, IObservableUpdate
             {
                 animationClipPreviewPanel.RefreshPreviewAfterDraw();
             }
+            foreach (var assetPreviewPanel in _assetPreviewPanels.Values)
+            {
+                assetPreviewPanel.RefreshAfterDraw();
+            }
+            foreach (var staticModelDocumentPanel in _staticModelDocumentPanels.Values)
+            {
+                staticModelDocumentPanel.RefreshAfterDraw();
+            }
         }
 
         using (EditorPerformanceProbe.BeginPhase("GraphicsDevice.Clear"))
@@ -10384,6 +11363,9 @@ public class GameEditor : Game, IObservableUpdate
         {
             base.Draw(gameTime);
         }
+
+        // ADR-0092: a remote capture is taken once the frame is drawn.
+        ProcessRemoteCapture();
     }
 
     /// <summary>

@@ -554,7 +554,8 @@ public sealed class GltfRiggedModelReader
             NodeRef = modelNode,
         };
 
-        var bindTransform = gltfNode.LocalTransform;
+        // A node written as a matrix has no rotation or scale to read until it is decomposed.
+        var bindTransform = gltfNode.LocalTransform.GetDecomposed();
 
         if (rotationChannel != null)
         {

@@ -277,36 +277,41 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _particlePreview?.RefreshPreviewAfterDraw();
     }
 
-    public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
-    {
-        statusMessage = string.Empty;
+    /// <summary>The loaded particle effect, read by the remote commands (ADR-0093); null when nothing is loaded.</summary>
+    public ParticleEffectAsset LoadedAsset => _particleAsset;
 
+    /// <summary>
+    /// Sets a property from its automation text form (<c>emitterN.key</c>, <c>asset.key</c> or a key of emitter 0)
+    /// through this panel's undo history, without saving (ADR-0093 P5). <paramref name="validate"/> receives the
+    /// normalised key and the text and returns null when the value is allowed, otherwise the reason.
+    /// </summary>
+    public bool TryApplyPropertyValue(string propertyKey, string rawValue, Func<string, string, string> validate, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(validate);
         if (_particleAsset == null)
         {
-            statusMessage = "No particle asset loaded.";
+            error = "No particle asset loaded.";
             return false;
         }
 
-        if (!TryApplyAutomationProperty(propertyKey, rawValue, out statusMessage))
+        if (!TryResolveAutomationPropertyTarget(propertyKey ?? string.Empty, out _, out string normalizedProperty, out error))
         {
             return false;
         }
 
-        if (!TrySaveLoadedAsset(out string saveError))
+        error = validate(normalizedProperty, rawValue ?? string.Empty);
+        if (error != null)
         {
-            statusMessage = saveError ?? "Unable to save particle asset.";
             return false;
         }
 
-        if (!ReloadFromDisk())
+        if (!TryApplyAutomationProperty(propertyKey, rawValue ?? string.Empty, out string statusMessage))
         {
-            statusMessage = "Particle property was saved, but reload from disk failed.";
+            error = string.IsNullOrEmpty(statusMessage) ? $"Unable to apply '{propertyKey}'." : statusMessage;
             return false;
         }
 
-        statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
-            ? $"Saved particle property '{propertyKey}'."
-            : $"Saved {_loadedRelativePath} ({propertyKey}={rawValue})";
+        error = null;
         return true;
     }
 

@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Default forward-lighting 3-D render pipeline.
-/// Executes passes in order: Sky → Opaque → Transparent.
+/// Executes passes in order: Shadow → SceneDepth (only when a screen-space effect asked for it) → Sky → Opaque → Transparent.
 ///
 /// To extend the pipeline (e.g. add a depth pre-pass, shadow pass or post-process pass)
 /// insert additional <see cref="RenderPass"/> instances via <see cref="InsertPass"/> /
@@ -16,6 +16,7 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
 {
     private readonly List<RenderPass> _passes = new();
     private readonly ShadowPass _shadowPass = new();
+    private readonly SceneDepthPass _sceneDepthPass = new();
     private readonly SkyPass _skyPass = new();
 
     // -----------------------------------------------------------------------
@@ -25,6 +26,7 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
     public ForwardRenderPipeline()
     {
         _passes.Add(_shadowPass);
+        _passes.Add(_sceneDepthPass);
         _passes.Add(_skyPass);
         _passes.Add(new OpaquePass());
         _passes.Add(new TransparentPass());
@@ -33,6 +35,12 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
     public void SetShadowShader(ShaderWrapper shadowShader)
     {
         _shadowPass.ShadowShader = shadowShader;
+    }
+
+    /// <summary>Gives the scene depth pre-pass its effect (ADR-0116); the pass draws nothing until it has one.</summary>
+    public void SetSceneDepthShader(ShaderWrapper sceneDepthShader)
+    {
+        _sceneDepthPass.SceneDepthShader = sceneDepthShader;
     }
 
     public void SetSkyRenderer(Environment.SkyCubemapRenderer skyRenderer)

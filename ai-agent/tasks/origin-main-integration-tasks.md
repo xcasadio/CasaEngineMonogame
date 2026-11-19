@@ -111,7 +111,7 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
 
 ## Phase 1 — Fusion
 
-### ⏳ T1.1 — Fusionner `origin/main`, résoudre, compiler, passer les tests
+### ✅ T1.1 — Fusionner `origin/main`, résoudre, compiler, passer les tests
 
 - Objectif : D1, P4 à P7. Un seul commit de fusion, qui compile et dont les tests passent.
 - Fichiers : les 9 fichiers en conflit, le sous-module `MGUI`, et le code local à adapter.
@@ -131,6 +131,16 @@ Ce plan livre une branche `chantier/integrate-origin-main` qui contient les deux
   6. Committer la fusion (message par défaut de Git, complété d'un paragraphe qui liste les conflits résolus et les adaptations).
 - Validation : aucun marqueur ; les deux solutions à 0 erreur ; tests du moteur tous verts, total noté ; `git merge-base --is-ancestor origin/main HEAD` vrai.
 - Commit : `Merge remote-tracking branch 'origin/main' into chantier/integrate-origin-main`
+- Note de validation (2026-11-19) : `git merge --no-ff --no-commit origin/main` : 9 fichiers en conflit plus le sous-module, comme prévu (13 blocs). Résolutions :
+  - `MGUI` : `git add MGUI` ; l'arbre de MGUI est resté sur la tête de `develop` (`2f9773d0`, T0.2), contrôlé par `git -C MGUI rev-parse HEAD` et `branch --show-current`.
+  - `GameEditor.cs` : `using` des deux côtés ; `ReleaseDocumentPanel` : les trois blocs d'`origin/main` (texture, modèle statique, aperçu) avec `panelId` à la place de `panel.Id`, puis le mixeur audio local ; méthodes d'automatisation : les deux côtés gardés (méthodes locales de la cutscene, puis `TryOpenAutomationAsset` d'`origin/main`), aucune ligne retirée.
+  - `EditorHistoryContextKind.cs` : `Texture`, `StaticModel`, `Cutscene` (P5). `EditorAssetWriterService.cs` : `TextureEditorPanel = 9`, `StaticModelEditorPanel = 10`, `CutsceneEditorPanel = 11` (P5).
+  - `EditorAutomationOptionsTests.cs` : les tests des deux côtés, chaque méthode refermée.
+  - `CLAUDE.md` : texte d'`origin/main` (P4). `docs/README.md` : première ligne d'`origin/main`, complétée de ce que le local disait de plus (vidéo, `AnyKey`, ADR-0130 et ADR-0128 dans la ligne de `data-driven-screens.md`) ; lignes de `cutscene-editor.md` et `asset-documents.md` gardées toutes deux. `ai-agent/README.md` et `docs/decisions/README.md` : lignes d'`origin/main` puis lignes locales (0128 à 0143) ; ADR-0013 d'`origin/main` (« amended by ADR-0103 »), ADR-0014 locale (« decision 2 superseded by ADR-0135 »).
+  - `.claude/settings.json` : **écart au texte de P4, à confirmer par l'auteur.** Le local a retiré le hook qui interdit un commit sur `main` et un push, son script et la règle `deny` (commit `e32ff241`, le jour même) ; `origin/main` garde ce hook, inchangé depuis la base, et ajoute `mcp__codegraph__*` et `enabledMcpjsonServers`. Prendre le texte d'`origin/main` aurait rétabli un hook dont le script est supprimé (le script ne figurait pas dans les conflits : suppression locale gardée). Résultat retenu, celui de la fusion à trois points : permissions locales, plus `mcp__codegraph__*`, plus `enabledMcpjsonServers` ; ni hook ni `deny`. `CLAUDE.md` et `AGENTS.md` décrivent encore ce hook (déjà le cas avant la fusion, non touché).
+  - Aucun marqueur de conflit restant (`rg` sur l'arbre hors `MGUI`, `bin`, `obj`).
+- Compilation : `CasaEngine.Editor.MonoGame.sln` et `CasaEngine.MonoGame.sln` à 0 erreur du premier coup (aucun membre en double hors des blocs de conflit ; aucun fichier du code local à adapter aux contrats d'`origin/main` ou du nouveau MGUI : l'adaptation du backend MGUI est déjà dans `origin/main`). Contrôle des événements d'entrée de MGUI réutilisés (ADR-0034 de MGUI) dans le code local (`CutsceneOutlinerPanel`, `CutsceneOutlinerPanel.Drag`, `CutsceneTextCommitBinding`, `Timeline*`, `Animation2dAssetInspectorPanel`, `WorldViewportPanel`) : aucun champ, collection ni lambda ne garde l'objet après le gestionnaire ; les gestionnaires copient `Position` et `EndPosition` (ou lisent la valeur dans l'appel).
+- Tests : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 8031 sur 8031 verts après une adaptation. Un seul échec avant : `CutsceneSaveTests.TheSaveSourceOfTheCutsceneEditorIsTheNextValue` attendait `CutsceneEditorPanel = 9` ; la valeur devient 11 (P5, valeur d'énumération), le test garde son nom et sa portée (la valeur de la cutscene reste la suivante après 9 et 10). Aucun autre test adapté, aucun supprimé ni affaibli. Aucun éditeur n'était lancé : sorties de build dans les `bin/` du dépôt.
 
 ---
 

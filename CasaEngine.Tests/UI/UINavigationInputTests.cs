@@ -17,6 +17,7 @@ namespace CasaEngine.Tests.UI;
 /// The navigation a project reads from a <see cref="ButtonsMapping"/> (ADR-0080), on a headless desktop. The button
 /// states are injected: a test cannot give MGUI's gamepad tracker a state.
 /// </summary>
+[Collection(CasaEngine.Tests.Input.KeyboardLayoutCollection.Name)]
 public sealed class UINavigationInputTests
 {
     private const string Markup = """
@@ -424,6 +425,32 @@ public sealed class UINavigationInputTests
         _keys.Add(Keys.Down);
         Step(navigation);
         Assert.Equal("btnB", Focused());
+    }
+
+    [Fact]
+    public void OnAzerty_AMappedLetterIsReadAtItsQwertyPosition()
+    {
+        CasaEngine.Framework.Input.KeyboardLayout.UseLayout(CasaEngine.Tests.Input.KeyboardLayoutCollection.Azerty);
+        try
+        {
+            // Submit is bound to Z: the bottom-left letter, which types W on AZERTY (ADR-0096).
+            var navigation = Ready(Mapping());
+
+            _keys.Add(Keys.Z);
+            Step(navigation, 16, throughDevices: true);
+            _keys.Clear();
+            Step(navigation, 16, throughDevices: true);
+            Assert.Equal(0, _commandCount);
+
+            _keys.Add(Keys.W);
+            Step(navigation, 16, throughDevices: true);
+
+            Assert.Equal(1, _commandCount);
+        }
+        finally
+        {
+            CasaEngine.Tests.Input.TestKeyboardLayout.UseQwerty();
+        }
     }
 
     [Fact]

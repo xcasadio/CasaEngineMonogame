@@ -42,9 +42,30 @@ internal static class PanoramaEnvironmentGenerator
             return cachedCubemap;
         }
 
-        string panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
-        if (string.IsNullOrWhiteSpace(panoramaPath) || !File.Exists(panoramaPath))
+        // A failed build is not tried again, and not logged again: this runs on every frame for a reflection probe.
+        if (GeneratedAssetHandleCache<XnaTextureCube>.HasFailed(assetContentManager, generatedAssetId))
         {
+            return null;
+        }
+
+        return BuildCubemap(assetContentManager, panoramaAssetId, generatedAssetId, cubemapSize);
+    }
+
+    // Apart from GetOrCreateCubemap so that the closure of the creation (it captures the manager, the size and the path) is allocated
+    // only when a cube is built, never on the path that returns a cached cube.
+    private static XnaTextureCube BuildCubemap(AssetContentManager assetContentManager, Guid panoramaAssetId, Guid generatedAssetId, int cubemapSize)
+    {
+        string panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
+
+        // No path: the panorama is not in the catalog. Not remembered, it can be catalogued later.
+        if (string.IsNullOrWhiteSpace(panoramaPath))
+        {
+            return null;
+        }
+
+        if (!File.Exists(panoramaPath))
+        {
+            GeneratedAssetHandleCache<XnaTextureCube>.RememberFailure(assetContentManager, generatedAssetId);
             return null;
         }
 
@@ -64,9 +85,28 @@ internal static class PanoramaEnvironmentGenerator
         }
         catch (Exception exception)
         {
+            GeneratedAssetHandleCache<XnaTextureCube>.RememberFailure(assetContentManager, generatedAssetId);
             Logs.WriteException(new Exception($"[PanoramaEnvironmentGenerator] Cannot create cubemap from panorama '{panoramaPath}'", exception));
             return null;
         }
+    }
+
+    /// <summary>
+    /// True when the panorama file holds linear light: a <c>.hdr</c> file (floating point radiance). Any other panorama
+    /// (an 8-bit image) is a display-encoded image. Decided by the extension, like the loader of the panorama image.
+    /// </summary>
+    internal static bool IsLinearPanorama(RenderView view, Guid panoramaAssetId)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+
+        if (panoramaAssetId == Guid.Empty)
+        {
+            return false;
+        }
+
+        string panoramaPath = ResolvePanoramaPath(view.World.Game.AssetContentManager, panoramaAssetId);
+        return !string.IsNullOrWhiteSpace(panoramaPath)
+            && string.Equals(Path.GetExtension(panoramaPath), ".hdr", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsCubemapDisposed(XnaTextureCube cubemap) => cubemap.IsDisposed;
@@ -83,10 +123,12 @@ internal static class PanoramaEnvironmentGenerator
 
     internal static Guid CreateGeneratedCubemapAssetId(Guid panoramaAssetId, int cubemapSize)
     {
-        byte[] bytes = panoramaAssetId.ToByteArray();
-        int prefix = BitConverter.ToInt32(bytes, 0) ^ cubemapSize ^ unchecked((int)0x5A17C0DE);
-        byte[] prefixBytes = BitConverter.GetBytes(prefix);
-        Array.Copy(prefixBytes, bytes, prefixBytes.Length);
+        // Same bytes as the arrays this used to allocate (ToByteArray, BitConverter.GetBytes), written on the stack: the id is computed
+        // on every frame of a reflection probe.
+        Span<byte> bytes = stackalloc byte[16];
+        panoramaAssetId.TryWriteBytes(bytes);
+        int prefix = BitConverter.ToInt32(bytes) ^ cubemapSize ^ unchecked((int)0x5A17C0DE);
+        BitConverter.TryWriteBytes(bytes, prefix);
         bytes[15] ^= 0x22;
         return new Guid(bytes);
     }

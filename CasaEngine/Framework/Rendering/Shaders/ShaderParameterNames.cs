@@ -33,8 +33,59 @@ public static class ShaderParameterNames
     public const string AlphaCutoff = "AlphaCutoff";
     public const string OpacityTexture = "OpacityTexture";
     public const string NormalTexture = "NormalTexture";
+    public const string DetailTexture = "DetailTexture";
+    public const string HasDetailTexture = "HasDetailTexture";
+    public const string DetailTiling = "DetailTiling";
     public const string ColorMultiplier = "ColorMultiplier";
     public const string SolidColor = "SolidColor";
+
+    // --- PBR material (LitPbr.fx). EmissiveColor, AlphaCutoff, Texture (base colour) and NormalTexture are shared with the
+    // constants above; the Has... flags tell the shader which optional textures are bound. ---
+    public const string BaseColor = "BaseColor";
+    public const string Metallic = "Metallic";
+    public const string Roughness = "Roughness";
+    public const string OcclusionStrength = "OcclusionStrength";
+    public const string NormalScale = "NormalScale";
+    public const string MetallicRoughnessTexture = "MetallicRoughnessTexture";
+    public const string OcclusionTexture = "OcclusionTexture";
+    public const string EmissiveTexture = "EmissiveTexture";
+    public const string HasBaseColorTexture = "HasBaseColorTexture";
+    public const string HasMetallicRoughnessTexture = "HasMetallicRoughnessTexture";
+    public const string HasOcclusionTexture = "HasOcclusionTexture";
+    public const string HasEmissiveTexture = "HasEmissiveTexture";
+    public const string ClearCoat = "ClearCoat";
+    public const string ClearCoatRoughness = "ClearCoatRoughness";
+    public const string EmissiveShadowFactor = "EmissiveShadowFactor";
+
+    // --- Colour pipeline ---
+    public const string Exposure = "Exposure";
+    public const string SceneTexture = "SceneTexture";
+
+    // --- Bloom (ADR-0108) ---
+    public const string BloomThreshold = "BloomThreshold";
+    public const string BloomIntensity = "BloomIntensity";
+    public const string BloomTexelSize = "BloomTexelSize";
+    public const string BloomSourceTexture = "BloomSourceTexture";
+
+    // --- FXAA (ADR-0114) ---
+    public const string FxaaTexelSize = "FxaaTexelSize";
+    public const string FxaaSourceTexture = "FxaaSourceTexture";
+
+    // --- Screen-space ambient occlusion (ADR-0116) ---
+    public const string SsaoTexelSize = "SsaoTexelSize";
+    public const string SsaoProjectionScale = "SsaoProjectionScale";
+    public const string SsaoRadius = "SsaoRadius";
+    public const string SsaoBias = "SsaoBias";
+    public const string SsaoIntensity = "SsaoIntensity";
+    public const string SsaoSkyThreshold = "SsaoSkyThreshold";
+    public const string SsaoSourceTexture = "SsaoSourceTexture";
+    public const string SsaoDepthTexture = "SsaoDepthTexture";
+
+    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0106).</summary>
+    public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
+
+    /// <summary>1 when the environment cube already holds linear light (a cube built from a .hdr panorama).</summary>
+    public const string EnvironmentCubeIsLinear = "EnvironmentCubeIsLinear";
 
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
@@ -45,6 +96,28 @@ public static class ShaderParameterNames
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+
+    // --- Image-based lighting (ADR-0110): declared by the PBR shaders only, bound by EnvironmentShaderBinder ---
+    /// <summary>Diffuse irradiance cube (32 texels per face, linear light).</summary>
+    public const string IrradianceCubeTexture = "IrradianceCubeTexture";
+    /// <summary>Prefiltered specular atlas (2D, six roughness bands stacked, linear light).</summary>
+    public const string PrefilteredSpecularAtlasTexture = "PrefilteredSpecularAtlasTexture";
+    /// <summary>Split-sum BRDF table (2D, x = NoV, y = roughness, channels A and B).</summary>
+    public const string BrdfLookupTexture = "BrdfLookupTexture";
+    /// <summary>1 when the three IBL textures above are bound, 0 for the flat ambient.</summary>
+    public const string HasIbl = "HasIbl";
+    /// <summary>Debug constant of the PBR shader: 1 forces the prefiltered band 0 (<c>LitPbrMaterial.DebugForceIblBaseLevel</c>).</summary>
+    public const string IblForceBaseLevel = "IblForceBaseLevel";
+    /// <summary>Prefiltered specular atlas of the primary local reflection probe (2D, same layout as the global atlas, t12).</summary>
+    public const string PrefilteredLocalReflectionProbeAtlasTexture = "PrefilteredLocalReflectionProbeAtlasTexture";
+    /// <summary>Prefiltered specular atlas of the secondary local reflection probe (2D, t13).</summary>
+    public const string PrefilteredSecondaryLocalReflectionProbeAtlasTexture = "PrefilteredSecondaryLocalReflectionProbeAtlasTexture";
+    /// <summary>1 when the prefiltered atlas of the primary probe is bound; 0 keeps the unprefiltered cube of slot t4.</summary>
+    public const string HasPrefilteredLocalReflectionProbe = "HasPrefilteredLocalReflectionProbe";
+    /// <summary>1 when the prefiltered atlas of the secondary probe is bound; 0 keeps the unprefiltered cube of slot t5.</summary>
+    public const string HasPrefilteredSecondaryLocalReflectionProbe = "HasPrefilteredSecondaryLocalReflectionProbe";
+
+    public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";
     public const string SecondaryLocalReflectionProbeCubeTexture = "SecondaryLocalReflectionProbeCubeTexture";
     public const string HasLocalReflectionProbeTexture = "HasLocalReflectionProbeTexture";
@@ -161,6 +234,11 @@ public static class ShaderParameterNames
     public const string ShadowNormalBias = "ShadowNormalBias";
     public const string ShadowMapTexelSize = "ShadowMapTexelSize";
     public const string ReceiveShadows = "ReceiveShadows";
+    public const string ShadowApplyMode = "ShadowApplyMode";
+    public const string ShadowTintColor = "ShadowTintColor";
+    public const string ShadowFilterRadius = "ShadowFilterRadius";
+    public const string ShadowFilterTaps = "ShadowFilterTaps";
+    public const string ShadowFadeWidth = "ShadowFadeWidth";
 
     // --- Skinning ---
     public const string Bones = "Bones";

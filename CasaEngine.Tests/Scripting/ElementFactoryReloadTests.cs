@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scripting;
 using Xunit;
 
@@ -95,6 +96,50 @@ public class ElementFactoryReloadTests
         }
     }
 
+    /// <summary>A game component with a [SerializedProperty], compiled into the script assembly.</summary>
+    internal const string AnnotatedComponentSource = """
+        using CasaEngine.Core.Serialization;
+        using CasaEngine.Framework.Scene.Entities.Components;
+
+        namespace TestScripts;
+
+        public class TestScriptAnnotatedComponent : EntityComponent
+        {
+            [SerializedProperty("speed")]
+            public float Speed { get; set; }
+
+            public TestScriptAnnotatedComponent() { }
+
+            private TestScriptAnnotatedComponent(TestScriptAnnotatedComponent other) : base(other)
+            {
+                SerializedProperties.Copy(other, this);
+            }
+
+            public override EntityComponent Clone() => new TestScriptAnnotatedComponent(this);
+        }
+        """;
+
+    [Fact]
+    public void UnregisteredScriptAssembly_WithAnnotatedComponent_DoesNotPinTheLoadContext()
+    {
+        string directory = CreateTempDirectory();
+        var host = new ScriptAssemblyHost();
+        try
+        {
+            string assemblyPath = ScriptAssemblyCompiler.CompileScriptAssembly(directory, "FactoryScriptsAnnotated", version: 1, AnnotatedComponentSource);
+            LoadAnnotatedComponent(host, assemblyPath);
+
+            UnregisterLoadedAssembly(host);
+
+            // The serialized-property cache holds the component type weakly: the collectible context can die.
+            Assert.True(host.Unload());
+        }
+        finally
+        {
+            DeleteDirectory(directory);
+        }
+    }
+
     [Fact]
     public void ReloadedScriptAssembly_ResolvesToTheNewVersion()
     {
@@ -133,6 +178,18 @@ public class ElementFactoryReloadTests
         var versionProperty = proxy!.GetType().GetProperty("Version");
         Assert.NotNull(versionProperty);
         Assert.Equal(expectedVersion, (int)versionProperty!.GetValue(null)!);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void LoadAnnotatedComponent(ScriptAssemblyHost host, string assemblyPath)
+    {
+        var assembly = host.Load(assemblyPath);
+        ElementFactory.RegisterScriptAssembly(assembly);
+
+        var component = ElementFactory.Load<EntityComponent>(Newtonsoft.Json.Linq.JObject.Parse(
+            """{ "id": "2d5b1f5e-3f0a-4c3e-9b54-6a1f2d3e4c5b", "name": "Annotated", "type": "TestScriptAnnotatedComponent", "speed": 12.5 }"""));
+
+        Assert.Equal(12.5f, (float)component.GetType().GetProperty("Speed")!.GetValue(component)!);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

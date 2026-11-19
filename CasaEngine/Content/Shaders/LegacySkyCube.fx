@@ -4,7 +4,12 @@ float4x4 ViewProjection;
 float4 SkyTintColor = float4(0.91f, 0.91f, 0.91f, 1.0f);
 float SkyCubeScale = 100.0f;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0106): the sky cube and its tint are display colours.
+float ColorPipelineIsLinear = 0.0f;
+
 DECLARE_CUBEMAP(SkyCube, 0);
+
+#include "ColorPipeline.fxh"
 
 struct VS_INPUT
 {
@@ -30,7 +35,7 @@ VS_OUTPUT VS_Main(VS_INPUT input)
 
 float4 PS_Main(VS_OUTPUT input) : SV_TARGET
 {
-    return SkyTintColor * SAMPLE_CUBEMAP(SkyCube, input.CubeDirection);
+    return DecodeColor4(SkyTintColor * SAMPLE_CUBEMAP(SkyCube, input.CubeDirection));
 }
 
 TECHNIQUE(SkyCube, VS_Main, PS_Main)

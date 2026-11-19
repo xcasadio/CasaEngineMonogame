@@ -1,4 +1,5 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Input;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
 
@@ -39,12 +40,18 @@ public class KeyButton : ISerializable
         MouseButton = mouseButton;
     }
 
+    /// <summary>
+    /// The key to read on the keyboard: <see cref="Key"/> names a position on a US QWERTY keyboard, and this is the key
+    /// the active layout puts there (ADR-0096). <see cref="Key"/> itself is never changed, so a saved mapping keeps it.
+    /// </summary>
+    public Keys KeyOnLayout() => KeyboardLayout.FromQwertyPosition(Key);
+
     public bool IsPressed(KeyboardManager keyboardManager, MouseManager mouseManager, GamePad gamePad)
     {
         return InputDevice switch
         {
             InputDevices.NoDevice => false,
-            InputDevices.Keyboard => keyboardManager.IsKeyPressed(Key),
+            InputDevices.Keyboard => keyboardManager.IsKeyPressed(KeyOnLayout()),
             InputDevices.GamePad => gamePad.ButtonPressed(GamePadButton),
             InputDevices.Mouse => mouseManager.ButtonPressed(MouseButton),
             InputDevices.AnyKey => keyboardManager.IsAnyKeyJustPressed(),

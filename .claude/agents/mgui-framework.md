@@ -1,7 +1,7 @@
 ---
 name: mgui-framework
 description: Développeur du framework UI MGUI. Layout, hit-test, routage de l'input, clipping (scissor et stencil), rendu SpriteBatch, thèmes et contrôles.
-tools: Read, Glob, Grep, Edit, Write, Bash
+tools: Read, Glob, Grep, Edit, Write, Bash, mcp__serena__*, mcp__codegraph__*
 model: sonnet
 ---
 

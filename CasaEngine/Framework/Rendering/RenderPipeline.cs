@@ -1,7 +1,10 @@
 using System.Diagnostics;
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.FrozenFrames;
+using CasaEngine.Framework.Rendering.PostProcess;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;
@@ -26,7 +29,7 @@ namespace CasaEngine.Framework.Rendering;
 ///   <item><see cref="ViewUpdateMode.Throttled"/>  — rendered at <see cref="RenderView.TargetFrameRate"/> fps.</item>
 /// </list>
 /// </summary>
-public sealed class RenderPipeline
+public sealed class RenderPipeline : IDisposable
 {
     private readonly GraphicsDevice                       _graphicsDevice;
     private readonly IReadOnlyList<IViewFlushableRenderer> _renderers;
@@ -36,6 +39,103 @@ public sealed class RenderPipeline
     // Scene render target used when shadows are active on a back-buffer view.
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
+
+    // Tonemapping shader of the linear HDR colour pipeline (ADR-0105). Loaded by the game once its content root is set;
+    // null until then (the editor, tests), which only matters for a view in LinearHdr.
+    private ShaderWrapper _tonemapShader;
+
+    // Bloom shader (ADR-0108), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
+    private ShaderWrapper _bloomShader;
+
+    // FXAA shader (ADR-0114), loaded with the tonemap shader; null until then, which only matters for a view with FXAA.
+    private ShaderWrapper _fxaaShader;
+
+    // SSAO shader (ADR-0116), loaded with the tonemap shader; null until then, which only matters for a view with SSAO.
+    private ShaderWrapper _ssaoShader;
+
+    // Generator of the IBL cubes (ADR-0110), created when the game gives the pipeline the IblConvolution effect; null until then
+    // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
+    private IblCubeGenerator _iblCubeGenerator;
+
+    // Cache of the generated IBL textures and of the BRDF table (ADR-0110). Its requests run at the start of Render, before any view.
+    private readonly IblCache _iblCache;
+
+    private const string ReinhardTechniqueName = "Tonemap_Reinhard";
+    private const string AcesApproxTechniqueName = "Tonemap_AcesApprox";
+
+    // Format of the HDR scene target of the linear HDR colour pipeline; falls back once, logged, when the device refuses it.
+    private SurfaceFormat _hdrFormat = SurfaceFormat.HalfVector4;
+    private bool _tonemapMissingLogged;
+    private int _renderIndex;
+    private readonly HashSet<Type> _unadaptedPipelineWarnings = new();
+
+    /// <summary>
+    /// Number of HDR scene targets created since the start (a target is created once per view size and format, then
+    /// reused from <see cref="RenderTargetPool"/>).
+    /// </summary>
+    internal int HdrTargetCreationCount { get; private set; }
+
+    /// <summary>Number of HDR scene targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int HdrTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of bloom targets created since the start (see <see cref="BloomRenderer"/>).</summary>
+    internal int BloomTargetCreationCount => _bloomRenderer.TargetCreationCount;
+
+    /// <summary>Number of bloom targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int BloomTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of FXAA targets (the tonemapped colour read by the pass) created since the start.</summary>
+    internal int FxaaTargetCreationCount { get; private set; }
+
+    /// <summary>Number of FXAA targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int FxaaTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of FXAA draws since the start (see <see cref="FxaaRenderer"/>).</summary>
+    internal int FxaaDrawCount => _fxaaRenderer.DrawCount;
+
+    /// <summary>Number of scene depth pre-pass targets (view depth, 24-bit depth buffer) created since the start (ADR-0116).</summary>
+    internal int SceneDepthTargetCreationCount { get; private set; }
+
+    /// <summary>Number of scene depth pre-pass targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int SceneDepthTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of views rendered with their scene depth pre-pass active since the start.</summary>
+    internal int SceneDepthPrepassCount { get; private set; }
+
+    /// <summary>Number of SSAO targets (occlusion and blur, one channel, no depth buffer) created since the start (ADR-0116).</summary>
+    internal int SsaoTargetCreationCount { get; private set; }
+
+    /// <summary>Number of SSAO targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int SsaoTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of SSAO compositions since the start (see <see cref="SsaoRenderer"/>).</summary>
+    internal int SsaoDrawCount => _ssaoRenderer.PassCount;
+
+    // Render index of the last use of each tracked target key (width, height, format, depth format): the HDR scene targets
+    // (with depth), the bloom targets (without depth), the FXAA targets (Color, without depth), the scene depth targets (Depth24) and the SSAO targets (Single or HalfSingle, without depth). Filled when a key is first seen, so no allocation at constant size; swept
+    // once per Render.
+    private readonly Dictionary<(int, int, SurfaceFormat, DepthFormat), long> _hdrLastUsedRender = new();
+    private readonly List<(int, int, SurfaceFormat, DepthFormat)> _hdrStaleKeys = new();
+    private readonly List<((int, int, SurfaceFormat, DepthFormat) Key, int Disposed)> _releasedTargets = new();
+
+    private readonly BloomRenderer _bloomRenderer;
+    private bool _bloomShaderMissingLogged;
+    private readonly FxaaRenderer _fxaaRenderer;
+    private bool _fxaaShaderMissingLogged;
+
+    // Host of the scene depth pre-pass (ADR-0116), handed to the renderers through RenderFrame.SceneDepth. Its target is acquired per
+    // view in RenderHdrView and released there. The format falls back once, logged (Single, HalfSingle, HalfVector4); when none can be
+    // created the pre-pass is switched off for good with one warning.
+    private readonly SceneDepthPrepass _sceneDepth = new();
+    private SurfaceFormat _sceneDepthFormat = SurfaceFormat.Single;
+    private bool _sceneDepthUnavailable;
+
+    // Occlusion and blur targets of the SSAO (ADR-0116): Single, then HalfSingle, no depth buffer; never a HDR format. When neither
+    // can be created SSAO is switched off for good with one warning.
+    private readonly SsaoRenderer _ssaoRenderer;
+    private SurfaceFormat _ssaoFormat = SurfaceFormat.Single;
+    private bool _ssaoUnavailable;
+    private bool _ssaoShaderMissingLogged;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -83,10 +183,154 @@ public sealed class RenderPipeline
         _graphicsDevice = graphicsDevice;
         _renderers      = renderers;
         _spriteBatch    = spriteBatch;
+        _bloomRenderer  = new BloomRenderer(graphicsDevice, spriteBatch);
+        _fxaaRenderer   = new FxaaRenderer(graphicsDevice, spriteBatch);
+        _ssaoRenderer   = new SsaoRenderer(graphicsDevice, spriteBatch);
+        _iblCache       = new IblCache(graphicsDevice);
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>Tonemap</c> effect (<see cref="BuiltInShaderCatalog.TonemapContentName"/>) used
+    /// to bring the HDR scene target to the display range. Called once by the game after its content root is set.
+    /// </summary>
+    public void SetTonemapEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_tonemapShader == null)
+        {
+            _tonemapShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _tonemapShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>Bloom</c> effect (<see cref="BuiltInShaderCatalog.BloomContentName"/>) used by the
+    /// bloom of a view that asks for it (ADR-0108). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetBloomEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_bloomShader == null)
+        {
+            _bloomShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _bloomShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>Fxaa</c> effect (<see cref="BuiltInShaderCatalog.FxaaContentName"/>) used by the
+    /// anti-aliasing pass of a view that asks for it (ADR-0114). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetFxaaEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_fxaaShader == null)
+        {
+            _fxaaShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _fxaaShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>Ssao</c> effect (<see cref="BuiltInShaderCatalog.SsaoContentName"/>) used by the
+    /// ambient occlusion of a view that asks for it (ADR-0116). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetSsaoEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_ssaoShader == null)
+        {
+            _ssaoShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _ssaoShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
+    /// and builds the generator of the IBL cubes from it (ADR-0110). Called once by the game after its content root is set; a
+    /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
+    /// </summary>
+    public void SetIblConvolutionEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        _iblCubeGenerator?.Dispose();
+        _iblCubeGenerator = new IblCubeGenerator(_graphicsDevice, effect);
+    }
+
+    /// <summary>The generator of the IBL cubes, or null until <see cref="SetIblConvolutionEffect"/> has been called.</summary>
+    public IblCubeGenerator IblCubeGenerator => _iblCubeGenerator;
+
+    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0110).</summary>
+    public IblCache IblCache => _iblCache;
+
+    /// <summary>Releases the IBL textures, the BRDF table and the generator.</summary>
+    public void Dispose()
+    {
+        _iblCache.Dispose();
+        _iblCubeGenerator?.Dispose();
+    }
+
+    /// <summary>
+    /// Hot reload of the tonemapping, bloom, FXAA and IBL convolution shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
+    /// names one of them.
+    /// </summary>
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        string normalizedName = BuiltInShaderCatalog.NormalizeContentName(contentName);
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.TonemapContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetTonemapEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.BloomContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetBloomEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.FxaaContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetFxaaEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.SsaoContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetSsaoEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.IblConvolutionContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetIblConvolutionEffect(effect);
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -107,6 +351,13 @@ public sealed class RenderPipeline
     /// <param name="deltaSeconds">Elapsed time (seconds) since last frame, used for throttling.</param>
     public void Render(IReadOnlyList<RenderView> views, float deltaSeconds = 0f)
     {
+        _renderIndex++;
+
+        // Image-based lighting requests registered by the binders during the previous frame run here, before any view and
+        // with no view target bound (decision P9): the generator restores the device state it touches.
+        _iblCache.ViewLoopActive = false;
+        _iblCache.Flush(_iblCubeGenerator);
+
         foreach (var world in views.Select(static view => view.World).Distinct())
         {
             world.DrawWorldUIToTextures();
@@ -126,6 +377,7 @@ public sealed class RenderPipeline
             .Where(v => v.Enabled && IsViewPresented(v) && !v.Surface.IsBackBuffer)
             .Concat(views.Where(v => v.Enabled && IsViewPresented(v) && v.Surface.IsBackBuffer));
 
+        _iblCache.ViewLoopActive = true;
         foreach (var view in orderedViews)
         {
             if (!ShouldRenderThisFrame(view, deltaSeconds))
@@ -158,6 +410,17 @@ public sealed class RenderPipeline
                 RetainedFrameValid: retention != null && retention.IsRetainedFrameValid(viewRectangle.Width, viewRectangle.Height)));
             bool useSceneRt = plan.UseSceneRt;
 
+            // The colour pipeline is read ahead, like the shadow settings, because it decides how the view's target is
+            // bound. Legacy (the default) never takes the HDR path: every line below behaves as before it existed.
+            var colorPlan = ColorPipelinePlanner.Plan(new ColorPipelineInputs(
+                (view.EnvironmentOverride ?? view.World.EnvironmentSettings).ColorPipeline.Mode,
+                view.ClearColorBuffer,
+                viewRectangle.Width <= 0 || viewRectangle.Height <= 0,
+                view.Surface.IsBackBuffer,
+                plan));
+            bool useHdr = colorPlan.UseHdrSceneTarget && HasTonemapShader();
+            RenderTarget2D hdrTarget = null;
+
             using var guard = new GraphicsStateGuard(_graphicsDevice);
 
             // E19.TR-4a: the retained frame still holds the previous frame here, before the scene target is
@@ -171,7 +434,14 @@ public sealed class RenderPipeline
                 retention.Service.FailCapture();
             }
 
-            if (useSceneRt)
+            if (useHdr)
+            {
+                // The scene goes into a pooled HDR target; the destination of the view is bound after the scene.
+                hdrTarget = AcquireHdrTarget(viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.SetRenderTarget(hdrTarget);
+                _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+            }
+            else if (useSceneRt)
             {
                 var vp = view.Surface.ViewportRect;
                 var sceneTarget = plan.RetainThisFrame
@@ -193,6 +463,14 @@ public sealed class RenderPipeline
             }
 
             var resolvedEnvironment = EnvironmentResolver.Resolve(view);
+            if (useHdr)
+            {
+                // The resolved value is cached per view and says only what the world asks for. The view really draws through the
+                // HDR target in this frame only when the planner said so: that is what lets the binders decode display colours
+                // (ADR-0106). Everything built from this copy (lights, frame, binders) sees the same decision.
+                resolvedEnvironment = resolvedEnvironment with { LinearColorActive = true };
+            }
+
             WorldLightCollector.Collect(view.World, view.Lighting, in resolvedEnvironment, view.Camera.Position);
             var resolvedClearColor = resolvedEnvironment.BackgroundMode == EnvironmentBackgroundMode.SolidColor
                 ? resolvedEnvironment.BackgroundColor
@@ -214,7 +492,15 @@ public sealed class RenderPipeline
             // independent textures, not shared with other views).
             long clearStartTimestamp = Stopwatch.GetTimestamp();
 
-            if (useSceneRt)
+            if (useHdr)
+            {
+                // The clear colour is a display colour: it is decoded to linear light in floating point (an 8-bit Color would
+                // quantise dark backgrounds), because the HDR target is tonemapped and re-encoded afterwards.
+                _graphicsDevice.Clear(
+                    ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil,
+                    ColorSpace.Decode(resolvedClearColor), 1.0f, 0);
+            }
+            else if (useSceneRt)
             {
                 // sceneRt is a dedicated surface; Device.Clear is safe (no viewport restriction issue).
                 _graphicsDevice.Clear(
@@ -252,7 +538,7 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings);
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings) with { Ibl = _iblCache, SceneDepth = _sceneDepth };
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();
@@ -266,7 +552,14 @@ public sealed class RenderPipeline
             // 5. Delegate to the per-view pipeline (or the shared default)
             var pipeline = view.Pipeline ?? _defaultPipeline;
             long pipelineStartTimestamp = Stopwatch.GetTimestamp();
-            pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            if (useHdr)
+            {
+                RenderHdrView(view, pipeline, in frame, in colorPlan, in plan, hdrTarget, initialRenderTarget);
+            }
+            else
+            {
+                pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            }
             view.RenderStats.RenderedThisFrame = true;
             view.RenderStats.TotalCpuMilliseconds += GetElapsedMilliseconds(pipelineStartTimestamp);
 
@@ -275,7 +568,14 @@ public sealed class RenderPipeline
                 // Blit sceneRt to the swap-chain back buffer. This is the single write to the
                 // DXGI surface; all shadow-pass RT switches happened between non-back-buffer
                 // surfaces so no content was discarded.
-                _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                if (useHdr)
+                {
+                    BindInitialTargetKeepingBackBuffer(initialRenderTarget);
+                }
+                else
+                {
+                    _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                }
                 view.Surface.Apply(_graphicsDevice);
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
@@ -348,10 +648,602 @@ public sealed class RenderPipeline
             // GraphicsStateGuard.Dispose() restores all state here (using block end).
         }
 
+        _iblCache.ViewLoopActive = false;
+        ReleaseUnusedHdrTargets();
+
         // After all views: restore initial target + full-screen viewport.
         _graphicsDevice.SetRenderTarget(initialRenderTarget);
         var pp = _graphicsDevice.PresentationParameters;
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
+    }
+
+    // ---- Linear HDR colour pipeline (ADR-0105) ----
+
+    private bool HasTonemapShader()
+    {
+        if (_tonemapShader != null)
+        {
+            return true;
+        }
+
+        if (!_tonemapMissingLogged)
+        {
+            _tonemapMissingLogged = true;
+            Logs.WriteWarning("[ColorPipeline] The tonemap shader is not loaded: views in LinearHdr are drawn by the legacy path.");
+        }
+
+        return false;
+    }
+
+    private bool HasFxaaShader()
+    {
+        if (_fxaaShader != null)
+        {
+            return true;
+        }
+
+        if (!_fxaaShaderMissingLogged)
+        {
+            _fxaaShaderMissingLogged = true;
+            Logs.WriteWarning("[Fxaa] The FXAA shader is not loaded: anti-aliasing is skipped.");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes the display-colour target of the FXAA pass (<see cref="SurfaceFormat.Color"/>, no depth, the size of the view) from
+    /// <see cref="RenderTargetPool"/> and stamps its key so <see cref="ReleaseUnusedHdrTargets"/> frees it after a size change.
+    /// A creation is counted in <see cref="FxaaTargetCreationCount"/> and logged at Debug level.
+    /// </summary>
+    private RenderTarget2D AcquireFxaaTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        var target = pool.Acquire(width, height, SurfaceFormat.Color, DepthFormat.None);
+        _hdrLastUsedRender[(width, height, SurfaceFormat.Color, DepthFormat.None)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            FxaaTargetCreationCount++;
+            Logs.WriteDebug($"[Fxaa] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {FxaaTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Takes the scene depth pre-pass target of a view from <see cref="RenderTargetPool"/> (the size of the view, a floating-point
+    /// colour format, <see cref="DepthFormat.Depth24"/>) and stamps its key so <see cref="ReleaseUnusedHdrTargets"/> frees it after a
+    /// size change. A format the device refuses falls back to the next one (Single, HalfSingle, HalfVector4), logged once; when none
+    /// can be created the pre-pass is switched off with one warning and null is returned. A creation is counted in
+    /// <see cref="SceneDepthTargetCreationCount"/>.
+    /// </summary>
+    private RenderTarget2D AcquireSceneDepthTarget(int width, int height)
+    {
+        if (_sceneDepthUnavailable)
+        {
+            return null;
+        }
+
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _sceneDepthFormat, DepthFormat.Depth24);
+                break;
+            }
+            catch (Exception exception) when (_sceneDepthFormat != SurfaceFormat.HalfVector4)
+            {
+                var fallback = _sceneDepthFormat == SurfaceFormat.Single ? SurfaceFormat.HalfSingle : SurfaceFormat.HalfVector4;
+                Logs.WriteWarning($"[SceneDepth] scene depth target format {_sceneDepthFormat} refused ({exception.Message}); falling back to {fallback}.");
+                _sceneDepthFormat = fallback;
+            }
+            catch (Exception exception)
+            {
+                _sceneDepthUnavailable = true;
+                Logs.WriteWarning($"[SceneDepth] no floating-point format can be created for the scene depth target ({exception.Message}): the scene depth pre-pass is switched off.");
+                return null;
+            }
+        }
+
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.Depth24)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            SceneDepthTargetCreationCount++;
+            Logs.WriteDebug($"[SceneDepth] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {SceneDepthTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    private bool HasSsaoShader()
+    {
+        if (_ssaoShader != null)
+        {
+            return true;
+        }
+
+        if (!_ssaoShaderMissingLogged)
+        {
+            _ssaoShaderMissingLogged = true;
+            Logs.WriteWarning("[Ssao] The SSAO shader is not loaded: ambient occlusion is skipped.");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes an occlusion or blur target of the SSAO (the size of the view, <see cref="SurfaceFormat.Single"/> then
+    /// <see cref="SurfaceFormat.HalfSingle"/>, <see cref="DepthFormat.None"/>) from <see cref="RenderTargetPool"/> and stamps its key
+    /// so <see cref="ReleaseUnusedHdrTargets"/> frees it after a size change. Never a HDR format: when neither one-channel format
+    /// can be created, SSAO is switched off with one warning and null is returned. A creation is counted in
+    /// <see cref="SsaoTargetCreationCount"/>.
+    /// </summary>
+    private RenderTarget2D AcquireSsaoTarget(int width, int height)
+    {
+        if (_ssaoUnavailable)
+        {
+            return null;
+        }
+
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _ssaoFormat, DepthFormat.None);
+                break;
+            }
+            catch (Exception exception) when (_ssaoFormat == SurfaceFormat.Single)
+            {
+                Logs.WriteWarning($"[Ssao] occlusion target format {_ssaoFormat} refused ({exception.Message}); falling back to {SurfaceFormat.HalfSingle}.");
+                _ssaoFormat = SurfaceFormat.HalfSingle;
+            }
+            catch (Exception exception)
+            {
+                _ssaoUnavailable = true;
+                Logs.WriteWarning($"[Ssao] no one-channel floating-point format can be created for the occlusion targets ({exception.Message}): ambient occlusion is switched off.");
+                return null;
+            }
+        }
+
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.None)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            SsaoTargetCreationCount++;
+            Logs.WriteDebug($"[Ssao] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {SsaoTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Multiplies the HDR scene target of the view by its ambient occlusion (ADR-0116), between the scene and the bloom. Called only
+    /// for a view whose scene depth pre-pass is active (its four conditions, see <see cref="RenderHdrView"/>), so a view that renders
+    /// scene and interface in one go is never darkened. Skipped, with one warning, when the SSAO shader is not loaded, and when the
+    /// intensity is not positive (the multiplication would be by 1).
+    /// </summary>
+    private void ApplySsao(RenderTarget2D hdrTarget, in RenderFrame frame, Rectangle viewRectangle, RenderStats stats)
+    {
+        if (!HasSsaoShader() || frame.Environment.SsaoIntensity <= 0.0f)
+        {
+            return;
+        }
+
+        var depthTarget = _sceneDepth.Target;
+        if (depthTarget == null)
+        {
+            return;
+        }
+
+        var occlusion = AcquireSsaoTarget(viewRectangle.Width, viewRectangle.Height);
+        if (occlusion == null)
+        {
+            return;
+        }
+
+        RenderTarget2D partner = null;
+        try
+        {
+            partner = AcquireSsaoTarget(viewRectangle.Width, viewRectangle.Height);
+            if (partner == null)
+            {
+                return;
+            }
+
+            _ssaoRenderer.Render(
+                hdrTarget,
+                depthTarget,
+                occlusion,
+                partner,
+                _ssaoShader,
+                1.0f / frame.Projection.M11,
+                1.0f / frame.Projection.M22,
+                frame.Environment.SsaoRadius,
+                frame.Environment.SsaoBias,
+                frame.Environment.SsaoIntensity);
+            stats.SsaoPasses++;
+        }
+        finally
+        {
+            RenderTargetPool.Shared.Release(occlusion);
+            if (partner != null)
+            {
+                RenderTargetPool.Shared.Release(partner);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Activates the scene depth pre-pass for the view being rendered: acquires its target, clears it to the background depth and
+    /// binds the scene target again. Called by <see cref="RenderHdrView"/> before the scene, once its four conditions hold. Returns
+    /// false, with nothing acquired, when the target cannot be created.
+    /// </summary>
+    private bool BeginSceneDepth(Rectangle viewRectangle)
+    {
+        var target = AcquireSceneDepthTarget(viewRectangle.Width, viewRectangle.Height);
+        if (target == null)
+        {
+            return false;
+        }
+
+        if (!_sceneDepth.Activate(_graphicsDevice, target))
+        {
+            RenderTargetPool.Shared.Release(target);
+            return false;
+        }
+
+        SceneDepthPrepassCount++;
+        return true;
+    }
+
+    /// <summary>
+    /// Disposes the free HDR scene targets of the sizes no view has rendered with for <see cref="HdrTargetEviction.MaxIdleRenders"/>
+    /// renders, so GPU memory follows the sizes in use (a window resize leaves no target behind). Once per Render, after the
+    /// views have released their targets; only the HDR keys tracked here are touched, never the other users of the shared pool.
+    /// </summary>
+    private void ReleaseUnusedHdrTargets()
+    {
+        if (_hdrLastUsedRender.Count == 0)
+        {
+            return;
+        }
+
+        _releasedTargets.Clear();
+        HdrTargetEviction.Sweep(_hdrLastUsedRender, _renderIndex, _hdrStaleKeys, _releasedTargets, RenderTargetPool.Shared);
+
+        for (int i = 0; i < _releasedTargets.Count; i++)
+        {
+            var (key, disposed) = _releasedTargets[i];
+            if (key.Item4 == DepthFormat.Depth24)
+            {
+                // The scene depth pre-pass is the only tracked target with a Depth24 buffer (the HDR scene target always has
+                // Depth24Stencil8, the bloom and FXAA targets none). The shadow atlas has the same key (Single, Depth24) when its
+                // resolution equals the view size; it is acquired, not free, while in use, so the sweep does not touch it, but a freed
+                // atlas of that size would be counted here.
+                SceneDepthTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[SceneDepth] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {SceneDepthTargetDisposalCount}, alive {SceneDepthTargetCreationCount - SceneDepthTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None && (key.Item3 == SurfaceFormat.Single || key.Item3 == SurfaceFormat.HalfSingle))
+            {
+                // The SSAO occlusion and blur targets: one channel, no depth. Placed before the bloom branch, which takes every other
+                // key without depth; the bloom targets have the format of the HDR scene target (never a one-channel format) and the
+                // FXAA ones are Color.
+                SsaoTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Ssao] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {SsaoTargetDisposalCount}, alive {SsaoTargetCreationCount - SsaoTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None && key.Item3 == SurfaceFormat.Color)
+            {
+                // The bloom has the format of the HDR target and skips a Color one, so a Color target without depth is the FXAA one.
+                FxaaTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Fxaa] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {FxaaTargetDisposalCount}, alive {FxaaTargetCreationCount - FxaaTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None)
+            {
+                BloomTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Bloom] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {BloomTargetDisposalCount}, alive {BloomTargetCreationCount - BloomTargetDisposalCount}");
+            }
+            else
+            {
+                HdrTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[ColorPipeline] HDR scene target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {HdrTargetDisposalCount}, alive {HdrTargetCreationCount - HdrTargetDisposalCount}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Takes the HDR scene target of a view from <see cref="RenderTargetPool"/>. The key of the pool holds the format, so a
+    /// target is created once per view size; creation is logged. A format the device refuses falls back to the next one
+    /// (HalfVector4, HdrBlendable, Color), logged once.
+    /// </summary>
+    private RenderTarget2D AcquireHdrTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _hdrFormat, DepthFormat.Depth24Stencil8);
+                break;
+            }
+            catch (Exception exception) when (_hdrFormat != SurfaceFormat.Color)
+            {
+                var fallback = _hdrFormat == SurfaceFormat.HalfVector4 ? SurfaceFormat.HdrBlendable : SurfaceFormat.Color;
+                Logs.WriteWarning($"[ColorPipeline] HDR scene target format {_hdrFormat} refused ({exception.Message}); falling back to {fallback}.");
+                _hdrFormat = fallback;
+            }
+        }
+
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.Depth24Stencil8)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            HdrTargetCreationCount++;
+            Logs.WriteDebug($"[ColorPipeline] HDR scene target created: {width}x{height} {target.Format}, render {_renderIndex}, total {HdrTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Renders the scene of a view into <paramref name="hdrTarget"/> (already bound and cleared), then tonemaps it into the
+    /// destination the legacy path would have drawn to, then composes the interface on top of the tonemapped image.
+    /// </summary>
+    private void RenderHdrView(
+        RenderView view,
+        IViewRenderPipeline pipeline,
+        in RenderFrame frame,
+        in ColorPipelinePlan colorPlan,
+        in FrameCapturePlan capturePlan,
+        RenderTarget2D hdrTarget,
+        RenderTarget2D initialRenderTarget)
+    {
+        bool sceneDepthActive = false;
+        try
+        {
+            var scenePipeline = pipeline as IScenePhaseViewPipeline;
+            bool composeInterfaceAfter = scenePipeline != null && scenePipeline.SupportsScenePhase;
+
+            // The scene depth pre-pass (ADR-0116) is active for the view only when all four conditions hold, evaluated here, before the
+            // scene is rendered: SSAO is on, the view renders through the HDR target (this method), its projection is perspective
+            // (M44 is exactly 0; the depth written is the clip-space w) and its pipeline separates the scene from the interface
+            // (composeInterfaceAfter, the condition of the FXAA pass). A view that renders everything in one go, the editor views
+            // (OverlayViewPipeline), has the grid, the handles and the interface in the HDR target: an effect that multiplies that
+            // target would darken them, so such a view has no pre-pass (a written limit, like FXAA's).
+            if (frame.Environment.SsaoEnabled && composeInterfaceAfter && frame.Projection.M44 == 0.0f)
+            {
+                sceneDepthActive = BeginSceneDepth(view.Surface.ViewportRect);
+            }
+
+            if (composeInterfaceAfter)
+            {
+                scenePipeline.RenderScene(_graphicsDevice, view, in frame, _renderers);
+            }
+            else
+            {
+                if (_unadaptedPipelineWarnings.Add(pipeline.GetType()))
+                {
+                    Logs.WriteWarning(
+                        $"[ColorPipeline] View pipeline {pipeline.GetType().Name} does not implement IScenePhaseViewPipeline: its interface is rendered into the HDR target and tonemapped with the scene.");
+                }
+
+                pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            }
+
+            var viewRectangle = view.Surface.ViewportRect;
+
+            // SSAO (ADR-0116) multiplies the scene target by the occlusion, between the scene and the bloom. It runs only when the
+            // scene depth pre-pass is active for this view, hence only when composeInterfaceAfter holds: the interface is not in
+            // the HDR target yet and is never darkened.
+            if (sceneDepthActive)
+            {
+                ApplySsao(hdrTarget, in frame, viewRectangle, view.RenderStats);
+            }
+
+            if (frame.Environment.BloomEnabled)
+            {
+                ApplyBloom(hdrTarget, in frame);
+            }
+
+            // FXAA (ADR-0114) filters the scene only when the interface is composed afterwards, so the interface is never
+            // filtered: a view whose pipeline renders everything in one go (composeInterfaceAfter false) is not anti-aliased.
+            if (composeInterfaceAfter && frame.Environment.AntiAliasing == AntiAliasingMode.Fxaa && HasFxaaShader())
+            {
+                // The tonemapping goes into a pooled display-colour target, then the FXAA pass writes the destination.
+                var displayTarget = AcquireFxaaTarget(viewRectangle.Width, viewRectangle.Height);
+                try
+                {
+                    _graphicsDevice.SetRenderTarget(displayTarget);
+                    _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+                    DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+
+                    BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
+                    _fxaaRenderer.Draw(_fxaaShader, displayTarget, viewRectangle.Width, viewRectangle.Height);
+                    view.RenderStats.FxaaPasses++;
+                }
+                finally
+                {
+                    RenderTargetPool.Shared.Release(displayTarget);
+                }
+            }
+            else
+            {
+                BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
+                DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+            }
+
+            if (composeInterfaceAfter)
+            {
+                FlushPostTonemapRenderers(view, in frame);
+
+                long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
+
+                (view.UICompositionService ?? DefaultUICompositionService.Instance)
+                    .Compose(_graphicsDevice, view, in frame);
+
+                view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
+            }
+        }
+        finally
+        {
+            if (sceneDepthActive)
+            {
+                var sceneDepthTarget = _sceneDepth.Deactivate();
+                if (sceneDepthTarget != null)
+                {
+                    RenderTargetPool.Shared.Release(sceneDepthTarget);
+                }
+            }
+
+            RenderTargetPool.Shared.Release(hdrTarget);
+        }
+    }
+
+    /// <summary>
+    /// Adds the bloom of the view to its HDR scene target (ADR-0108), after the scene and before the tonemapping, so the
+    /// interface composed afterwards is never touched. Skipped, with one warning, when the bloom shader is not loaded.
+    /// </summary>
+    private void ApplyBloom(RenderTarget2D hdrTarget, in RenderFrame frame)
+    {
+        if (_bloomShader == null)
+        {
+            if (!_bloomShaderMissingLogged)
+            {
+                _bloomShaderMissingLogged = true;
+                Logs.WriteWarning("[Bloom] The bloom shader is not loaded: bloom is skipped.");
+            }
+
+            return;
+        }
+
+        _bloomRenderer.Render(
+            hdrTarget,
+            _bloomShader,
+            frame.Environment.BloomThreshold,
+            frame.Environment.BloomIntensity,
+            frame.Environment.BloomRadius,
+            _hdrLastUsedRender,
+            _renderIndex);
+    }
+
+    /// <summary>
+    /// Flushes the renderers that draw display-ready colours (<see cref="IPostTonemapRenderer"/>, the screen sprites and text)
+    /// on the tonemapped destination, before the interface (ADR-0107). The depth of the scene lives in the HDR target, so the
+    /// depth test is off for these flushes.
+    /// </summary>
+    private void FlushPostTonemapRenderers(RenderView view, in RenderFrame frame)
+    {
+        long flushStartTimestamp = Stopwatch.GetTimestamp();
+
+        _graphicsDevice.DepthStencilState = DepthStencilState.None;
+        for (int index = 0; index < _renderers.Count; index++)
+        {
+            if (_renderers[index] is IPostTonemapRenderer postTonemapRenderer)
+            {
+                postTonemapRenderer.FlushPostTonemap(in frame, view.RenderStats);
+            }
+        }
+
+        view.RenderStats.RendererFlushCpuMilliseconds += GetElapsedMilliseconds(flushStartTimestamp);
+    }
+
+    /// <summary>
+    /// Binds what the legacy path would have bound to draw the view (target, surface, viewport) and clears its depth the
+    /// way the legacy path does, so the interface composed after the tonemapping meets the state it always met.
+    /// </summary>
+    private void BindHdrDestination(
+        RenderView view,
+        ColorPipelineDestination destination,
+        in FrameCapturePlan capturePlan,
+        RenderTarget2D initialRenderTarget,
+        Rectangle viewRectangle)
+    {
+        switch (destination)
+        {
+            case ColorPipelineDestination.SceneRt:
+            case ColorPipelineDestination.RetainedTarget:
+                var sceneTarget = capturePlan.RetainThisFrame
+                    ? Retention.EnsureRetained(_graphicsDevice, viewRectangle.Width, viewRectangle.Height)
+                    : EnsureSceneRt(viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.SetRenderTarget(sceneTarget);
+                _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
+                break;
+
+            case ColorPipelineDestination.InitialTarget:
+                BindInitialTargetKeepingBackBuffer(initialRenderTarget);
+                view.Surface.Apply(_graphicsDevice);
+                ClearDestinationDepth(view);
+                break;
+
+            case ColorPipelineDestination.ViewSurface:
+                view.Surface.Apply(_graphicsDevice);
+                ClearDestinationDepth(view);
+                break;
+
+            default:
+                throw new InvalidOperationException($"No destination to tonemap into: {destination}.");
+        }
+    }
+
+    /// <summary>
+    /// Binds the initial target after the scene (or the HDR target) was drawn elsewhere. Binding the back buffer from a
+    /// render target clears it when its <see cref="RenderTargetUsage"/> is <c>DiscardContents</c> (the default of the
+    /// presentation parameters; the clear happens at the binding, see ADR-0086), which would erase the views already drawn
+    /// to the same back buffer (split-screen). The usage is read at each binding, so it is set to
+    /// <c>PreserveContents</c> for this binding only and put back at once; the legacy path never calls this.
+    /// </summary>
+    private void BindInitialTargetKeepingBackBuffer(RenderTarget2D initialRenderTarget)
+    {
+        var presentationParameters = _graphicsDevice.PresentationParameters;
+        var previousUsage = presentationParameters.RenderTargetUsage;
+        presentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
+        try
+        {
+            _graphicsDevice.SetRenderTarget(initialRenderTarget);
+        }
+        finally
+        {
+            presentationParameters.RenderTargetUsage = previousUsage;
+        }
+    }
+
+    private void ClearDestinationDepth(RenderView view)
+    {
+        var depthClear = BuildDepthClearOptions(view);
+        if (depthClear != 0)
+        {
+            _graphicsDevice.Clear(depthClear, Color.Black, 1.0f, 0);
+        }
+    }
+
+    /// <summary>
+    /// Draws the HDR target 1:1 into the current viewport through the tonemap effect: opaque, no depth, every texel
+    /// replaced by its tonemapped and display-encoded colour.
+    /// </summary>
+    private void DrawTonemap(RenderTarget2D hdrTarget, int width, int height, TonemapOperator tonemapper, float exposure)
+    {
+        _tonemapShader.SelectTechnique(tonemapper == TonemapOperator.Reinhard ? ReinhardTechniqueName : AcesApproxTechniqueName);
+        _tonemapShader.SetParameter(ShaderParameterNames.Exposure, exposure);
+
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, _tonemapShader.Effect);
+        _spriteBatch.Draw(hdrTarget, new Rectangle(0, 0, width, height), Color.White);
+        _spriteBatch.End();
     }
 
     // ---- Throttle / update mode ----

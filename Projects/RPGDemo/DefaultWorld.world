@@ -308,6 +308,31 @@
           "nodes": []
         }
       }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "5d3c8f0e-7b1a-4c2e-9f40-1a2b3c4d5e6f",
+        "name": "AnnotatedComponentSample",
+        "root_component": null,
+        "components": [
+          {
+            "id": "6e4d9a1f-8c2b-4d3f-a051-2b3c4d5e6f70",
+            "name": "SampleAnnotatedComponent",
+            "type": "SampleAnnotatedComponent",
+            "label": "Saved by the editor",
+            "weight": 2.5,
+            "tint": {
+              "r": 255,
+              "g": 128,
+              "b": 0,
+              "a": 255
+            },
+            "linked_asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780"
+          }
+        ],
+        "script_class_name": null
+      }
     }
   ],
   "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptWorld",

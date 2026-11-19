@@ -158,11 +158,64 @@ public sealed class GltfStaticModelReader
                 SpecularPower = ResolveSpecularPower(material),
             };
 
+            ReadPbrChannels(importedMaterial, material, filePath);
+
             ApplyLegacyImportProfile(importedMaterial, filePath, legacyMaterialImportProfile);
             result.Add(importedMaterial);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Copies the glTF PBR channels (ADR-0112). A material without a metallic-roughness channel
+    /// reads the glTF defaults (metallic 1, roughness 1), except an unlit one which is a rough non-metal. Factors are stored as authored, in linear space.
+    /// </summary>
+    private static void ReadPbrChannels(StaticModelImportedMaterial importedMaterial, GltfMaterial material, string modelFilePath)
+    {
+        var metallicRoughness = material.FindChannel("MetallicRoughness");
+        if (metallicRoughness != null)
+        {
+            importedMaterial.MetallicFactor = Math.Clamp(metallicRoughness.Value.GetFactor("MetallicFactor"), 0.0f, 1.0f);
+            importedMaterial.RoughnessFactor = Math.Clamp(metallicRoughness.Value.GetFactor("RoughnessFactor"), 0.0f, 1.0f);
+        }
+        else
+        {
+            // glTF defaults when pbrMetallicRoughness is absent (metallic 1, roughness 1); an unlit material is no metal.
+            importedMaterial.MetallicFactor = material.Unlit ? 0.0f : 1.0f;
+            importedMaterial.RoughnessFactor = 1.0f;
+        }
+
+        importedMaterial.MetallicRoughnessTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "MetallicRoughness");
+        importedMaterial.OcclusionTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "Occlusion");
+        importedMaterial.EmissiveTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "Emissive");
+
+        var normal = material.FindChannel("Normal");
+        importedMaterial.NormalScale = normal != null ? normal.Value.GetFactor("NormalScale") : 1.0f;
+
+        var occlusion = material.FindChannel("Occlusion");
+        importedMaterial.OcclusionStrength = occlusion != null ? occlusion.Value.GetFactor("OcclusionStrength") : 1.0f;
+
+        // KHR_materials_clearcoat: SharpGLTF exposes the factor on the "ClearCoat" channel and the roughness on "ClearCoatRoughness".
+        // A material without the extension has no such channel and keeps 0 (no clear coat).
+        var clearCoat = material.FindChannel("ClearCoat");
+        if (clearCoat != null)
+        {
+            importedMaterial.ClearCoatFactor = Math.Clamp(clearCoat.Value.GetFactor("ClearCoatFactor"), 0.0f, 1.0f);
+            var clearCoatRoughness = material.FindChannel("ClearCoatRoughness");
+            importedMaterial.ClearCoatRoughnessFactor = clearCoatRoughness != null
+                ? Math.Clamp(clearCoatRoughness.Value.GetFactor("RoughnessFactor"), 0.0f, 1.0f)
+                : 0.0f;
+        }
+
+        importedMaterial.AlphaMode = material.Alpha switch
+        {
+            AlphaMode.MASK => StaticModelAlphaMode.Mask,
+            AlphaMode.BLEND => StaticModelAlphaMode.Blend,
+            _ => StaticModelAlphaMode.Opaque,
+        };
+        importedMaterial.AlphaCutoff = material.AlphaCutoff;
+        importedMaterial.DoubleSided = material.DoubleSided;
     }
 
     private static Color ResolveBaseColor(GltfMaterial material)
@@ -299,7 +352,25 @@ public sealed class GltfStaticModelReader
             indexList.Add((uint)triangle.B);
         }
 
-        modelMesh.SetData(vertices, indexList.ToArray());
+        var tangents = ReadTangents(primitive, vertexCount);
+        if (tangents != null)
+        {
+            var tangentVertices = new VertexPositionNormalTextureTangent[vertexCount];
+            for (int k = 0; k < vertexCount; k++)
+            {
+                tangentVertices[k] = new VertexPositionNormalTextureTangent(
+                    vertices[k].Position,
+                    vertices[k].Normal,
+                    vertices[k].TextureCoordinate,
+                    tangents[k]);
+            }
+
+            modelMesh.SetData(tangentVertices, indexList.ToArray());
+        }
+        else
+        {
+            modelMesh.SetData(vertices, indexList.ToArray());
+        }
 
         if (modelMesh.MaterialIndex >= 0 && modelMesh.MaterialIndex < importedMaterials.Count)
         {
@@ -307,6 +378,35 @@ public sealed class GltfStaticModelReader
         }
 
         return modelMesh;
+    }
+
+    /// <summary>
+    /// Reads the optional TANGENT accessor (VEC4: xyz tangent, w handedness sign). Returns null when the
+    /// primitive has none or when it does not provide exactly one entry per vertex. The xyz part is
+    /// normalized, w is kept as authored. Tangents are used as authored even when the normals were generated.
+    /// </summary>
+    private static Vector4[] ReadTangents(MeshPrimitive primitive, int vertexCount)
+    {
+        var source = primitive.GetVertexAccessor("TANGENT")?.AsVector4Array();
+        if (source == null || vertexCount == 0 || source.Count != vertexCount)
+        {
+            return null;
+        }
+
+        var tangents = new Vector4[vertexCount];
+        for (int k = 0; k < vertexCount; k++)
+        {
+            var t = source[k];
+            var xyz = new Vector3(t.X, t.Y, t.Z);
+            if (xyz.LengthSquared() > 1e-12f)
+            {
+                xyz = Vector3.Normalize(xyz);
+            }
+
+            tangents[k] = new Vector4(xyz, t.W);
+        }
+
+        return tangents;
     }
 
     /// <summary>
@@ -354,7 +454,8 @@ public sealed class GltfStaticModelReader
     {
         var node = new StaticModelNode { Name = gltfNode.Name ?? string.Empty };
 
-        var transform = gltfNode.LocalTransform;
+        // A node written as a matrix has no rotation or scale to read until it is decomposed.
+        var transform = gltfNode.LocalTransform.GetDecomposed();
         node.Position = new Vector3(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
         node.Rotation = new Quaternion(transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z, transform.Rotation.W);
         node.Scale = new Vector3(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);

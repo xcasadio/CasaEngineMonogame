@@ -39,6 +39,10 @@
 - **D4** — Files live in a **per-user folder**: `LocalApplicationData/<ProjectName>/SaveGames`,
   resolved at the first I/O call. An invalid or default `ProjectName` is a developer error, never
   silently sanitized.
+  Amended on 2026-11-14 (author's answer "Oui, rends-le public", plan `demos-onboarding`, O3): the
+  per-user folder stays the default of `GameSettings.SaveGames`, and `SaveGameService(string folderPath)`
+  is public so that a game, a tool or a demo can build a service on a folder it chooses. The other two
+  constructors stay internal.
 - **D5** — The first consumer is the Alundra port, step E16, after E15.
 - Technical choices approved with the plan:
   - **No instantiation driven by the file**: the caller gives the type (`TryLoad<T>()`); the service

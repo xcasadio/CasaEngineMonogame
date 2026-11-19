@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Rendering.Models;
+﻿using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Rendering.Models;
 
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
@@ -17,7 +18,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private Effect _skyEffect;
     private ShaderWrapper _legacyShaderWrapper;
     private ShaderWrapper _unlitShaderWrapper;
+    private ShaderWrapper _pbrShaderWrapper;
     private ShaderWrapper _shadowDepthShaderWrapper;
+    private ShaderWrapper _sceneDepthShaderWrapper;
     private SkyCubemapRenderer _skyRenderer;
     private MaterialCache _materialCache;
 
@@ -25,6 +28,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly RenderStateCache _stateCache   = new();
     private readonly ShaderBindCache  _shaderCache  = new();
     private readonly List<RenderItem> _renderItems  = new();
+    private readonly RenderItemOrder _order = new();
 
     // Phase 7 — shader variant system
     private ShaderManager         _shaderManager;
@@ -113,17 +117,24 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     {
         _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.LitForwardContentName);
         var unlitEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.UnlitTextureContentName);
+        var pbrEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.LitPbrContentName);
         var shadowDepthEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.ShadowDepthContentName);
         _skyEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.SkyCubemapContentName);
         _skyRenderer = new SkyCubemapRenderer(_skyEffect);
         _shadowDepthShaderWrapper = new ShaderWrapper(shadowDepthEffect);
         _pipeline.SetShadowShader(_shadowDepthShaderWrapper);
+        _sceneDepthShaderWrapper = new ShaderWrapper(Game.Content.Load<Effect>(BuiltInShaderCatalog.SceneDepthContentName));
+        _pipeline.SetSceneDepthShader(_sceneDepthShaderWrapper);
         _pipeline.SetSkyRenderer(_skyRenderer);
 
         ApplyLitForwardDefaults(_effect);
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
         _unlitShaderWrapper = new ShaderWrapper(unlitEffect);
+
+        // LitPbr is not given the LitForward defaults: its constants are all bound by the PBR material.
+        ValidateLitPbrTechniques(pbrEffect);
+        _pbrShaderWrapper = new ShaderWrapper(pbrEffect);
 
         // Phase 7: initialise shader variant system
         var acm = (Game as CasaEngineGame)?.AssetContentManager;
@@ -135,15 +146,18 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             _shaderManager.RegisterShader(EffectiveShaderResolver.LitForwardShaderId, _legacyShaderWrapper);
             _shaderManager.RegisterShader(EffectiveShaderResolver.ReflectiveLitForwardShaderId, _legacyShaderWrapper);
             _shaderManager.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.LitPbrShaderId, _pbrShaderWrapper);
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.LitForwardShaderId, ShaderVariantLibrary.BuildLitForwardAliases());
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.ReflectiveLitForwardShaderId, ShaderVariantLibrary.BuildLitForwardAliases());
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.UnlitTextureShaderId, ShaderVariantLibrary.BuildUnlitTextureAliases());
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.LitPbrShaderId, ShaderVariantLibrary.BuildLitPbrAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_legacyShaderWrapper, _shaderManager, _variantLibrary);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.LitForwardShaderId, _legacyShaderWrapper);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.ReflectiveLitForwardShaderId, _legacyShaderWrapper);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.LitPbrShaderId, _pbrShaderWrapper);
 
         // Phase 9: hardware instancing batcher
         _instanceBatcher = new InstanceBatcher(_effect.GraphicsDevice);
@@ -157,7 +171,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         if (_legacyShaderWrapper is null
             || _unlitShaderWrapper is null
+            || _pbrShaderWrapper is null
             || _shadowDepthShaderWrapper is null
+            || _sceneDepthShaderWrapper is null
             || _skyRenderer is null)
         {
             return false;
@@ -178,9 +194,22 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             return true;
         }
 
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.LitPbrContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            ValidateLitPbrTechniques(effect);
+            _pbrShaderWrapper.ReplaceEffect(effect);
+            return true;
+        }
+
         if (string.Equals(normalizedContentName, BuiltInShaderCatalog.ShadowDepthContentName, StringComparison.OrdinalIgnoreCase))
         {
             _shadowDepthShaderWrapper.ReplaceEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.SceneDepthContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            _sceneDepthShaderWrapper.ReplaceEffect(effect);
             return true;
         }
 
@@ -195,6 +224,38 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         }
 
         return false;
+    }
+
+    // Load-time check (also run when the shader is hot-reloaded, never per frame): the techniques the alias table maps to and the
+    // ones a PBR material names itself exist in the effect. A missing one would otherwise only show up as a warning per draw.
+    private static void ValidateLitPbrTechniques(Effect effect)
+    {
+        var expectedTechniques = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "LitPbr_NormalMap",
+            "LitPbr_NormalMap_AlphaTest",
+            "LitPbr_Transparent",
+            "LitPbr_NormalMap_Transparent",
+        };
+
+        foreach (string technique in ShaderVariantLibrary.BuildLitPbrAliases().Values)
+        {
+            expectedTechniques.Add(technique);
+        }
+
+        var missingTechniques = new List<string>();
+        foreach (string technique in expectedTechniques)
+        {
+            if (effect.Techniques[technique] is null)
+            {
+                missingTechniques.Add(technique);
+            }
+        }
+
+        if (missingTechniques.Count > 0)
+        {
+            Logs.WriteWarning($"LitPbr shader: missing technique(s) {string.Join(", ", missingTechniques)}; PBR materials will not draw correctly.");
+        }
     }
 
     private static void ApplyLitForwardDefaults(Effect effect)
@@ -232,6 +293,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
             Shadows = _shadowResources,
+            Ibl = frame.Ibl,
+            SceneDepth = frame.SceneDepth,
             Stats    = stats,
         };
 
@@ -240,6 +303,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         // --- Phase 4: build a sorted RenderItem list ---
         _renderItems.Clear();
+        _order.Reset();
 
         foreach (var meshInfo in _meshInfos)
         {
@@ -287,14 +351,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
                         PropertyOverrides     = propertyOverrides,
-                        Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
+                        Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
+                        SubmissionIndex       = _renderItems.Count,
                     };
-                    item.SortKey = SortKeyGenerator.Generate(
-                        item.Queue,
-                        item.EffectiveShaderId.GetHashCode(),
-                        mat.Id.GetHashCode(),
-                        vb.GetHashCode(),
-                        dist);
+                    item.SortKey = _order.GenerateKey(item.Queue, item.EffectiveShaderId, mat.Id, vb, dist);
                     _renderItems.Add(item);
                 }
             }
@@ -325,21 +385,18 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
                     PropertyOverrides     = propertyOverrides,
-                    Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
+                    Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
+                    SubmissionIndex       = _renderItems.Count,
                 };
-                item.SortKey = SortKeyGenerator.Generate(
-                    item.Queue,
-                    item.EffectiveShaderId.GetHashCode(),
-                    mat.Id.GetHashCode(),
-                    vb.GetHashCode(),
-                    dist);
+                item.SortKey = _order.GenerateKey(item.Queue, item.EffectiveShaderId, mat.Id, vb, dist);
                 _renderItems.Add(item);
             }
         }
 
         // Sort by state (queue/shader/material/mesh); for transparent items the SortKey
         // also encodes reversed distance so they end up back-to-front within a state group.
-        _renderItems.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
+        // Items of equal key keep their submission order: the sort is not stable, so the comparison breaks the tie itself.
+        _renderItems.Sort(RenderItemOrder.Comparison);
 
         // --- Phase 9: hardware-instanced draw for groups with ShaderFeature.Instanced ---
         // Items that go through instancing are removed from the regular draw list.
@@ -447,12 +504,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             : null;
     }
 
-    private static ShaderFeature ResolveRenderFeatures(MaterialBase material, StaticModelMesh mesh)
-        => RenderFeatureResolver.Resolve(new RenderFeatureInput
-        {
-            Material = material,
-            Mesh = mesh,
-        });
+    private static ShaderFeature ResolveRenderFeatures(MaterialBase material, CompiledMaterial compiledMaterial, StaticModelMesh mesh)
+        => RenderFeatureResolver.ResolveForMesh(material, compiledMaterial, mesh);
 
     private CompiledMaterial ResolveCompiledMaterial(MaterialBase material)
     {

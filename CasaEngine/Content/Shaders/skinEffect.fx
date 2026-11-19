@@ -2,11 +2,13 @@
 // skinEffect.fx
 // Skinned (rigged) model shader with skeletal animation.
 //
-// Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelNormalDraw, SkinedDebugModelDraw
+// Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelDrawPbr, RiggedModelDrawPbrDualQuaternion,
+// RiggedModelNormalDraw, SkinedDebugModelDraw
 //
 // Uses the same direct-light model as LitForward.fx
 // (directional, point and spot lights via Lighting.fxh),
 // plus resolved environment ambient / reflection bindings.
+// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0111).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -132,6 +134,9 @@ BEGIN_CONSTANTS
     float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
+    float UseFlatAmbientSource _ps(c36) _cb(c32.z);
+    float ColorPipelineIsLinear _vs(c29) _ps(c36) _cb(c32.w);
+    float EnvironmentCubeIsLinear _ps(c36) _cb(c32.y);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
@@ -143,6 +148,18 @@ BEGIN_CONSTANTS
     float ShadowNormalBias _ps(c100) _cb(c90.w);
     float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
     float ReceiveShadows _ps(c101) _cb(c91.z);
+    float ShadowApplyMode _ps(c101) _cb(c91.w);
+    float3 ShadowTintColor _ps(c106) _cb(c96);
+    float ShadowFilterRadius _ps(c106) _cb(c96.w);
+    float ShadowFadeWidth _ps(c107) _cb(c97.x);
+    float ShadowFilterTaps _ps(c107) _cb(c97.y);
+
+    // Material constants of the PBR techniques (RiggedModelDrawPbr*), written by LitPbrMaterial.Bind. The Blinn-Phong
+    // techniques never read them. No slot is pinned: the compiler places them. The base colour is a display colour.
+    float4 BaseColor;
+    float Metallic;
+    float Roughness;
+    float HasBaseColorTexture;
 
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
@@ -162,17 +179,20 @@ END_CONSTANTS
 
 
 #define HAS_FORWARD_SHADOW_BINDINGS 1
+#include "ColorPipeline.fxh"
 #include "Lighting.fxh"
+#include "Pbr.fxh"
 
 
-float3 ComputeSkinnedAmbientContribution(float3 baseColor, float3 worldNormal)
+float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
 {
     // Same formula as LitForward.fx's ComputeBaseAmbientTerm: environment (or flat)
-    // ambient color modulated by the material's own ambient tint.
-    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+    // ambient color modulated by the material's own ambient tint and DiffuseColor.
+    // The base (texture) colour is not applied here: ComposeLitSurfaceColor applies it once.
+    float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
-    return baseColor * DiffuseColor.rgb * ambientTerm;
+    return MaterialDiffuseColor() * ambientTerm;
 }
 
 
@@ -188,20 +208,20 @@ void ApplySkinnedAlphaTest(float alpha)
 
 float3 ComputeSkinnedDiffuseContribution(float3 baseColor, ColorPair lightResult)
 {
-    return baseColor * max(lightResult.Diffuse - EmissiveColor, 0.0f);
+    return baseColor * max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
 }
 
 
 float3 ComputeSkinnedEmissiveContribution(float3 baseColor)
 {
-    return baseColor * EmissiveColor;
+    return baseColor * MaterialEmissiveColor();
 }
 
 
 float3 ComputeSkinnedReflectionContribution(float3 eyeVector, float3 worldNormal)
 {
     float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
-    return SampleEnvironmentReflection(reflectionVector) * saturate(SpecularColor);
+    return SampleEnvironmentReflection(reflectionVector) * saturate(MaterialSpecularColor());
 }
 
 
@@ -366,19 +386,20 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     ApplySkinnedAlphaTest(texelColor.a);
 
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
-    float3 directDiffuse = max(lightResult.Diffuse - EmissiveColor, 0.0f);
-    float3 ambientContribution = ComputeSkinnedAmbientContribution(color.rgb, worldNormal);
-    color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
+    float3 directDiffuse = max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
+    float3 ambientContribution = ComputeSkinnedAmbientContribution(worldNormal);
+    color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, MaterialEmissiveColor());
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor);
 
     return color;
 }
@@ -404,6 +425,50 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDrawDualQuaternion(VsInputSkinnedQuad
 }
 
 TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDraw)
+
+
+//_______________________________________________________________
+// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0111)
+//
+// The skinning is the one of the Blinn-Phong techniques above. The shading is LitPbr.fx's, minus what a skinned mesh
+// does not carry in this version: direct lights and received shadows (Pbr.fxh), a flat ambient (no image-based lighting,
+// no probes), the emissive colour. No metallic-roughness, occlusion, emissive or normal texture, no transparency.
+// Like LitPbr.fx the output is linear light when the colour pipeline is linear, unclamped.
+//_______________________________________________________________
+
+float4 PixelShaderRiggedModelDrawPbr(VsOutputSkinnedQuad input) : COLOR0
+{
+    float4 baseColor = BaseColor;
+    if (HasBaseColorTexture > 0.5f)
+    {
+        baseColor *= SAMPLE_TEXTURE(Texture, input.TexureCoordinateA);
+    }
+
+    ApplySkinnedAlphaTest(baseColor.a);
+
+    float3 linearBaseColor = DecodeColor(baseColor.rgb);
+    float3 emissive = DecodeColor(EmissiveColor);
+
+    float3 worldNormal = normalize(input.Normal3D);
+    float3 eyeVector = normalize(EyePosition - input.Position3D);
+    PbrSurface surface = ComputePbrSurface(linearBaseColor, saturate(Metallic), saturate(Roughness), worldNormal, eyeVector);
+
+    ColorPair lightResult = EvaluatePbrLights(surface, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
+
+    // The flat ambient of LitPbr.fx (ComputePbrFlatAmbient): the ambient colour, or the diffuse sample of the environment cube
+    // when one is bound and the world does not ask for the flat source, times the diffuse albedo.
+    float3 ambient = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
+        ? SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor
+        : AmbientColor;
+
+    float3 color = lightResult.Diffuse + lightResult.Specular + ambient * surface.DiffuseAlbedo + emissive;
+    color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);
+
+    return float4(color, baseColor.a);
+}
+
+TECHNIQUE(RiggedModelDrawPbr, VertexShaderRiggedModelDraw, PixelShaderRiggedModelDrawPbr)
+TECHNIQUE(RiggedModelDrawPbrDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDrawPbr)
 
 
 VsShadowDepthOutput VertexShaderRiggedModelShadowDepth(VsInputSkinnedQuad input)
@@ -444,6 +509,61 @@ TECHNIQUE(RiggedModelShadowDepthDualQuaternion, VertexShaderRiggedModelShadowDep
 
 
 //_______________________________________________________________
+// RiggedModelSceneDepth / RiggedModelSceneDepthDualQuaternion — scene depth pre-pass (ADR-0116)
+// Writes the view depth, in world units (the clip-space w of a perspective projection), into the red channel of the pre-pass
+// target, as SceneDepth.fx does for the static meshes. The texture alpha is cut at AlphaCutoff like the colour pass does
+// (AlphaCutoff <= 0 disables the test), so a cut-out leaves the background value behind it. WorldViewProj is the world view
+// projection of the camera here, not of the light.
+//_______________________________________________________________
+
+struct VsSceneDepthOutput
+{
+    float4 Position : SV_Position;
+    float2 TexureCoordinateA : TEXCOORD0;
+    float ViewDepth : TEXCOORD1;
+};
+
+VsSceneDepthOutput VertexShaderRiggedModelSceneDepth(VsInputSkinnedQuad input)
+{
+    VsSceneDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.TexureCoordinateA = input.TexureCoordinateA;
+    output.ViewDepth = clipPosition.w;
+    return output;
+}
+
+VsSceneDepthOutput VertexShaderRiggedModelSceneDepthDualQuaternion(VsInputSkinnedQuad input)
+{
+    VsSceneDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneDualQuaternionTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.TexureCoordinateA = input.TexureCoordinateA;
+    output.ViewDepth = clipPosition.w;
+    return output;
+}
+
+float4 PixelShaderRiggedModelSceneDepth(VsSceneDepthOutput input) : COLOR0
+{
+    ApplySkinnedAlphaTest(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA).a);
+    return float4(input.ViewDepth, 0.0f, 0.0f, 1.0f);
+}
+
+TECHNIQUE(RiggedModelSceneDepth, VertexShaderRiggedModelSceneDepth, PixelShaderRiggedModelSceneDepth)
+TECHNIQUE(RiggedModelSceneDepthDualQuaternion, VertexShaderRiggedModelSceneDepthDualQuaternion, PixelShaderRiggedModelSceneDepth)
+
+
+//_______________________________________________________________
 // RiggedModelNormalDraw — debug: visualizes normals with lighting
 //_______________________________________________________________
 
@@ -452,9 +572,9 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 N = normalize(input.Normal3D);
     float3 eyeVector = normalize(EyePosition - input.Position3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, N, (int)ActiveDirectionalLightCount);
 
-    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);
     float4 result = (lightColor * 0.60f + texelColor * 0.40f);
     return result;
@@ -491,7 +611,7 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderDebugSkinnedDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 result = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 result = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     return result;
 }
 

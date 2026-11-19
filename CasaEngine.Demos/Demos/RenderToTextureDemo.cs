@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Primitives.ThreeD;
+using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -23,12 +24,31 @@ public class RenderToTextureDemo : Demo
 {
     private const int RtSize = 256;
 
+    // Measurement pixels of the SSAO check (plan T3.3, ADR-0116; window coordinates, 1024 x 768, LinearHdr), one per view, in a flat
+    // area far from every object: the same with and without CASAENGINE_DEMO_SSAO=1, while the SSAO count of each view
+    // (RenderStats.SsaoPasses, written at the capture) proves the composition ran in that view.
+
+    /// <summary>Uniform ground pixel of the main view (view 0): 175, 168, 141 with and without SSAO.</summary>
+    public static readonly Point SsaoUniformPixelMainView = new(500, 650);
+
+    /// <summary>Uniform pixel of the render-to-texture view (view 1) as shown in the inset: 192, 187, 170 with and without SSAO.</summary>
+    public static readonly Point SsaoUniformPixelTextureView = new(1000, 750);
+
     private ArcBallCameraComponent? _camera2;
     private RenderTargetSurface? _rtSurface;
     private CasaEngineGame? _game;
 
     public override string Title => "Render-to-texture demo";
-    public override string Description => "Renders a 3D scene into a RenderTarget2D and then displays that texture on a quad in the main scene.";
+    public override string Description =>
+        "A second camera renders the scene into a texture, and that texture is shown on a quad inside the " +
+        "main scene.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The quad shows the scene from another point of view, live.",
+    };
+
+    public override string DocumentationPath => "docs/engine/rendering-2d-3d-spaces.md";
 
     public override void Initialize(CasaEngineGame game)
     {

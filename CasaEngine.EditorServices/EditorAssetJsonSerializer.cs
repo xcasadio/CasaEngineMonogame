@@ -829,6 +829,12 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.AddArray("vertices", staticModelMesh.GetVertices(), (vertex, vertexNode) => vertex.Save(vertexNode));
+        if (staticModelMesh.HasTangents)
+        {
+            //  One tangent per vertex, in the order of "vertices"; written only for a mesh that has tangents (ADR-0123).
+            node.AddArray("tangents", staticModelMesh.GetTangentVertices(), (vertex, tangentNode) => vertex.Tangent.Save(tangentNode));
+        }
+
         node.AddArray("indices", staticModelMesh.GetIndices());
     }
 
@@ -1066,6 +1072,11 @@ internal static class EditorAssetJsonSerializer
         SaveObjectBase(texture, node);
         node.Add("texture_asset_id", TextureAssetIdField?.GetValue(texture) as Guid? ?? Guid.Empty);
 
+        if (texture.GenerateMipmaps)
+        {
+            node.Add("generate_mipmaps", true);
+        }
+
         var samplerStateNode = new JObject();
         texture.PreferredSamplerState.Save(samplerStateNode);
         node.Add("sampler_state", samplerStateNode);
@@ -1092,6 +1103,8 @@ internal static class EditorAssetJsonSerializer
         node["type"] = nameof(LitDiffuseMaterial);
         node["BasColor_asset_id"] = material.BasColorAssetId.ToString();
         node["normal_map_asset_id"] = material.NormalMapAssetId.ToString();
+        node["texture_detail_asset_id"] = material.DetailTextureAssetId.ToString();
+        node["detail_tiling"] = material.DetailTiling;
         node["diffuse_color"] = new JObject
         {
             ["r"] = material.DiffuseColor.R,

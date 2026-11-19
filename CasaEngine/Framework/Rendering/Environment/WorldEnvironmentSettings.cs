@@ -42,6 +42,19 @@ public sealed class WorldEnvironmentSettings
 
     public ShadowSettings Shadows { get; } = new();
 
+    /// <summary>
+    /// Colour pipeline of the world (<see cref="ColorPipelineMode.Legacy"/> by default). Serialized as
+    /// <c>color_pipeline</c>, omitted while every field has its default value.
+    /// </summary>
+    public ColorPipelineSettings ColorPipeline { get; } = new();
+
+    /// <summary>
+    /// Where the ambient term comes from. <see cref="AmbientSource.Auto"/> (default) keeps the historical behaviour;
+    /// <see cref="AmbientSource.Flat"/> uses the flat ambient colour even when a reflection cube is bound.
+    /// Serialized as <c>ambient_source</c>, omitted when <see cref="AmbientSource.Auto"/>.
+    /// </summary>
+    public AmbientSource AmbientSource { get; set; } = AmbientSource.Auto;
+
     public Vector3 AmbientColor
     {
         get => _ambientColor;
@@ -80,8 +93,10 @@ public sealed class WorldEnvironmentSettings
         SpecularEnvironmentCubemap = null;
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f);
         AmbientIntensity = 1.0f;
+        AmbientSource = AmbientSource.Auto;
         SpecularIntensity = 1.0f;
         Shadows.ResetToDefaults();
+        ColorPipeline.ResetToDefaults();
         IsDirty = false;
     }
 
@@ -156,9 +171,19 @@ public sealed class WorldEnvironmentSettings
             SpecularIntensity = specularIntensityNode.GetSingle();
         }
 
+        if (element.TryGetValue("ambient_source", StringComparison.OrdinalIgnoreCase, out var ambientSourceNode))
+        {
+            AmbientSource = ambientSourceNode.GetEnum<AmbientSource>();
+        }
+
         if (element.TryGetValue("shadows", StringComparison.OrdinalIgnoreCase, out var shadowsNode))
         {
             Shadows.Load(shadowsNode as JObject);
+        }
+
+        if (element.TryGetValue("color_pipeline", StringComparison.OrdinalIgnoreCase, out var colorPipelineNode))
+        {
+            ColorPipeline.Load(colorPipelineNode as JObject);
         }
     }
 
@@ -180,9 +205,29 @@ public sealed class WorldEnvironmentSettings
         element["ambient_intensity"] = AmbientIntensity;
         element["specular_intensity"] = SpecularIntensity;
 
+        if (AmbientSource != AmbientSource.Auto)
+        {
+            element["ambient_source"] = AmbientSource.ToString();
+        }
+        else
+        {
+            element.Remove("ambient_source");
+        }
+
         var shadowsNode = new JObject();
         Shadows.Save(shadowsNode);
         element["shadows"] = shadowsNode;
+
+        if (!ColorPipeline.IsDefault)
+        {
+            var colorPipelineNode = new JObject();
+            ColorPipeline.Save(colorPipelineNode);
+            element["color_pipeline"] = colorPipelineNode;
+        }
+        else
+        {
+            element.Remove("color_pipeline");
+        }
     }
 
     public void MarkDirty()
@@ -215,9 +260,11 @@ public sealed class WorldEnvironmentSettings
             AmbientColor = AmbientColor,
             AmbientIntensity = AmbientIntensity,
             SpecularIntensity = SpecularIntensity,
+            AmbientSource = AmbientSource,
         };
 
         clone.Shadows.CopyFrom(Shadows);
+        clone.ColorPipeline.CopyFrom(ColorPipeline);
         return clone;
     }
 
@@ -240,7 +287,9 @@ public sealed class WorldEnvironmentSettings
         AmbientColor = other.AmbientColor;
         AmbientIntensity = other.AmbientIntensity;
         SpecularIntensity = other.SpecularIntensity;
+        AmbientSource = other.AmbientSource;
         Shadows.CopyFrom(other.Shadows);
+        ColorPipeline.CopyFrom(other.ColorPipeline);
         if (other.IsDirty)
         {
             MarkDirty();

@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "serena",
+      "args": [
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project-from-cwd",
+        "--open-web-dashboard",
+        "False"
+      ]
+    },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp"
+      ]
+    },
+    "casa-editor": {
+      "type": "stdio",
+      "command": "Tools/CasaEngine.Editor.Mcp/bin/Debug/net9.0/casa-editor-mcp.exe",
+      "args": []
+    }
+  }
+}
