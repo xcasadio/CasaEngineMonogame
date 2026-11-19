@@ -605,10 +605,11 @@ Tests seulement.
 - Validation : tests verts sur le code d'aujourd'hui ; la note donne les relevés.
 - **Fait (2026-11-19).** Nouveau `Camera2dWorldDataTests`, 14 lignes, vert sur le code d'avant : les 14 caméras chargées donnent `CreateLookAt((0, 0, 500), (0, 0, 0), Up)` et `CreateOrthographic(1280, 720, 1, 1000)` à 1e-4 près, ce qui confirme le relevé (cible nulle, zoom 1, pas d'arrondi dans les 14). Vérifié en plus : les 14 caméras sont des entités écrites dans le monde (`asset_id` nul), sans transformation initiale de référence qui écraserait leur position. Test de grille `OverAGridOfPointsZoomsAndSnaps_TheView_IsTheOneOfTheFormerTarget` ajouté à `Camera2dComponentTests` (5 points, 5 zooms, arrondi ou non), écrit sur `Target` par une méthode `Place`, la vue attendue par la formule. 24 tests verts dans ces deux classes.
 
-### ⏳ T4.2 — Écrire la position dans les 14 mondes
+### ✅ T4.2 — Écrire la position dans les 14 mondes
 
 - Dans chaque monde, `coordinates.position` du nœud de la caméra devient (0, 0, 500). La clé `target` reste.
 - Validation : `git diff --stat` montre trois lignes au plus par fichier ; le test de T4.1 vert ; builds ; tests.
+- **Fait (2026-11-19).** `coordinates.position` du nœud de la caméra vaut (0, 0, 500) dans les 14 mondes, écrit dans le style de nombres de chaque fichier ; la clé `target` reste. `git diff --stat` : une ligne par fichier, trois dans `RPGDemo/DefaultWorld.world` (dont x et y, qui n'étaient pas nuls). Le test de T4.1 vert sans modification. 8134 tests, 0 échec ; aucun code touché, pas de build à refaire.
 
 ### ⏳ T4.3 — La caméra 2D et tous ses utilisateurs
 

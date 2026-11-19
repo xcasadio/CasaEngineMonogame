@@ -54,9 +54,9 @@
           "type": "Camera2dComponent",
           "coordinates": {
             "position": {
-              "x": 3.0748892,
-              "y": 0.5550308,
-              "z": 2.5794868
+              "x": 0.0,
+              "y": 0.0,
+              "z": 500.0
             },
             "scale": {
               "x": 1.0,
