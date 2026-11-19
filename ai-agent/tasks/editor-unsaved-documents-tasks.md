@@ -245,7 +245,7 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 - Commit : `docs(editor): describe the save question for every modified document`
 - Validation faite (2026-11-19) : `docs/editor/editor-message-boxes.md` décrit les quatre flux (fermeture, sortie avec documents et monde, autre projet, autre monde), la liste des neuf sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6) et renvoie à ADR-0104 ; la section « Limits » reprend P10, P11, les sortes non concernées (P3) et O5. `docs/editor/cutscene-editor.md` : la limite « Quitting the editor with a modified cutscene loses its changes » est remplacée par un renvoi. `screen-authoring-conventions.md` et `audio-mixer-panel.md` relus : exacts, non modifiés. Aucun code touché, donc ni build ni tests.
 
-### ⏳ T3.2 — Lancement de contrôle et clôture
+### 🧪 T3.2 — Lancement de contrôle et clôture
 
 - Objectif : apporter la preuve atteignable sans entrée, et clore le plan.
 - Fichiers : ce plan, `ai-agent/README.md`.
@@ -255,6 +255,8 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
   3. Mettre à jour la ligne de ce plan dans `ai-agent/README.md` et noter la validation globale (builds des deux solutions, total des tests).
 - Validation : les deux builds à 0 erreur ; tests verts ; les trois observations de l'étape 1 notées avec le fichier lu. Statut 🧪 tant que la recette de l'auteur n'est pas faite.
 - Commit : `docs(plan): record the validation of the save question for every document`
+
+- Validation faite (2026-11-19) : `dotnet build CasaEngine.Editor.MonoGame.sln` et `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet test CasaEngine.Tests` : 6640 réussis, 0 échec. Lancement : `CasaEngine.Editor.exe --project Projects/SpriteCutsceneSample/SpriteCutsceneSample.json --open-asset Cutscenes/stagger.cutscene --cutscene-add-action Wait --diagnostics-out <temp>/t32_diag.txt --screenshot-out <temp>/t32.png --capture-delay 3`, sans `--keep-open` (la forme littérale n'est pas écrite dans le plan de l'arbre ; elle reprend les interrupteurs de `docs/editor/cutscene-editor.md`). (a) `t32_diag.txt` : « result: added », « Modified: True ». (b) code de sortie 0, le processus s'est terminé seul, sans question. (c) `git status` : aucun fichier de `Projects/` modifié, seuls les deux dossiers `.casaeditor/` non suivis. Le journal du processus dit que la capture est écrite sous le nom `t32-final.png` (suffixe `-final` ajouté par l'éditeur). Ligne `[Automation] Exiting with N modified document(s) abandoned` : vérifiée par lecture du code seulement (`GameEditor.cs`, `LogDocumentsAbandonedByAutomatedExit`). Statut 🧪 : la recette de l'auteur reste à faire.
 
 ---
 
