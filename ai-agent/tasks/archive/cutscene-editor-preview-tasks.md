@@ -265,12 +265,13 @@ Décisions antérieures concernées :
 - Validation : relecture ; la recherche des noms de projets extérieurs sur le diff de la branche ne renvoie rien.
 - Commit : `docs(editor): document the cutscene preview`
 
-### 🧪 T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 > Note (2026-11-18) : l'auteur valide sur captures d'écran (T2.4, T2.5) et fera la recette réelle dans l'éditeur à la fin ; reste 🧪 jusque-là.
 
 - Objectif : validation à distance sur les captures de T2.4 et T2.5, puis recette réelle dans l'éditeur à la fin (D7).
 - Cette tâche reste 🧪 tant que l'auteur n'a pas fait sa recette réelle.
+- Note de clôture (2026-11-19) : ✅. Recette réelle de l'auteur dans l'éditeur acceptée le 2026-11-19 (« recette OK »), pour les tranches A à G ensemble. L'auteur accepte le même jour les arbitrages P1 à P9 en bloc (« Acceptés en bloc »). Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -293,7 +294,7 @@ Décisions antérieures concernées :
 | O2 | Caméra de l'aperçu : `WorldViewportPanel` n'utilise jamais la caméra du monde (`WorldViewportPanel.cs:793-815`, `:1841`). La tranche A cadre la caméra 2D de face sur l'ensemble des entités ; le cadrage du jeu est à juger sur les captures. | T2.4 |
 | O3 | En aperçu, `FadeMusic` n'attend pas sa durée, faute de service de son : le minutage diffère du jeu pour les cutscenes qui l'utilisent. | T2.2, tranche G |
 | O4 | Coût d'un monde d'aperçu par document ouvert : non mesuré. Le monde d'aperçu partage la politique d'exécution du jeu de l'éditeur : pendant le mode Play de l'éditeur, ses scripts et sa physique tourneraient, comme pour l'aperçu Animation2D. | T2.3 |
-| O5 | Confirmation de P1 → P9 par l'auteur. | Toutes |
+| O5 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P9 (« Acceptés en bloc »). | Toutes |
 
 ## Hors périmètre
 

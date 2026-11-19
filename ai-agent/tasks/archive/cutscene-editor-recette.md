@@ -123,3 +123,7 @@ Chaque plan a une table « Arbitrages de l'agent, à confirmer » (points P). Le
 
 - Les écarts trouvés se notent ici ou se disent à l'agent, qui les corrige sur la même branche.
 - La fusion de la branche dans `main` et tout push restent des décisions de l'auteur.
+- Résultat (2026-11-19) : recette acceptée par l'auteur (« recette OK »). Les arbitrages P des plans sont acceptés en bloc le même jour (« Acceptés en bloc »).
+- Écart signalé à la recette : un document cutscene modifié se fermait sans question. Il est traité par le plan `editor-unsaved-documents-tasks.md` (ADR-0143), dont la recette reste à faire.
+- Non expliqué : l'auteur a vu un onglet se fermer au clic du milieu de la souris ; aucun code lu ne ferme un onglet sur ce clic. À réessayer sur la version courante.
+- Cette liste et les plans des tranches sont archivés.

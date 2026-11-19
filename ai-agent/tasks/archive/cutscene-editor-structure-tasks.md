@@ -295,10 +295,11 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 - Commit : `docs(editor): document the structure editing of cutscenes by mouse`
 - Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` a une nouvelle section « Structure editing » : le glisser-déposer (qui peut glisser, table des zones d'une bande selon la ligne visée avec le repère de chacune, refus, annulations), le menu contextuel (entrées, règle de visibilité, sélection qui suit, conteneur affiché déplié), le presse-papiers, le clavier (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D globaux ; Suppr seulement avec le focus de l'arbre) et ses limites (une action à la fois, pas de glisser dans la timeline, pas de défilement ni de dépliage automatiques, pas de glisser depuis une palette ni entre documents, chemin d'une perte de chargement non mis à jour : O3, touches vérifiées seulement à la main). La section Automation décrit `--cutscene-edit-ops` (tableau des opérations, règle de découpe des arguments, refus, diagnostics). Les sections Summary, Action tree, Code, Limits et Next sont mises à jour, et l'ADR-0139 et l'ADR-0140 sont citées. Relecture contre le code livré : zones et refus (`CutsceneDropTargetResolver`), conditions de départ du glisser, Échap et Suppr (`CutsceneOutlinerPanel.Drag.cs`), entrées et ordre du menu (`CutsceneActionMenu`), clic droit de l'arbre (`OnTreeRightClick`), opérations et diagnostics (`CutsceneEditOperation`, `ExecuteAutomationCutsceneOperation`, `AppendCutsceneEditorDiagnostics`), aiguillage des raccourcis (`ExecuteDuplicate`, `ExecuteCopy`, `ExecuteCut`, `ExecutePaste`). Aucun nom de jeu, de décompilation ni de projet tiers (recherche `rg` vide). Aucun code touché : pas de build ; `dotnet test` relancé par précaution : 6390/6390. `ai-agent/README.md` : ligne du plan mise à jour.
 
-### 🧪 T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.7, puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
 - Note (2026-11-18) : 🧪, les captures de T2.7 sont envoyées pour validation à distance ; la recette réelle (glisser et clic droit à la souris, touches) reste à faire par l'auteur.
+- Note de clôture (2026-11-19) : ✅. Recette réelle de l'auteur dans l'éditeur acceptée le 2026-11-19 (« recette OK »), pour les tranches A à G ensemble. L'auteur accepte le même jour les arbitrages P1 à P16 en bloc (« Acceptés en bloc »). Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -333,7 +334,7 @@ Faits vérifiés pour cette phase :
 | O1 | Le glisser réel à la souris ne peut pas être essayé dans l'éditeur lancé : il est validé par les tests avec le harnais et par l'état `draghover`, puis par la recette de l'auteur. | T2.3, T2.7 |
 | O2 | Coller dans une autre cutscene une action qui nomme une entité absente de son monde d'aperçu : l'action est collée telle quelle et le validateur le signale. À confirmer à la recette. | T1.3, T2.1 |
 | O3 | Le chemin enregistré dans une perte de chargement (`CutsceneLoadLoss.Path`) n'est pas remis à jour quand l'action change de place ; c'était déjà vrai après une insertion ou une suppression. Limite connue, à écrire dans la documentation. | T1.1, T1.2, T3.1 |
-| O4 | Confirmation de P1 → P16 par l'auteur. | Toutes |
+| O4 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P16 (« Acceptés en bloc »). | Toutes |
 | O5 | Vérifications indépendantes du 2026-11-18 : tranche CONFIRMED, puis correction T4.1 CONFIRMED, sans point bloquant. Reporté : un refus rendu par une entrée du menu ouvert depuis la timeline n'est affiché nulle part (les entrées refusées sont déjà filtrées, le cas est presque inatteignable). | T2.5 |
 | O6 | Reporté, non reproduit : un clic droit appuyé sur une ligne et relâché hors de l'arbre pourrait faire ouvrir, au clic droit suivant dans le vide, le menu de l'action précédente. | T2.2 |
 | O7 | Reporté, cosmétique : les messages de refus écrivent « A ExitOnInput action… » ; le carré au bout du trait de dépôt déborde d'environ 2 px sur le texte des lignes voisines ; dans l'Inspector, un chemin long est coupé au milieu d'un indice. | T1.1, T1.2, T4.1 |

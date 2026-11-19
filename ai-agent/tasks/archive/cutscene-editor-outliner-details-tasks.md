@@ -293,10 +293,11 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 - Commit : `docs(editor): document the cutscene outliner and typed details`
 - Validation faite : `docs/editor/cutscene-editor.md` réécrit d'après le code livré (panneaux Hierarchy et Inspector, champs typés, formes de référence, règles d'ajout, de duplication et de suppression, options d'automatisation, limites, section des formats de texte) ; pas de build nécessaire, aucun fichier de code touché. Aucun nom de jeu ni de projet tiers.
 
-### 🧪 T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D4). Reste 🧪 d'ici là.
 - Note : l'auteur valide sur les captures de T2.6 et fera la recette réelle à la fin ; la tâche reste 🧪 jusque-là.
+- Note de clôture (2026-11-19) : ✅. Recette réelle de l'auteur dans l'éditeur acceptée le 2026-11-19 (« recette OK »), pour les tranches A à G ensemble. L'auteur accepte le même jour les arbitrages P1 à P12 en bloc (« Acceptés en bloc »). Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -307,7 +308,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 | O1 | `MGComboBox<T>` ne sait pas grouper : la liste des types est plate, préfixée par catégorie. Un vrai menu par catégorie est à voir avec l'édition de structure de la tranche E. | T2.2 |
 | O2 | `ExitOnInput.inputs` reste une liste en texte : la proposer depuis les boutons du mapping demande de charger le mapping. | T2.3 |
 | O3 | Les panneaux Hierarchy et Inspector font environ 350 et 320 px de large à 1600 px : lisibilité des libellés longs à juger sur les captures. | T2.6 |
-| O4 | Confirmation de P1 → P12 par l'auteur. | Toutes |
+| O4 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P12 (« Acceptés en bloc »). | Toutes |
 
 ## Hors périmètre
 

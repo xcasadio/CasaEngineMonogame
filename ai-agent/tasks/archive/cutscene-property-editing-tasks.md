@@ -218,7 +218,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 - Validation : relecture ; liens valides ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document cutscene property editing`
 
-### 🧪 T3.2 — Recette de l'auteur dans l'éditeur
+### ✅ T3.2 — Recette de l'auteur dans l'éditeur
 
 > En attente (2026-11-17) : l'éditeur n'a pas été lancé par l'agent. Reste la recette visuelle de l'auteur ci-dessous, et sa réponse sur O1 à O6.
 
@@ -234,6 +234,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
   5. Remettre le fichier dans son état d'origine (`git checkout -- <fichier>`).
 - Validation : réponse de l'auteur. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the acceptance of cutscene property editing`
+- Note de clôture (2026-11-19) : ✅. La recette du 2026-11-18 avait été refusée sur l'ergonomie ; les tranches A à G de l'éditeur de cutscenes y ont répondu, et l'auteur a accepté la recette de l'ensemble dans l'éditeur le 2026-11-19 (« recette OK »). L'auteur accepte le même jour les arbitrages P1 à P11 en bloc (« Acceptés en bloc ») ; depuis, P5 (champs en texte) a été remplacé par les détails typés de la tranche B (ADR-0136) et P8 (pas de question à la fermeture) par la question posée pour tout document modifié (ADR-0143). Les étapes 1 à 5 ci-dessus n'ont pas été rejouées une à une devant l'agent. Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -243,7 +244,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | P1 à P11 sont des arbitrages de l'agent : à confirmer ou corriger par l'auteur à la recette. | T3.2 |
+| O1 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P11 (« Acceptés en bloc »). | T3.2 |
 | O3 | Avis P3 du vérificateur, reporté. Une chaîne de plus de 256 caractères, ou qui contient un saut de ligne, s'affiche dans un champ vide (`MGTextBox.SetText` la refuse) ; donner puis retirer le focus à ce champ remplace alors la valeur par une chaîne vide. La modification est visible (astérisque) et annulable. Aucun fichier du dépôt n'est concerné : la plus longue valeur fait 47 caractères. À corriger en tranche 2 : champ en lecture seule ou limite levée. | T2.1 |
 | O4 | Avis P4, reporté. Une perte de chargement remise par une annulation revient en fin de liste, pas à sa place d'origine. Seul l'ordre d'affichage change. | T1.2 |
 | O5 | Avis P4, reporté. La relecture de la garde porte sur le JSON en mémoire, pas sur le texte écrit. Un fichier existant avec un nombre hors limites (`1e40`) pourrait se réécrire en `"Infinity"`. La saisie dans l'éditeur refuse ces nombres. | T1.3 |

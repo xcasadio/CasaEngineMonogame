@@ -263,10 +263,11 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 - Commit : `docs(editor): document the cutscene timeline`
 - Note de validation : relu contre le code livré (`CutsceneTimelinePanel`, `CutsceneTimelineItemRenderer`, `TimelineControl`, `CutsceneTimelineLayout`, registre de `GameEditor`). `cutscene-editor.md` gagne la section Timeline (rangées, formes, mise en page du temps, tête de lecture, sélection, défilement, limites), les diagnostics et la section Code, et ses limites et suites sont mises à jour ; `timeline-generic.md` gagne une note sur les deux options du contrôle. Ligne de `ai-agent/README.md` mise à jour. Aucun nom de jeu ni de projet tiers.
 
-### 🧪 T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.5, puis recette réelle à la fin (D5). Reste 🧪 d'ici là.
 - Note de validation : l'auteur valide sur les captures de T2.5 et fera la recette réelle à la fin ; rien d'autre à faire côté agent.
+- Note de clôture (2026-11-19) : ✅. Recette réelle de l'auteur dans l'éditeur acceptée le 2026-11-19 (« recette OK »), pour les tranches A à G ensemble. L'auteur accepte le même jour les arbitrages P1 à P14 en bloc (« Acceptés en bloc »). Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -277,7 +278,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 | O1 | Le groupe d'onglets du bas fait environ 250 px de haut à 900 px : la timeline de `loop.cutscene` y tient-elle sans défilement ? À juger sur les captures. | T2.5 |
 | O2 | En aperçu, `FadeMusic` n'attend pas faute de service de son : sa barre montre la durée déclarée, la lecture va plus vite. | T1.2 |
 | O3 | Une boucle sans fin dont le tour contient une action de durée inconnue non encore mesurée : le rebouclage de la tête de lecture ne devient exact qu'après un premier tour. | T1.2, T2.3 |
-| O4 | Confirmation de P1 → P14 par l'auteur. | Toutes |
+| O4 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P14 (« Acceptés en bloc »). | Toutes |
 
 ## Hors périmètre
 

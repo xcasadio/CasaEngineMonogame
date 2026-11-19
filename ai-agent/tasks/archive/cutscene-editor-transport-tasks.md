@@ -286,10 +286,11 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 - Commit : `docs(editor): document the pause, step and seek of the cutscene preview`
 - Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` mis à jour (en anglais) : renvoi à ADR-0138 ; nouvelle section « Transport » (table des états et du bouton `Play` / `Pause`, pause, `+1 frame` / `-1 frame`, aller à un instant et son avance par pas fixes avec budget, `Stop` qui reconstruit le monde, fin de lecture, relecture après une modification en pause, mesures gardées) ; section Playhead réécrite (clic et glisser dans la règle, tête de lecture qui reste à la fin) ; caméra gardée (P11) ; trois nouvelles options d'automatisation et leurs diagnostics ; limites (pas de raccourci clavier P14, pas pour les actions comptées en images P15, coût d'un retour en arrière non mesuré sur un grand monde) ; liste du code et sections Limits et Next à jour. `docs/editor/timeline-generic.md` décrivait déjà l'option `rulerDragScrub` (livrée par T2.4) : aucun changement. Relu contre le code livré (libellés des boutons, mots d'état, comportement de `Stop`, options et diagnostics) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests relancés (6200 tests verts à T2.6).
 
-### 🧪 T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
 - Note (2026-11-18) : les captures de T2.6 ont été envoyées pour validation à distance ; la recette réelle de l'auteur reste à faire (O2, O3, O4).
+- Note de clôture (2026-11-19) : ✅. Recette réelle de l'auteur dans l'éditeur acceptée le 2026-11-19 (« recette OK »), pour les tranches A à G ensemble. L'auteur accepte le même jour les arbitrages P1 à P19 en bloc (« Acceptés en bloc »). Les autres points ouverts restent écrits tels quels : cette clôture ne les tranche pas. Plan terminé et archivé.
 
 ---
 
@@ -403,7 +404,7 @@ Règles propres à cette phase : celles du plan, plus : les tests ajoutés par l
 | O1 | La barre de transport gagne trois boutons : tient-elle dans la largeur du document à la taille de fenêtre des captures ? À juger sur les captures. | T2.2, T2.6 |
 | O2 | Coût d'un retour en arrière : chaque retour reconstruit le monde depuis son asset. Sur le sample c'est immédiat ; sur un grand monde, un glisser vers l'arrière reconstruira le monde à chaque déplacement de la souris. À mesurer à la recette. | T2.1, T2.4 |
 | O3 | P11 (caméra gardée) ne peut pas être prouvé par une capture : l'automatisation ne déplace pas la caméra. Il est validé par relecture du code et par la recette de l'auteur. | T2.2 |
-| O4 | Confirmation de P1 → P15 par l'auteur. | Toutes |
+| O4 | Levé le 2026-11-19 : l'auteur accepte en bloc les arbitrages P1 à P19 (le plan en compte 19, phase de corrections comprise) (« Acceptés en bloc »). | Toutes |
 | O5 | Corrigé par P18 (T4.2, vérifié par `e8` de T4.6) : dès qu'aucune lecture ne court, le transport revient en `Running` et le monde d'aperçu avance avec les frames de l'éditeur, que la fin soit arrivée en lecture ou pendant une recherche. Le texte d'origine (vérification indépendante du 2026-11-18 : CONFIRMED, sans point bloquant) est conservé dans l'historique git. | T2.1, T4.2 |
 | O6 | Corrigé par P16 (T4.4, vérifié par `e1`, `e3` et `e6` de T4.6) : la ligne d'état de l'aperçu écrit le mot de la barre de transport tant qu'une lecture court (« Preview: Paused. », « Preview: Playing. »). | T2.2, T4.4 |
 | O7 | Corrigé par P17 (T4.3, vérifié par `e1` de T4.6) : aller à 0 montre le premier instant (mise à jour de durée nulle, 0 image). Reste : les actions du temps 0 placées dans un `Parallel` ne sont pas montrées, leurs branches ne démarrant qu'à la mise à jour suivante (limite acceptée, documentée). | T2.1, T4.3 |
