@@ -148,12 +148,13 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 
 ## Phase 3 — Vérification, avance, push
 
-### ⏳ T3.1 — Vérification indépendante
+### ✅ T3.1 — Vérification indépendante
 
 - Objectif : un regard neuf sur la tête réunie avant tout push.
 - Étapes : un vérificateur neuf reçoit la revendication exacte (les trois lignes de travail sont dans la tête ; rien n'est perdu ; builds et tests ; renumérotation complète ; noms) et rend CONFIRMED, REFUTED ou INCONCLUSIVE.
 - Validation : CONFIRMED. Sinon, corriger ce qui est dans le périmètre, ou ⚠️ Blocked.
 - Commit : `docs(plan): record the check of the third integration of origin/main`
+- Note de validation (2026-11-20) : vérificateur neuf sur la tête `54984fc6` : **CONFIRMED**. Confirmé par lui : les trois lignes de travail sont des ancêtres de la tête, `main` et `origin/main` n'ont pas bougé et rien n'a été poussé (`git ls-remote`) ; chaque fusion recalculée par `git merge-tree` ne diffère de la fusion réelle que par les index résolus et par ce plan (statuts et notes de T0.1 et T1.1, que le commit de fusion porte selon la règle « un commit par tâche ») : aucun code ne diffère de la fusion automatique ; aucune ligne d'index d'un des deux côtés ne manque ; comptage de P6 à zéro écart aux deux fusions ; renumérotation complète, 31 lignes dans les classes acceptées, aucune phrase fausse ; builds à 0 erreur, `dotnet test` 8431 sur 8431 ; deux lancements de l'éditeur aux valeurs attendues ; arbre propre. Ses réserves : builds incrémentaux, non refaits de zéro ; le script de comptage compte des lignes et ne voit pas un cas `InlineData` perdu, ce que le contrôle par `git merge-tree` couvre ici. Contrôle des noms séparé, commit par commit, sur les 42 commits de `origin/main..54984fc6` (39 simples, 3 de fusion), par les cinq canaux de P7, deux fichiers binaires compris : aucun nom ajouté. Il a en revanche trouvé un nom de projet extérieur déjà publié sur `origin/main` depuis le push du 2026-11-19, dans deux notes du plan archivé `cutscene-editor-placement-tasks.md`, que la clôture n'avait fait que déplacer : ces deux notes sont réécrites dans le commit de cette tâche, pour que la tête ne le porte plus ; l'historique déjà publié le garde, et le sort de cet historique revient à l'auteur (point O5).
 
 ### ⏳ T3.2 — Notes, avance de `main`, push
 
@@ -178,6 +179,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 | O2 | La session des caméras devra reprendre le `main` réuni et renuméroter ses deux ADR de branche (P4). | T0.2 |
 | O3 | La recette de l'aperçu vivant (T3.2 de son plan) n'est pas faite : la fusion et le push ont lieu avant, à la demande de l'auteur. L'ADR-0146 reste `Proposed`. | — |
 | O4 | Test intermittent, antérieur à ce plan : `OpenAlCallbackDeviceLossTests.After_the_device_is_lost_game_commands_beyond_the_ring_capacity_do_not_wait_and_the_backend_stays_available` échoue parfois dans un lancement complet et passe seul (voir T0.1). C'est sans doute l'échec non identifié noté en O9 du plan de l'aperçu vivant. Non corrigé ici : hors périmètre. | T0.1 |
+| O5 | Un nom de projet extérieur est dans l'historique public d'`origin/main` depuis le push du 2026-11-19 (deux notes d'un plan de cutscenes, commits `c405414c` et `77ebb655`). La tête ne le porte plus depuis T3.1. Le retirer de l'historique demanderait de réécrire des commits publiés, ce que ce plan ne fait pas : décision de l'auteur. | T3.1 |
 
 ## Hors périmètre
 
