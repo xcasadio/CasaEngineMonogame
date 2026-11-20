@@ -156,7 +156,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 - Commit : `docs(plan): record the check of the third integration of origin/main`
 - Note de validation (2026-11-20) : vérificateur neuf sur la tête `54984fc6` : **CONFIRMED**. Confirmé par lui : les trois lignes de travail sont des ancêtres de la tête, `main` et `origin/main` n'ont pas bougé et rien n'a été poussé (`git ls-remote`) ; chaque fusion recalculée par `git merge-tree` ne diffère de la fusion réelle que par les index résolus et par ce plan (statuts et notes de T0.1 et T1.1, que le commit de fusion porte selon la règle « un commit par tâche ») : aucun code ne diffère de la fusion automatique ; aucune ligne d'index d'un des deux côtés ne manque ; comptage de P6 à zéro écart aux deux fusions ; renumérotation complète, 31 lignes dans les classes acceptées, aucune phrase fausse ; builds à 0 erreur, `dotnet test` 8431 sur 8431 ; deux lancements de l'éditeur aux valeurs attendues ; arbre propre. Ses réserves : builds incrémentaux, non refaits de zéro ; le script de comptage compte des lignes et ne voit pas un cas `InlineData` perdu, ce que le contrôle par `git merge-tree` couvre ici. Contrôle des noms séparé, commit par commit, sur les 42 commits de `origin/main..54984fc6` (39 simples, 3 de fusion), par les cinq canaux de P7, deux fichiers binaires compris : aucun nom ajouté. Il a en revanche trouvé un nom de projet extérieur déjà publié sur `origin/main` depuis le push du 2026-11-19, dans deux notes du plan archivé `cutscene-editor-placement-tasks.md`, que la clôture n'avait fait que déplacer : ces deux notes sont réécrites dans le commit de cette tâche, pour que la tête ne le porte plus ; l'historique déjà publié le garde, et le sort de cet historique revient à l'auteur (point O5).
 
-### ⏳ T3.2 — Notes, avance de `main`, push
+### ✅ T3.2 — Notes, avance de `main`, push
 
 - Objectif : `main` et `origin/main` égaux à la tête réunie.
 - Étapes :
@@ -168,6 +168,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 - Validation : le contrôle des noms a rendu zéro résultat sur un nombre de commits égal à celui de `git rev-list --count`, avant l'étape 4 ; les deux commandes de l'étape 4 ont réussi telles quelles ; `main`, `origin/main` et la branche sont au même commit.
 - Retour arrière : P9.
 - Commit : `docs(ai-agent): record the third integration of origin/main`
+- Note de validation (2026-11-20) : après `git fetch origin`, `main` était toujours à `851bfa93` et `origin/main` à `01cdf483`. Les lignes de ce plan et du plan de l'aperçu vivant dans `ai-agent/README.md` sont mises à jour par ce commit, qui est le dernier du plan : le contrôle des noms de P7, l'avance de `main` par `git fetch . chantier/integrate-origin-main-3:main` et `git push origin main` le suivent, et aucun commit n'est fait après le push. Leur résultat est donné à l'auteur dans le rapport et noté dans le dépôt parent, pas ici.
 
 ---
 
