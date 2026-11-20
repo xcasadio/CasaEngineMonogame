@@ -85,6 +85,55 @@ public sealed class EditorRemoteParticleCommandsTests : IDisposable
         Assert.Equal(RemoteErrorCodes.InvalidParams, Call("particle.create", new { name = "X", folder = "../out" }).Error!.Code);
     }
 
+    /// <summary>
+    /// Plan P7, security review S4-1: a folder with an empty segment, or a segment ending with a dot or a space, is refused
+    /// before any file-system access and before the host, even when Windows would resolve it to a real folder.
+    /// </summary>
+    [Theory]
+    [InlineData("Particles/../Particles")]
+    [InlineData("Particles/./Sub")]
+    [InlineData("Particles//Sub")]
+    [InlineData("Particles.")]
+    [InlineData("Particles ")]
+    [InlineData("Particles/...")]
+    [InlineData("Particles/ /Sub")]
+    public void Create_RefusesAFolderWithAnEmptySegmentOrASegmentEndingWithADotOrASpace(string folder)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Particles", "Sub"));
+        string name = "RemoteSpark" + Guid.NewGuid().ToString("N")[..8];
+
+        RemoteResponse response = Call("particle.create", new { name, folder, preset = "spark" });
+
+        Assert.Equal(RemoteErrorCodes.InvalidParams, response.Error!.Code);
+        Assert.Contains("is not a valid folder", response.Error.Message);
+        Assert.Empty(_host.CreatedParticles);
+        Assert.Equal(0, _host.CatalogSaves);
+        Assert.Empty(Directory.GetFiles(_host.ProjectDirectory!, "*", SearchOption.AllDirectories));
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Plan P7: the root ('', '.', '/', '//'), a plain folder and a folder with a dot inside its name are accepted as before.</summary>
+    [Theory]
+    [InlineData("", "")]
+    [InlineData(".", "")]
+    [InlineData("/", "")]
+    [InlineData("//", "")]
+    [InlineData("Particles", "Particles/")]
+    [InlineData("Particles/v1.2", "Particles/v1.2/")]
+    [InlineData("Particles/.hidden", "Particles/.hidden/")]
+    public void Create_AcceptsTheRootAPlainFolderAndAFolderWithADotInside(string folder, string expectedPrefix)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Particles", "v1.2"));
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Particles", ".hidden"));
+        string name = "RemoteSpark" + Guid.NewGuid().ToString("N")[..8];
+
+        JsonElement result = Ok(Call("particle.create", new { name, folder, preset = "spark" }));
+
+        string expectedFile = expectedPrefix + name + ".particle";
+        Assert.Equal(expectedFile, result.GetProperty("file").GetString());
+        Assert.Equal((expectedFile.Replace('/', Path.DirectorySeparatorChar), "spark"), Assert.Single(_host.CreatedParticles));
+    }
+
     /// <summary>Security review S2-2: an out-of-bounds count can no longer crash the editor, numbers must be finite, enums named.</summary>
     [Theory]
     [InlineData("maxparticles", "2147483647")]

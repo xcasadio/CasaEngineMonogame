@@ -13,7 +13,11 @@ internal readonly record struct RemoteNewAssetFile(string RelativeFile, string F
 /// Checks and writes a new asset file for <c>material.create</c>, <c>particle.create</c> and <c>sound.create</c>
 /// (ADR-0093 P4, security review S2-4): a name (the world name rule), an existing folder inside the project, the
 /// type's extension, no name already in the catalog (any type, any case), no catalog entry for the file, no existing
-/// file; the file is created with <see cref="FileMode.CreateNew"/>, never over another one.
+/// file; the file is created with <see cref="FileMode.CreateNew"/>, never over another one. A folder other than the
+/// root is refused, before any file-system access, when a segment is empty or ends with a dot or a white space ('.',
+/// '..', 'Models.'): Windows would resolve it to another path than the one catalogued, and drops a trailing dot or space
+/// from the last segment but not from an intermediate one, so the link check could read another folder than the one
+/// written in (plan P7, security review S4-1).
 /// </summary>
 internal static class EditorRemoteAssetCreation
 {
@@ -31,6 +35,11 @@ internal static class EditorRemoteAssetCreation
         }
 
         string folderPath = string.IsNullOrWhiteSpace(folder) || folder.Trim() is "." or "/" ? string.Empty : folder.Replace('\\', '/').Trim('/');
+        if (folderPath.Length > 0 && !HasOnlyPlainSegments(folderPath))
+        {
+            throw new EditorRemoteArgumentException($"'{folder}' is not a valid folder: a folder segment cannot be empty nor end with a dot or a space ('.', '..' and names such as 'Models.' are refused).");
+        }
+
         string folderFull = Path.GetFullPath(projectDirectory);
         string folderLinkPath = null;
         if (folderPath.Length > 0 && !EditorRemoteValidation.TryResolveInsideProject(projectDirectory, folderPath, out folderFull, out folderLinkPath))
@@ -77,6 +86,31 @@ internal static class EditorRemoteAssetCreation
         }
 
         return new RemoteNewAssetFile(relativeFile.Replace('/', Path.DirectorySeparatorChar), fullPath, name);
+    }
+
+    /// <summary>
+    /// True when no '/'-separated segment of <paramref name="folderPath"/> is empty or ends with a dot or a white space
+    /// (plan P7, security review S4-1). Pure text check: no file-system access.
+    /// </summary>
+    private static bool HasOnlyPlainSegments(string folderPath)
+    {
+        string[] segments = folderPath.Split('/');
+        for (int i = 0; i < segments.Length; i++)
+        {
+            string segment = segments[i];
+            if (segment.Length == 0)
+            {
+                return false;
+            }
+
+            char last = segment[segment.Length - 1];
+            if (last == '.' || char.IsWhiteSpace(last))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

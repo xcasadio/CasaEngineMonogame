@@ -95,7 +95,10 @@ internal interface IEditorRemoteHost
         Func<CasaEngine.Framework.Materials.Definitions.MaterialPropertyDefinition, CasaEngine.Framework.Materials.Runtime.MaterialValue, string> validate,
         out string error);
 
-    /// <summary>Saves one open asset (material, particle or sound panel) and marks its history saved.</summary>
+    /// <summary>
+    /// Saves one open asset (material, particle, sound or entity asset panel) and marks its history saved. An entity
+    /// asset panel writes its file only when it has unsaved changes.
+    /// </summary>
     bool TrySaveAsset(Guid assetId, out string error);
 
     /// <summary>Creates a particle asset from a preset at a prepared new file (reserved first, never overwriting).</summary>
@@ -130,6 +133,25 @@ internal interface IEditorRemoteHost
 
     /// <summary>Applies a validated change to an open sound through its panel, without history (the panel is marked modified).</summary>
     bool TrySetSoundProperty(Guid assetId, Action<CasaEngine.Framework.Audio.SoundAsset> change, out string error);
+
+    /// <summary>The entity of the entity asset panel open with its dock tab, or null.</summary>
+    Entity GetEntityAsset(Guid assetId);
+
+    /// <summary>The project-relative file the entity asset panel open with its dock tab loaded, or null.</summary>
+    string GetEntityAssetLoadedFile(Guid assetId);
+
+    /// <summary>True when the entity asset panel open with its dock tab has unsaved changes.</summary>
+    bool IsEntityAssetModified(Guid assetId);
+
+    /// <summary>Selects a component in the entity asset panel open with its dock tab; no effect when the panel is not open.</summary>
+    void SelectEntityAssetComponent(Guid assetId, EntityComponent component);
+
+    /// <summary>
+    /// Creates an empty entity asset (an entity named after the file, without component) at a prepared new file, reserved
+    /// first and never overwriting, then adds it to the asset catalog and saves the catalog (plan P6); a failure is
+    /// undone and reported through <paramref name="error"/>.
+    /// </summary>
+    bool CreateEntityAsset(RemoteNewAssetFile file, out Guid assetId, out string error);
 }
 
 /// <summary>
@@ -165,6 +187,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteParticleCommands.Register(Registry, host);
         EditorRemoteScreenCommands.Register(Registry, host);
         EditorRemoteSoundCommands.Register(Registry, host);
+        EditorRemoteEntityAssetCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

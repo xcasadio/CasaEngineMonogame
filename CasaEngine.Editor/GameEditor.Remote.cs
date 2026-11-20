@@ -316,7 +316,7 @@ public partial class GameEditor
 
         /// <summary>
         /// Closing by code raises no closing event (the dock only asks for user closes), so the unsaved check is done
-        /// here, per kind, and only the four asset document panels may close (ADR-0093 P7, security review S2-3).
+        /// here, per kind, and only the five asset document panels may close (ADR-0093 P7, security review S2-3; ADR-0145).
         /// </summary>
         public RemotePanelCloseResult ClosePanel(string panelId)
         {
@@ -339,14 +339,38 @@ public partial class GameEditor
             return _editor._dockHost.ClosePanel(panel) ? RemotePanelCloseResult.Closed : RemotePanelCloseResult.NotFound;
         }
 
+        /// <remarks>
+        /// For an entity asset (plan P13, security review S3-1), the panel id is the asset id, and an uncatalogued copy
+        /// of the file carries that id too: the id is returned only when the panel registered under it holds
+        /// <paramref name="fullPath"/> (<see cref="EditorRemoteEntityAssets.IsLoadedFile"/>), otherwise the open fails.
+        /// A panel holding another file is never reloaded, and the editor's open is not reached for it.
+        /// </remarks>
         public string OpenAsset(string fullPath, string type)
         {
+            bool entity = type == EditorRemoteAssetTypes.Entity;
+
             // An open panel is brought to the front, never reloaded: reopening reads the file again and would drop
             // the unsaved edits (and, for a screen, the node ids) of earlier commands.
             AssetInfo openInfo = FindCatalogInfo(fullPath);
-            string openPanelId = openInfo != null ? FindAssetPanelId(openInfo.Id) : null;
-            if (openPanelId != null)
+            if (entity && openInfo != null)
             {
+                // A panel registered under this id, with or without its tab, must hold this file before the editor's
+                // open is reached: that open would keep the panel's content and retitle it after this file.
+                string registeredPanelId = EditorPanelIds.EntityAssetDocumentPrefix + openInfo.Id.ToString("N");
+                if (_editor._entityAssetEditorPanels.ContainsKey(registeredPanelId) && !EntityPanelHoldsFile(registeredPanelId, fullPath))
+                {
+                    return null;
+                }
+            }
+
+            string openPanelId = openInfo != null ? FindAssetPanelId(openInfo.Id) : null;
+            if (openPanelId != null && (entity || !IsEntityPanelId(openPanelId)))
+            {
+                if (entity && !EntityPanelHoldsFile(openPanelId, fullPath))
+                {
+                    return null;
+                }
+
                 _editor.ActivateDockPanel(openPanelId);
                 return openPanelId;
             }
@@ -357,6 +381,7 @@ public partial class GameEditor
                 EditorRemoteAssetTypes.Particle => _editor.TryOpenParticleAsset(fullPath),
                 EditorRemoteAssetTypes.UIScreen => _editor.TryOpenUIScreenAsset(fullPath),
                 EditorRemoteAssetTypes.Sound => _editor.TryOpenSoundAsset(fullPath),
+                EditorRemoteAssetTypes.Entity => _editor.TryOpenEntityAsset(fullPath),
                 _ => false,
             };
             if (!opened)
@@ -365,7 +390,41 @@ public partial class GameEditor
             }
 
             AssetInfo info = FindCatalogInfo(fullPath);
-            return info != null ? FindAssetPanelId(info.Id) : null;
+            string panelId = info != null ? FindAssetPanelId(info.Id) : null;
+            if (panelId == null)
+            {
+                return null;
+            }
+
+            if (entity)
+            {
+                return EntityPanelHoldsFile(panelId, fullPath) ? panelId : null;
+            }
+
+            // The four other kinds answer as before the entity panels joined the closed list.
+            return IsEntityPanelId(panelId) ? null : panelId;
+        }
+
+        private static bool IsEntityPanelId(string panelId)
+            => panelId.StartsWith(EditorPanelIds.EntityAssetDocumentPrefix, StringComparison.Ordinal);
+
+        /// <summary>Plan P13: whether the entity panel registered under <paramref name="panelId"/> holds <paramref name="fullPath"/>; logs why not.</summary>
+        private bool EntityPanelHoldsFile(string panelId, string fullPath)
+        {
+            if (!_editor._entityAssetEditorPanels.TryGetValue(panelId, out var entityPanel))
+            {
+                Logs.WriteWarning($"[Remote] Panel '{panelId}' is not an entity asset panel: '{fullPath}' is not opened through it.");
+                return false;
+            }
+
+            if (EditorRemoteEntityAssets.IsLoadedFile(EngineEnvironment.ProjectPath, entityPanel.LoadedRelativePath, fullPath))
+            {
+                return true;
+            }
+
+            Logs.WriteWarning(
+                $"[Remote] Entity asset panel '{panelId}' holds '{entityPanel.LoadedRelativePath ?? "<none>"}', not '{fullPath}': the open is refused.");
+            return false;
         }
 
         private static AssetInfo FindCatalogInfo(string fullPath)
@@ -396,6 +455,24 @@ public partial class GameEditor
             else if (_editor._screenPreviewPanels.ContainsKey(panelId))
             {
                 kind = EditorHistoryContextKind.UIScreen;
+            }
+            else if (_editor._entityAssetEditorPanels.TryGetValue(panelId, out var entityPanel))
+            {
+                // Plan P13, security review S3-2: the panel id is open (with its tab, FindAssetPanelId), but an
+                // uncatalogued file can carry the id; the id must be a catalogued entity asset whose file the panel holds.
+                AssetInfo info = AssetCatalog.Get(assetId);
+                if (info == null
+                    || !string.Equals(AssetInfo.InferAssetType(info.FileName), EditorRemoteAssetTypes.Entity, StringComparison.Ordinal)
+                    || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath)
+                    || !EditorRemoteEntityAssets.IsLoadedFile(
+                        EngineEnvironment.ProjectPath,
+                        entityPanel.LoadedRelativePath,
+                        Path.Combine(EngineEnvironment.ProjectPath, info.FileName)))
+                {
+                    return false;
+                }
+
+                kind = EditorHistoryContextKind.Entity;
             }
             else
             {
@@ -558,6 +635,50 @@ public partial class GameEditor
             return true;
         }
 
+        public Entity GetEntityAsset(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel) ? panel.LoadedEntity : null;
+
+        public string GetEntityAssetLoadedFile(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel) ? panel.LoadedRelativePath : null;
+
+        /// <summary>Through the editor's document method (ADR-0143), for a panel open with its tab only (security review S3-6).</summary>
+        public bool IsEntityAssetModified(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel)
+               && _editor.IsEntityDocumentModified(EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N"), panel);
+
+        public void SelectEntityAssetComponent(Guid assetId, EntityComponent component)
+        {
+            if (TryGetOpenEntityAssetPanel(assetId, out var panel))
+            {
+                panel.SetSelectedComponent(component);
+            }
+        }
+
+        /// <summary>Plan P6: the editor's writer and catalog save, behind the steps and the rollback of <see cref="EditorRemoteEntityAssets.Create"/>.</summary>
+        public bool CreateEntityAsset(RemoteNewAssetFile file, out Guid assetId, out string error)
+            => EditorRemoteEntityAssets.Create(
+                file,
+                (relative, entity) => EditorAssetWriterService.SaveAsset(relative, entity, EditorAssetSaveSource.EntityAssetEditorPanel),
+                EditorAssetCatalogService.Save,
+                out assetId,
+                out error);
+
+        /// <summary>
+        /// The entity asset panel of <paramref name="assetId"/> when it is open: registered and with its dock tab. A panel
+        /// registered without its tab is not open (security review S3-6), as in <see cref="GetAssetPanelKind"/>.
+        /// </summary>
+        private bool TryGetOpenEntityAssetPanel(Guid assetId, out Controls.EntityAssetEditorPanel panel)
+        {
+            string panelId = EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N");
+            if (_editor._entityAssetEditorPanels.TryGetValue(panelId, out panel) && FindPanel(panelId) != null)
+            {
+                return true;
+            }
+
+            panel = null;
+            return false;
+        }
+
         /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
         public bool TrySaveAsset(Guid assetId, out string error)
         {
@@ -592,11 +713,27 @@ public partial class GameEditor
                 return sound.TrySaveLoadedAsset(out error);
             }
 
+            // Through the editor's save method of the entity documents (ADR-0143), as project.save does
+            // (SaveDirtyEntityAssetEditors), for a panel open with its tab only (security review S3-6). The method writes,
+            // marks the history saved and updates the title; on a failed write it logs the reason and leaves the panel modified.
+            string entityPanelId = EditorPanelIds.EntityAssetDocumentPrefix + id;
+            if (_editor._entityAssetEditorPanels.TryGetValue(entityPanelId, out var entity) && FindPanel(entityPanelId) != null)
+            {
+                if (!_editor.TrySaveEntityDocument(entityPanelId, entity))
+                {
+                    error = $"'{entity.LoadedRelativePath}' was not saved: see logs.read.";
+                    return false;
+                }
+
+                error = null;
+                return true;
+            }
+
             error = "The asset is not open.";
             return false;
         }
 
-        /// <summary>The id of the open panel of an asset among the four asset panel kinds, or null.</summary>
+        /// <summary>The id of the open panel of an asset among the five asset panel kinds, or null.</summary>
         private string FindAssetPanelId(Guid assetId)
         {
             string[] candidates =
@@ -605,6 +742,7 @@ public partial class GameEditor
                 EditorPanelIds.ParticleAssetDocumentPrefix + assetId.ToString("N"),
                 EditorPanelIds.UIScreenDocumentPrefix + assetId.ToString("N"),
                 EditorPanelIds.SoundAssetDocumentPrefix + assetId.ToString("N"),
+                EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N"),
             };
 
             foreach (string candidate in candidates)
@@ -643,6 +781,14 @@ public partial class GameEditor
             {
                 modified = sound.IsDirty;
                 return EditorRemoteAssetTypes.Sound;
+            }
+
+            // An entity panel registered without its dock tab (the tab could not be created) is not open (security review S3-6).
+            // Its modified state is the editor's document method (ADR-0143).
+            if (_editor._entityAssetEditorPanels.TryGetValue(panelId, out var entity) && FindPanel(panelId) != null)
+            {
+                modified = _editor.IsEntityDocumentModified(panelId, entity);
+                return EditorRemoteAssetTypes.Entity;
             }
 
             modified = false;

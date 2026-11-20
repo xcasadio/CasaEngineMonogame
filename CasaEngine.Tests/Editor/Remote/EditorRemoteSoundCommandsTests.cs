@@ -85,6 +85,56 @@ public sealed class EditorRemoteSoundCommandsTests : IDisposable
         Assert.Equal(RemoteErrorCodes.InvalidParams, Call("sound.create", new { name = "bad/name", folder = "Sounds" }).Error!.Code);
     }
 
+    /// <summary>
+    /// Plan P7, security review S4-1: a folder with an empty segment, or a segment ending with a dot or a space, is refused
+    /// before any file-system access and before the host, even when Windows would resolve it to a real folder.
+    /// </summary>
+    [Theory]
+    [InlineData("Sounds/../Sounds")]
+    [InlineData("Sounds/./Sub")]
+    [InlineData("Sounds//Sub")]
+    [InlineData("Sounds.")]
+    [InlineData("Sounds ")]
+    [InlineData("Sounds/...")]
+    [InlineData("Sounds/ /Sub")]
+    public void Create_RefusesAFolderWithAnEmptySegmentOrASegmentEndingWithADotOrASpace(string folder)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Sounds", "Sub"));
+        string[] filesBefore = Directory.GetFiles(_host.ProjectDirectory!, "*", SearchOption.AllDirectories);
+        string name = "RemoteStep" + Guid.NewGuid().ToString("N")[..8];
+
+        RemoteResponse response = Call("sound.create", new { name, folder });
+
+        Assert.Equal(RemoteErrorCodes.InvalidParams, response.Error!.Code);
+        Assert.Contains("is not a valid folder", response.Error.Message);
+        Assert.Empty(_host.CreatedSounds);
+        Assert.Equal(0, _host.CatalogSaves);
+        Assert.Equal(filesBefore, Directory.GetFiles(_host.ProjectDirectory!, "*", SearchOption.AllDirectories));
+        Assert.DoesNotContain(AssetCatalog.AssetInfos, info => string.Equals(info.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Plan P7: the root ('', '.', '/', '//'), a plain folder and a folder with a dot inside its name are accepted as before.</summary>
+    [Theory]
+    [InlineData("", "")]
+    [InlineData(".", "")]
+    [InlineData("/", "")]
+    [InlineData("//", "")]
+    [InlineData("Sounds", "Sounds/")]
+    [InlineData("Sounds/v1.2", "Sounds/v1.2/")]
+    [InlineData("Sounds/.hidden", "Sounds/.hidden/")]
+    public void Create_AcceptsTheRootAPlainFolderAndAFolderWithADotInside(string folder, string expectedPrefix)
+    {
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Sounds", "v1.2"));
+        Directory.CreateDirectory(Path.Combine(_host.ProjectDirectory!, "Sounds", ".hidden"));
+        string name = "RemoteStep" + Guid.NewGuid().ToString("N")[..8];
+
+        JsonElement result = Ok(Call("sound.create", new { name, folder }));
+
+        string expectedFile = expectedPrefix + name + ".sound";
+        Assert.Equal(expectedFile, result.GetProperty("file").GetString());
+        Assert.Equal(expectedFile.Replace('/', Path.DirectorySeparatorChar), Assert.Single(_host.CreatedSounds));
+    }
+
     [Fact]
     public void SetProperty_AppliesTypedValues_WithoutHistory()
     {

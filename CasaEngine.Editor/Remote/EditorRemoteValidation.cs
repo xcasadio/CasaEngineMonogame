@@ -59,7 +59,8 @@ internal static partial class EditorRemoteValidation
     /// <summary>
     /// <see cref="TryResolveInsideProject(string, string, out string)"/>, telling a link refusal apart:
     /// <paramref name="linkPath"/> names the existing component below the project root that is a link (or cannot be
-    /// read, see <see cref="IsFreeOfLinksBelowRoot"/>); it is null when the refusal is textual (rooted, ':' or outside).
+    /// read), or the component, existing or missing, whose name ends with a dot or a white space (see
+    /// <see cref="IsFreeOfLinksBelowRoot"/>); it is null when the refusal is textual (rooted, ':' or outside).
     /// </summary>
     public static bool TryResolveInsideProject(string projectDirectory, string relativePath, out string fullPath, out string linkPath)
     {
@@ -90,16 +91,28 @@ internal static partial class EditorRemoteValidation
         return true;
     }
 
-    /// <summary>The refusal of a path that crosses a link inside the project (ADR-0093, A3), naming the link.</summary>
+    /// <summary>
+    /// The refusal of a path whose component <paramref name="linkPath"/> was refused by <see cref="IsFreeOfLinksBelowRoot"/>
+    /// (ADR-0093, A3), naming it: a name ending with a dot or a white space when its last character says so, a link
+    /// otherwise.
+    /// </summary>
     public static EditorRemoteArgumentException LinkRefusal(string path, string linkPath)
-        => new($"'{path}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project: paths under a link are refused (ADR-0093, A3).");
+    {
+        string ending = DescribeNameEnding(linkPath);
+        return ending != null
+            ? new EditorRemoteArgumentException($"'{path}' goes through '{linkPath}', a name that ends with {ending}: Windows would read another entry than the one the path reaches, so such a name is refused (ADR-0093, A3).")
+            : new EditorRemoteArgumentException($"'{path}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project: paths under a link are refused (ADR-0093, A3).");
+    }
 
     /// <summary>
-    /// ADR-0093 A3: true when no existing component of <paramref name="fullPath"/> strictly below <paramref name="root"/>
-    /// is a symbolic link, a junction or a mount point; the root and its ancestors are not checked. The walk stops at the
-    /// first missing component (the rest is to be created). A component whose attributes cannot be read is refused (fail
-    /// closed). <paramref name="linkPath"/> names the refused component. Both are full paths, <paramref name="fullPath"/>
-    /// inside <paramref name="root"/>. A hard link carries no reparse attribute and is not detected.
+    /// ADR-0093 A3: true when no component of <paramref name="fullPath"/> strictly below <paramref name="root"/> has a name
+    /// ending with a dot or a white space, and no existing one is a symbolic link, a junction or a mount point; the root
+    /// and its ancestors are not checked. The name rule is textual, applies to existing and missing components alike and
+    /// comes first: Windows reads such a name as another entry than the one a later access goes through. The link walk
+    /// then stops at the first missing component (the rest is to be created). A component whose attributes cannot be read
+    /// is refused (fail closed). <paramref name="linkPath"/> names the refused component, whether refused for its name or
+    /// as a link. Both are full paths, <paramref name="fullPath"/> inside <paramref name="root"/>. A hard link carries no
+    /// reparse attribute and is not detected.
     /// </summary>
     public static bool IsFreeOfLinksBelowRoot(string root, string fullPath, out string linkPath)
     {
@@ -116,6 +129,19 @@ internal static partial class EditorRemoteValidation
         }
 
         string[] segments = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+
+        // Text only, before any read: the attributes of 'Real ' are those of 'Real', while 'Real \x' goes through 'Real '.
+        string component = root;
+        for (int i = 0; i < segments.Length; i++)
+        {
+            component = Path.Combine(component, segments[i]);
+            if (DescribeNameEnding(segments[i]) != null)
+            {
+                linkPath = component;
+                return false;
+            }
+        }
+
         string current = root;
         for (int i = 0; i < segments.Length; i++)
         {
@@ -133,6 +159,31 @@ internal static partial class EditorRemoteValidation
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// "a dot", "a space" or "a white-space character" when the last character of <paramref name="name"/> (a segment, or a
+    /// path whose last component is the segment) is '.', U+0020 or another white space; null otherwise.
+    /// </summary>
+    private static string DescribeNameEnding(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        char last = name[^1];
+        if (last == '.')
+        {
+            return "a dot";
+        }
+
+        if (last == ' ')
+        {
+            return "a space";
+        }
+
+        return char.IsWhiteSpace(last) ? "a white-space character" : null;
     }
 
     /// <summary>
@@ -226,7 +277,10 @@ internal static partial class EditorRemoteValidation
 
         if (!IsFreeOfLinksBelowRoot(root, candidate, out string linkPath))
         {
-            error = $"'{candidate}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project folder '{root}': paths under a link are refused (ADR-0093 P11, A3).";
+            string ending = DescribeNameEnding(linkPath);
+            error = ending != null
+                ? $"'{candidate}' goes through '{linkPath}', a name that ends with {ending} inside the project folder '{root}': Windows would read another entry than the one the path reaches, so such a name is refused (ADR-0093 P11, A3)."
+                : $"'{candidate}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project folder '{root}': paths under a link are refused (ADR-0093 P11, A3).";
             return false;
         }
 

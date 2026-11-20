@@ -117,7 +117,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 
 ## Phase 1 — Fusion d'`origin/main`
 
-### ⏳ T1.1 — Fusionner `origin/main`, résoudre, compiler, passer les tests
+### ✅ T1.1 — Fusionner `origin/main`, résoudre, compiler, passer les tests
 
 - Objectif : une tête qui contient tout.
 - Étapes :
@@ -127,6 +127,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
   4. Comptage de P6 pour cette fusion (base `760734ae`, tête locale de T0.2, `origin/main`, arbre réuni), avec le script de T0.1 ; noter les quatre totaux et chaque écart.
 - Validation : aucun marqueur de conflit ; 0 erreur ; tests verts ; comptage sans écart inexpliqué ; les ADR 0144 à 0148 existent chacune une fois et l'index les liste toutes.
 - Commit : `merge: integrate origin/main (entity asset remote commands, path segment rule)`
+- Note de validation (2026-11-20) : après `git fetch origin`, `origin/main` était toujours `01cdf483` et `main` `851bfa93`. Fusion de `01cdf483` : deux conflits, tous deux dans des index, résolus en gardant les lignes des deux côtés : `ai-agent/README.md` (la ligne du plan des caméras, puis les trois lignes venues d'`origin/main`) et `docs/decisions/README.md` (0144 et 0145 d'`origin/main`, puis 0146, 0147, 0148 et la note de renumérotation). `EditorEntityJsonSerializer.cs` s'est fusionné seul ; aucun conflit dans du code. Aucun marqueur de conflit. Les ADR 0144 à 0148 existent chacune une fois et l'index les liste chacune une fois. Build des deux solutions : 0 erreur. `dotnet test` : 8431 réussites sur 8431. Comptage de P6 sur 635 fichiers : base `760734ae` 5941, tête locale `df972f46` 6033, `origin/main` 6018, arbre réuni 6110, attendu 6110, aucun écart.
 
 ---
 

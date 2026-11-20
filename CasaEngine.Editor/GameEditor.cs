@@ -9725,13 +9725,14 @@ public partial class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// ADR-0093 P9: the four asset types of <c>asset.open</c> go through that command; a world and the other asset
-    /// types keep the editor's own route (<c>world.open</c> answers later, and <c>asset.open</c> has a closed list).
+    /// ADR-0093 P9: the material, particle, UI screen and sound assets go through <c>asset.open</c>; a world, an entity
+    /// asset (ADR-0145, plan P4: it also opens an uncatalogued <c>.entity</c>) and the other asset types keep the editor's own
+    /// route (<c>world.open</c> answers later, and <c>asset.open</c> has a closed list).
     /// </summary>
     private bool TryOpenAutomationAsset(string fullPath, string relativePath)
     {
         string assetType = AssetInfo.InferAssetType(fullPath);
-        if (!EditorRemoteAssetTypes.IsOpenable(assetType))
+        if (!EditorRemoteAssetTypes.IsAutomationOpenable(assetType))
         {
             return TryOpenEditorAsset(fullPath);
         }

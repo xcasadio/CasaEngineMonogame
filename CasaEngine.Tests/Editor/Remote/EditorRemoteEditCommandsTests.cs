@@ -9,6 +9,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CasaEngine.Tests.Editor.Remote;
 
@@ -21,9 +22,12 @@ public sealed class EditorRemoteEditCommandsTests : IDisposable
     private readonly RemoteTestHost _host;
     private readonly EditorRemoteControl _control;
     private readonly World _world = new() { Name = "Level", FileName = "Level.world" };
+    private readonly List<string> _links = new();
+    private readonly ITestOutputHelper _log;
 
-    public EditorRemoteEditCommandsTests()
+    public EditorRemoteEditCommandsTests(ITestOutputHelper log)
     {
+        _log = log;
         EditorHistoryService.Current.IsSuspended = false;
         EditorHistoryService.Current.Remove(EditorRemoteEditCommands.WorldContext);
         EditorHistoryService.Current.Remove(OtherContext);
@@ -43,7 +47,8 @@ public sealed class EditorRemoteEditCommandsTests : IDisposable
         EditorHistoryService.Current.Deactivate();
         EditorHistoryService.Current.Remove(EditorRemoteEditCommands.WorldContext);
         EditorHistoryService.Current.Remove(OtherContext);
-        Directory.Delete(_directory, recursive: true);
+        PathSegmentJunctions.RemoveLinks(_links);
+        PathSegmentJunctions.DeleteTreeWithoutLinks(_directory);
     }
 
     private EditorRemoteCall Start(string method, object parameters = null)
@@ -349,6 +354,49 @@ public sealed class EditorRemoteEditCommandsTests : IDisposable
     {
         Assert.Equal(RemoteErrorCodes.InvalidParams, Call("world.open", new { file }).Error!.Code);
         Assert.Empty(_host.OpenedWorlds);
+    }
+
+    /// <summary>
+    /// Plan remote-path-segments P5, set A4: 'Real /x.world', where 'Real ' is a junction to a folder outside the project
+    /// that holds the only world of that name, is refused as an invalid argument and the host never receives
+    /// BeginOpenWorld. Without the real 'Real' folder (realFolder false) too.
+    /// </summary>
+    [Theory]
+    [InlineData('/', true)]
+    [InlineData('\\', true)]
+    [InlineData('/', false)]
+    public void SetA4_WorldOpen_UnderAJunctionEndingWithASpace_IsRefused_BeforeTheHost(char separator, bool realFolder)
+    {
+        string project = Path.GetFullPath(_host.ProjectDirectory!);
+        string outside = Path.Combine(_directory, "outside");
+        Directory.CreateDirectory(outside);
+        string onlyOutsideFile = "only-outside-" + Guid.NewGuid().ToString("N")[..8] + ".world";
+        File.WriteAllText(Path.Combine(outside, onlyOutsideFile), "{\"outside\":true}");
+        if (realFolder)
+        {
+            Directory.CreateDirectory(Path.Combine(project, "Real"));
+        }
+
+        if (!PathSegmentJunctions.TryCreate(project, "Real ", outside, _log, _links))
+        {
+            return;
+        }
+
+        Assert.Equal(realFolder, PathSegmentJunctions.IsRealFolderInEnumeration(project, "Real"));
+        Assert.False(File.Exists(Path.Combine(project, "Real", onlyOutsideFile)));
+        Assert.True(File.Exists(Path.Combine(project, "Real ", onlyOutsideFile)));
+        string[] target = PathSegmentJunctions.Snapshot(outside);
+
+        EditorRemoteCall call = Start("world.open", new { file = "Real " + separator + onlyOutsideFile });
+        _log.WriteLine($"world.open: completed {call.IsCompleted}, error: {(call.IsCompleted ? call.Completion.Result.Error?.Message : null)}; host opens: [{string.Join(", ", _host.OpenedWorlds)}]");
+
+        Assert.Empty(_host.OpenedWorlds);
+        Assert.True(call.IsCompleted, "'world.open' did not answer.");
+        RemoteResponse response = call.Completion.Result;
+        Assert.Equal(RemoteErrorCodes.InvalidParams, response.Error?.Code);
+        Assert.Contains("'" + Path.Combine(project, "Real ") + "'", response.Error!.Message);
+        Assert.Contains("ends with a space", response.Error.Message);
+        Assert.Equal(target, PathSegmentJunctions.Snapshot(outside));
     }
 
     [Fact]
