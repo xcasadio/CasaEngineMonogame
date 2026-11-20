@@ -109,7 +109,7 @@ public class AnimationIkDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(Vector3.Backward * 18f + Vector3.Up * 11f, Vector3.Up * 4.5f, Vector3.Up);
+        DemoCameraFraming.Frame(camera, Vector3.Backward * 18f + Vector3.Up * 11f, Vector3.Up * 4.5f);
     }
 
     public override void Update(GameTime gameTime)

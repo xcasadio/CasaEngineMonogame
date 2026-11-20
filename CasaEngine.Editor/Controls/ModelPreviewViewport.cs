@@ -96,7 +96,7 @@ internal sealed class ModelPreviewViewport : IDisposable
     private Entity _modelEntity;
     private StaticModelComponent _modelComponent;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
     private int _rtWidth = 320;
     private int _rtHeight = 240;
     private bool _disposed;
@@ -326,7 +326,7 @@ internal sealed class ModelPreviewViewport : IDisposable
 
         EnsurePreviewWorldCreated();
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity = EditorCameraFactory.CreateCameraEntity("ModelPreviewCamera", _camera, _previewWorldDriver.World!);
         _camera.NearPlane = 0.05f;
         _camera.SetPositionAndTarget(new Vector3(2.4f, 1.5f, 3.0f), Vector3.Zero);

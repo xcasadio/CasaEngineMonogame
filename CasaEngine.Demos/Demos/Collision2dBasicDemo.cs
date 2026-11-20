@@ -221,7 +221,7 @@ public class Collision2dBasicDemo : Demo
     public override void InitializeCamera(CameraComponent camera)
     {
         // Face the plane of the simulation, far enough to see the pile and the trigger zone.
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(8f, 9f, 42f), new Vector3(8f, 6f, 0f), Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(8f, 9f, 42f), new Vector3(8f, 6f, 0f));
     }
 
     public override void Update(GameTime gameTime)

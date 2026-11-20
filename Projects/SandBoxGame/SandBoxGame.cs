@@ -48,8 +48,10 @@ namespace SandBoxGame
 
             //============ Camera ===============
             var entity = new Entity(); // { Name = "camera" };
-            var camera = new ArcBallCameraComponent();
+            var camera = new PerspectiveCameraComponent();
             entity.AddComponent(camera);
+            var orbit = new OrbitCameraComponent();
+            entity.AddComponent(orbit);
             entity.SetGameplayProxy(new ScriptArcBallCamera());
             world.AddEntity(entity);
 
@@ -107,7 +109,7 @@ namespace SandBoxGame
             base.LoadContent();
 
             world.LoadContent(this);
-            camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+            orbit.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero);
         }
         /*
         private byte[] CompileShaderFromMaterial(Material material)

@@ -113,12 +113,12 @@ public class SkinnedMeshDemo : Demo
 
     public override string DocumentationPath => "docs/engine/light-component.md";
 
-    // The base Demo creates an arc-ball camera and its InitializeCamera casts to that type, so a demo that wants another
+    // The base Demo creates a camera posed by an orbit component, so a demo that wants another
     // camera overrides both methods together. A fixed look-at camera keeps the view the same from run to run.
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity { Name = "SkinnedShadowValidationCamera" };
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
         entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);

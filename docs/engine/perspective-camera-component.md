@@ -55,7 +55,7 @@ It is the first slice of the chantier "simple cameras, behaviours as components"
 
 ## What comes next
 
-- Slice 2 moves the behaviours (orbit, aim, follow) out of the old camera classes into engine components that write the transform of a simple camera.
+- Slice 2 (done, ADR-0145) moved the orbit and the 2d follow into components that write the transform of this camera: see [camera-behaviour-components.md](camera-behaviour-components.md).
 - Slice 3 removes `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent`, and decides how the data that names them is read. `PerspectiveCameraComponent` keeps its name and its keys.
 
 ## Tests

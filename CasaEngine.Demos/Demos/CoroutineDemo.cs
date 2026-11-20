@@ -120,7 +120,7 @@ public class CoroutineDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(0f, 12f, 16f), Vector3.Zero, Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(0f, 12f, 16f), Vector3.Zero);
 
         // Called once the world is loaded: start the coroutine here.
         StartPatrol();

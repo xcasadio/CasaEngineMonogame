@@ -11,7 +11,8 @@ using Microsoft.Xna.Framework.Input;
 namespace CasaEngine.Framework.Scripting;
 
 /// <summary>
-/// Camera script for an <see cref="ArcBallCameraComponent"/> with the controls of Unreal's perspective viewport,
+/// Camera script for an <see cref="OrbitCameraComponent"/> (ADR-0145), or for an <see cref="ArcBallCameraComponent"/>
+/// when its entity has no orbit component, with the controls of Unreal's perspective viewport,
 /// shared with the editor viewport through <see cref="ViewportCameraNavigation"/> (ADR-0089): left drag moves
 /// forward/back and turns, right drag looks around, middle drag or left + right drag pans, the wheel moves toward the
 /// pivot without moving it (the pivot is pushed ahead once the minimum distance is reached), right button + W/A/S/D
@@ -33,6 +34,8 @@ public class ScriptArcBallCamera : GameplayProxy
     private readonly ViewportCameraNavigation _navigation = new();
 
     private ArcBallCameraComponent _arcBallCameraComponent;
+    private OrbitCameraComponent _orbitCameraComponent;
+    private Camera3dComponent _orbitedCamera;
     private InputComponent _inputComponent;
     private CasaEngineGame _game;
     private ViewportMouseButtons _latchedButtons;
@@ -73,7 +76,10 @@ public class ScriptArcBallCamera : GameplayProxy
     {
         base.InitializePrivate();
 
-        _arcBallCameraComponent = Owner.GetComponent<ArcBallCameraComponent>();
+        //  An orbit component wins: it poses the camera of the entity, whose field of view the script also changes.
+        _orbitCameraComponent = Owner.GetComponent<OrbitCameraComponent>();
+        _orbitedCamera = _orbitCameraComponent != null ? Owner.GetComponent<Camera3dComponent>() : null;
+        _arcBallCameraComponent = _orbitCameraComponent == null ? Owner.GetComponent<ArcBallCameraComponent>() : null;
     }
 
     public override void InitializeWithWorld(Scene.World.World world)
@@ -84,7 +90,7 @@ public class ScriptArcBallCamera : GameplayProxy
 
     public override void Update(float elapsedTime)
     {
-        if (_arcBallCameraComponent == null || _inputComponent == null)
+        if ((_arcBallCameraComponent == null && _orbitCameraComponent == null) || _inputComponent == null)
         {
             return;
         }
@@ -118,14 +124,40 @@ public class ScriptArcBallCamera : GameplayProxy
         };
         _previousKeyboardState = keyboardState;
 
-        var state = ViewportCameraState.From(_arcBallCameraComponent);
-        ViewportNavigationResult result = _navigation.Update(ref state, input);
+        ApplyNavigation(input);
+    }
 
-        if (result.FocusRequested)
+    /// <summary>
+    /// Runs the navigation on the camera state for one frame of input and writes the result back: to the orbit
+    /// component and the camera it poses, or to the arc ball camera.
+    /// </summary>
+    internal void ApplyNavigation(in ViewportNavigationInput input)
+    {
+        if (_orbitCameraComponent != null)
         {
-            state.Pivot = FocusPoint;
-            result.CameraChanged = true;
+            var orbitState = ViewportCameraState.From(_orbitCameraComponent);
+            ViewportNavigationResult orbitResult = Navigate(ref orbitState, input);
+
+            if (orbitResult.CameraChanged)
+            {
+                orbitState.ApplyTo(_orbitCameraComponent);
+            }
+
+            if (orbitResult.FieldOfViewDelta != 0f && _orbitedCamera != null)
+            {
+                _orbitedCamera.FieldOfView += orbitResult.FieldOfViewDelta;
+            }
+
+            return;
         }
+
+        if (_arcBallCameraComponent == null)
+        {
+            return;
+        }
+
+        var state = ViewportCameraState.From(_arcBallCameraComponent);
+        ViewportNavigationResult result = Navigate(ref state, input);
 
         if (result.CameraChanged)
         {
@@ -136,6 +168,19 @@ public class ScriptArcBallCamera : GameplayProxy
         {
             _arcBallCameraComponent.FieldOfView += result.FieldOfViewDelta;
         }
+    }
+
+    private ViewportNavigationResult Navigate(ref ViewportCameraState state, in ViewportNavigationInput input)
+    {
+        ViewportNavigationResult result = _navigation.Update(ref state, input);
+
+        if (result.FocusRequested)
+        {
+            state.Pivot = FocusPoint;
+            result.CameraChanged = true;
+        }
+
+        return result;
     }
 
     private static ViewportMouseButtons ReadHeldButtons(MouseManager mouse)

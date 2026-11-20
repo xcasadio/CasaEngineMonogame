@@ -164,7 +164,7 @@ public class PlayerInputDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(0f, 10f, 13f), Vector3.Zero, Vector3.Up);
+        DemoCameraFraming.Frame(camera, new Vector3(0f, 10f, 13f), Vector3.Zero);
     }
 
     public override void Update(GameTime gameTime)

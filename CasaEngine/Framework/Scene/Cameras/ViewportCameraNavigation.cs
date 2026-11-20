@@ -72,6 +72,23 @@ public struct ViewportCameraState
         camera.Yaw = Yaw;
         camera.Pitch = Pitch;
     }
+
+    /// <summary>The state of an orbit component (ADR-0145).</summary>
+    public static ViewportCameraState From(OrbitCameraComponent orbit)
+    {
+        ArgumentNullException.ThrowIfNull(orbit);
+        return new ViewportCameraState(orbit.Target, orbit.Distance, orbit.Yaw, orbit.Pitch);
+    }
+
+    /// <summary>Writes the pivot, distance, yaw and pitch to an orbit component, which poses the camera of its entity.</summary>
+    public readonly void ApplyTo(OrbitCameraComponent orbit)
+    {
+        ArgumentNullException.ThrowIfNull(orbit);
+        orbit.Target = Pivot;
+        orbit.Distance = Distance;
+        orbit.Yaw = Yaw;
+        orbit.Pitch = Pitch;
+    }
 }
 
 /// <summary>Input of one frame for <see cref="ViewportCameraNavigation.Update"/>.</summary>

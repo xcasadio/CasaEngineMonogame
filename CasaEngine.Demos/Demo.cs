@@ -50,8 +50,10 @@ public abstract class Demo
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity();
-        var camera = new ArcBallCameraComponent();
+        //  The default demo camera: a posed camera, the orbit that poses it, and the script that drives the orbit (ADR-0145).
+        var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
+        entity.AddComponent(new OrbitCameraComponent());
         entity.SetGameplayProxy(new ScriptArcBallCamera());
         entity.Initialize();
         //entity.InitializeWithWorld(game.GameManager.CurrentWorld);
@@ -62,7 +64,7 @@ public abstract class Demo
 
     public virtual void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
+        DemoCameraFraming.Frame(camera, Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero);
     }
 
     public abstract void Update(GameTime gameTime);

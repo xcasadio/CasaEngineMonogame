@@ -536,7 +536,7 @@ public sealed class World : ObjectBase
     public CameraComponent CreateDefaultCamera()
     {
         var entityCamera = new Entity();
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         entityCamera.RootComponent = camera;
         camera.SetPositionAndTarget(Vector3.Forward * -10, Vector3.Zero);
 

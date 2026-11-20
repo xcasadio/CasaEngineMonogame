@@ -15,7 +15,7 @@ monde de l'éditeur.
 Le panneau possède **deux caméras et deux contrôleurs indépendants** :
 
 ```text
-3D : ArcBallCameraComponent  + EditorViewportCameraController      (inchangés)
+3D : PerspectiveCameraComponent + OrbitCameraComponent + EditorViewportCameraController (ADR-0145 ; ArcBallCameraComponent jusqu'au 2026-11-19)
 2D : Camera2dComponent       + EditorViewport2dCameraController
 ```
 

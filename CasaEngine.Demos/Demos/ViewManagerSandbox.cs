@@ -40,7 +40,7 @@ public class ViewManagerSandbox : Demo
 {
     private const int MaxViews = 4;
 
-    private readonly List<ArcBallCameraComponent> _cameras       = new();
+    private readonly List<PerspectiveCameraComponent> _cameras       = new();
     private readonly List<RenderTargetSurface?>   _rtSurfaces    = new();
     private CasaEngineGame?                        _game;
     private SpriteBatch?                           _spriteBatch;
@@ -130,8 +130,9 @@ public class ViewManagerSandbox : Demo
         for (int i = 0; i < MaxViews; i++)
         {
             var entity = new Entity { Name = positions[i].Item2 };
-            var cam    = new ArcBallCameraComponent();
+            var cam    = new PerspectiveCameraComponent();
             entity.RootComponent = cam;
+            entity.AddComponent(new OrbitCameraComponent());
             entity.Initialize();
             game.GameManager.CurrentWorld.AddEntity(entity);
             _cameras.Add(cam);
@@ -173,7 +174,7 @@ public class ViewManagerSandbox : Demo
 
         for (int i = 0; i < MaxViews; i++)
         {
-            _cameras[i].SetCamera(targets[i].Item1, targets[i].Item2, Vector3.Up);
+            DemoCameraFraming.Frame(_cameras[i], targets[i].Item1, targets[i].Item2);
             _cameras[i].OnScreenResized(rects[i].Width, rects[i].Height);
 
             var view = new RenderView(world, _cameras[i], new BackBufferSurface(rects[i]))

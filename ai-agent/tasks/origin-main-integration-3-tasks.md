@@ -86,7 +86,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 
 ## Phase 0 — Côté local
 
-### ⏳ T0.1 — Fusionner le `main` local dans la branche d'intégration
+### ✅ T0.1 — Fusionner le `main` local dans la branche d'intégration
 
 - Objectif : une branche qui porte les caméras (deux tranches) et l'aperçu vivant.
 - Étapes :
@@ -96,6 +96,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
   4. Comptage de P6 pour cette fusion (base `ae2a42be`, branche, `main` local, arbre réuni), avec un script gardé hors du dépôt ; noter les quatre totaux et chaque écart.
 - Validation : aucun marqueur de conflit dans l'arbre (`git grep -n -E "^(<<<<<<<|>>>>>>>)"` vide) ; 0 erreur ; tests verts ; comptage sans écart inexpliqué.
 - Commit : `merge: bring main (second camera slice) into the live preview branch`
+- Note de validation (2026-11-20) : `main` et `origin/main` étaient à `851bfa93` et `01cdf483`. Fusion de `851bfa93` : un seul conflit, `docs/decisions/README.md`, résolu en gardant les deux lignes dans l'ordre (0145 puis 0146) ; `World.cs`, `ai-agent/README.md` et `docs/README.md` fusionnés seuls. Aucun marqueur de conflit. Build des deux solutions : 0 erreur. `dotnet test` : premier lancement 8147 réussites sur 8148, un échec, `OpenAlCallbackDeviceLossTests.After_the_device_is_lost_game_commands_beyond_the_ring_capacity_do_not_wait_and_the_backend_stays_available` ; ce test passe trois fois de suite lancé seul, aucun des deux côtés de la fusion ne touche `CasaEngine/Framework/Audio` ni `CasaEngine.Tests/Audio`, et le second lancement complet rend 8148 sur 8148. L'échec est donc intermittent et antérieur à ce plan ; il n'est pas corrigé ici (point O4). Comptage de P6 sur 630 fichiers : base `ae2a42be` 5969, branche 5997, `main` local 6005, arbre réuni 6033, attendu 6033, aucun écart.
 
 ### ⏳ T0.2 — Renuméroter les ADR locales 0144 et 0145 en 0147 et 0148
 
@@ -173,6 +174,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 | O1 | Confirmation de P1 → P9 par l'auteur. | Toutes |
 | O2 | La session des caméras devra reprendre le `main` réuni et renuméroter ses deux ADR de branche (P4). | T0.2 |
 | O3 | La recette de l'aperçu vivant (T3.2 de son plan) n'est pas faite : la fusion et le push ont lieu avant, à la demande de l'auteur. L'ADR-0146 reste `Proposed`. | — |
+| O4 | Test intermittent, antérieur à ce plan : `OpenAlCallbackDeviceLossTests.After_the_device_is_lost_game_commands_beyond_the_ring_capacity_do_not_wait_and_the_backend_stays_available` échoue parfois dans un lancement complet et passe seul (voir T0.1). C'est sans doute l'échec non identifié noté en O9 du plan de l'aperçu vivant. Non corrigé ici : hors périmètre. | T0.1 |
 
 ## Hors périmètre
 

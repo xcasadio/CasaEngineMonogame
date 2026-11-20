@@ -51,5 +51,5 @@ The 2D camera and the front-2D view keep their own navigation (see [editor-2d-vi
 
 - The gizmo handle under the cursor is the one hovered at the previous frame.
 - A Z/C field-of-view change is lost when the viewport is resized: the camera recomputes its field of view from the aspect ratio. Play mode does not save it.
-- In the demos, the camera reads and writes its `ArcBallCameraComponent` each frame, so a demo can set the initial camera on the component.
+- In the demos, the camera script reads and writes the `OrbitCameraComponent` of the camera entity each frame, so a demo can set the initial camera on that component (`DemoCameraFraming.Frame`). See [camera-behaviour-components.md](../engine/camera-behaviour-components.md).
 - Not implemented: marquee selection, Space and Q of Unreal, vertex snapping, moving the pivot with the middle button. In the editor, sensitivities, fly speed and Y inversion are user preferences: see [editor-preferences.md](editor-preferences.md).

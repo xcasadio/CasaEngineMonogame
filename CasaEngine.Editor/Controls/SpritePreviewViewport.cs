@@ -84,7 +84,7 @@ internal sealed class SpritePreviewViewport : IDisposable
     private Entity _previewEntity;
     private EditorSpritePreviewComponent _previewSpriteComponent;
     private Entity _cameraEntity;
-    private CameraLookAtComponent _camera;
+    private PerspectiveCameraComponent _camera;
     private SpriteData _spriteData;
     private string _statusMessage = "Open a .sprite asset from the Content Browser.";
     private int _rtWidth = 360;
@@ -311,7 +311,7 @@ internal sealed class SpritePreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _camera = new CameraLookAtComponent();
+        _camera = new PerspectiveCameraComponent();
         _cameraEntity = EditorCameraFactory.CreateCameraEntity("SpritePreviewCamera", _camera, _previewWorldDriver.World!);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 

@@ -324,7 +324,7 @@ public class DemosGame : CasaEngineGame
         // No scene behind the main screen (decision D8), but a camera of its own, so the view bootstrapper does not
         // create a default one; the screen covers the whole view.
         var cameraEntity = new Entity { Name = "main screen camera" };
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         cameraEntity.RootComponent = camera;
         camera.SetPositionAndTarget(Vector3.Forward * -10, Vector3.Zero);
         cameraEntity.Initialize();

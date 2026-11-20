@@ -22,9 +22,11 @@ public sealed class WorldSpaceUIDemo : Demo
     private const float ScreenWidth = 8.0f;
     private const float ScreenHeight = 4.5f;
     private static readonly Vector3 InitialCameraTarget = new(0.0f, 4.0f, 0.0f);
-    private const float InitialCameraDistance = -18.25f;
-    private const float InitialCameraYaw = MathHelper.Pi;
-    private const float InitialCameraPitch = 0.165f;
+    // The camera stands in front of the screen, at about (0, 7, 18). The distance stays positive: the navigation
+    // ignores its sign, so a negative one mirrors the controls and the first wheel notch turns the camera around.
+    private const float InitialCameraDistance = 18.25f;
+    private const float InitialCameraYaw = 0.0f;
+    private const float InitialCameraPitch = -0.165f;
 
     private CasaEngineGame? _game;
     private WorldUIComponent? _worldUi;
@@ -101,16 +103,16 @@ public sealed class WorldSpaceUIDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        if (camera is ArcBallCameraComponent arcBallCamera)
+        if (camera.Owner?.GetComponent<OrbitCameraComponent>() is { } orbit)
         {
-            arcBallCamera.Target = InitialCameraTarget;
-            arcBallCamera.Distance = InitialCameraDistance;
-            arcBallCamera.Yaw = InitialCameraYaw;
-            arcBallCamera.Pitch = InitialCameraPitch;
+            orbit.Target = InitialCameraTarget;
+            orbit.Distance = InitialCameraDistance;
+            orbit.Yaw = InitialCameraYaw;
+            orbit.Pitch = InitialCameraPitch;
             return;
         }
 
-        camera.SetPositionAndTarget(new Vector3(0, 7, 18), InitialCameraTarget);
+        DemoCameraFraming.Frame(camera, new Vector3(0, 7, 18), InitialCameraTarget);
     }
 
     public override void Update(GameTime gameTime)

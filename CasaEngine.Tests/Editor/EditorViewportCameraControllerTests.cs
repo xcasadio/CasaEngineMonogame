@@ -31,6 +31,7 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
         bool activated = false;
 
         var inputContext = CreateContext(
@@ -39,6 +40,7 @@ public sealed class EditorViewportCameraControllerTests
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             inputContext,
             receivesInput: true,
@@ -57,6 +59,7 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
 
         var inputContext = CreateContext(
             new KeyboardState(Keys.Up),
@@ -64,6 +67,7 @@ public sealed class EditorViewportCameraControllerTests
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             inputContext,
             receivesInput: true,
@@ -75,6 +79,7 @@ public sealed class EditorViewportCameraControllerTests
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             inputContext,
             receivesInput: true,
@@ -99,9 +104,11 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             CreateContext(new KeyboardState(keys), CreateMouseState(ButtonState.Pressed)),
             receivesInput: true,
@@ -120,9 +127,11 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             CreateContext(new KeyboardState(Keys.W, Keys.Up), CreateMouseState(ButtonState.Released)),
             receivesInput: true,
@@ -141,10 +150,12 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
         float distance = controller.Distance;
 
         controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             CreateContext(new KeyboardState(), CreateMouseState(ButtonState.Released), verticalWheelDelta: 120),
             receivesInput: true,
@@ -156,7 +167,7 @@ public sealed class EditorViewportCameraControllerTests
 
         Assert.Equal(Vector3.Zero, controller.Target);
         Assert.True(controller.Distance < distance);
-        Assert.Equal(controller.Distance, camera.Distance);
+        Assert.Equal(controller.Distance, orbit.Distance);
     }
 
     /// <summary>Plan T1.2 (D9): with free movement off (front-2D view) the navigation does not run.</summary>
@@ -165,10 +176,12 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
         var before = controller.CaptureState();
 
         var result = controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             CreateContext(new KeyboardState(Keys.W), CreateMouseState(ButtonState.Pressed), verticalWheelDelta: 120),
             receivesInput: true,
@@ -191,10 +204,12 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
         camera.FieldOfView = 1f;
 
         controller.Update(
             new GameTime(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(0.1)),
+            orbit,
             camera,
             CreateContext(new KeyboardState(Keys.Z), CreateMouseState(ButtonState.Pressed)),
             receivesInput: true,
@@ -216,11 +231,13 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
         controller.ApplyPreferences(new Camera3dPreferences { RotationSensitivity = 0.01f, InvertY = invertY, FlySpeed = 25f });
         float pitch = controller.Pitch;
 
         void Frame(int y) => controller.Update(
             CreateGameTime(),
+            orbit,
             camera,
             CreateContext(new KeyboardState(), new MouseState(20, y, 0, ButtonState.Released, ButtonState.Released, ButtonState.Pressed, ButtonState.Released, ButtonState.Released, 0)),
             receivesInput: true,
@@ -244,10 +261,12 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
 
         ViewportNavigationResult? Frame(ButtonState left, bool receivesInput)
             => controller.Update(
                 CreateGameTime(),
+                orbit,
                 camera,
                 CreateContext(new KeyboardState(), CreateMouseState(20, 30, left, ButtonState.Released)),
                 receivesInput,
@@ -273,10 +292,12 @@ public sealed class EditorViewportCameraControllerTests
     {
         var controller = new EditorViewportCameraController();
         var camera = controller.CreateCameraComponent();
+        var orbit = controller.CreateOrbitComponent();
 
         void Frame(int x, int y, ButtonState right)
             => controller.Update(
                 CreateGameTime(),
+                orbit,
                 camera,
                 CreateContext(new KeyboardState(), CreateMouseState(x, y, ButtonState.Released, right)),
                 receivesInput: true,

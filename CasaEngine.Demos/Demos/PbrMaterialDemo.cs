@@ -238,7 +238,7 @@ public sealed class PbrMaterialDemo : Demo
         }
 
         var entity = new Entity { Name = "PbrMaterialCamera" };
-        var camera = new CameraLookAtComponent();
+        var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
         entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);
@@ -247,14 +247,7 @@ public sealed class PbrMaterialDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        if (camera is CameraLookAtComponent lookAt)
-        {
-            lookAt.SetPositionAndTarget(CameraPosition, CameraTarget);
-        }
-        else
-        {
-            ((ArcBallCameraComponent)camera).SetCamera(CameraPosition, CameraTarget, Vector3.Up);
-        }
+        DemoCameraFraming.Frame(camera, CameraPosition, CameraTarget);
     }
 
     public override void Initialize(CasaEngineGame game)

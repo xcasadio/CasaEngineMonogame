@@ -158,4 +158,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0142](0142-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md) | The cutscene preview draws screen fades, simulates an input and plays sound on demand (numbered ADR-0103 until 2026-11-19) | Accepted | 2026-11-19 |
 | [ADR-0143](0143-every-modified-document-asks-before-its-changes-are-lost.md) | Every modified document asks before its changes are lost (numbered ADR-0104 until 2026-11-19) | Accepted | 2026-11-19 |
 | [ADR-0144](0144-simple-cameras-and-behaviour-components.md) | Cameras become simple, their behaviours become components | Accepted | 2026-11-19 |
+| [ADR-0145](0145-camera-behaviours-are-components-that-pose-a-simple-camera.md) | Camera behaviours are components that pose a simple camera | Accepted | 2026-11-19 |
 | [ADR-0146](0146-a-world-can-run-under-its-own-execution-policy.md) | A world can run under its own execution policy, and the cutscene preview runs sprite animations, particles and physics | Proposed | 2026-11-19 |
