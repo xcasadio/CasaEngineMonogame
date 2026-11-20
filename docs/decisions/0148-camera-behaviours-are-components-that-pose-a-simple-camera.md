@@ -1,12 +1,13 @@
-# ADR-0145: Camera behaviours are components that pose a simple camera
+# ADR-0148: Camera behaviours are components that pose a simple camera
 
 - **Status**: Accepted
 - **Date**: 2026-11-19
 - **Source**: this chantier: `ai-agent/tasks/simple-cameras-and-behaviours-tasks.md`, slice 2, decisions D10 to D13 and open points O9 and O10, approved by the author on 2026-11-19
+- Renumbered from ADR-0145 on 2026-11-20 when origin/main was merged (its ADR-0145 is another decision)
 
 ## Context
 
-ADR-0144 decided that what moves a camera leaves the camera classes. A survey of the repository on 2026-11-19 found:
+ADR-0147 decided that what moves a camera leaves the camera classes. A survey of the repository on 2026-11-19 found:
 
 - `ArcBallCameraComponent` (target, distance, yaw, pitch) is used by the viewport navigation, by `ScriptArcBallCamera`, by the 3d viewport of the editor, by the default camera of the demos and by two saved entities.
 - `CameraLookAtComponent` only computes `CreateLookAt(Position, Target, Up)`. Its users (seven editor previews and thumbnail renderers, eight demos, the default camera of a world) call `SetPositionAndTarget` and nothing else.

@@ -8,7 +8,7 @@ using Xunit;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// Guards the data of Projects/PerspectiveCameraSample: a world with a posed perspective camera (ADR-0144), a backdrop wider
+/// Guards the data of Projects/PerspectiveCameraSample: a world with a posed perspective camera (ADR-0147), a backdrop wider
 /// than the picture and a box standing on it, and a small gameplay DLL that scrolls the picture with the arrow keys. Running it
 /// in the Launcher proves the drawing; this proves the data hangs together: the committed images hold the pixels of the
 /// generator, the camera loads as the class the world names and frames the backdrop one unit per pixel, the box stands on the

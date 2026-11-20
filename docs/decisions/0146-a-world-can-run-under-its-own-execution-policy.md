@@ -2,7 +2,7 @@
 
 - **Status**: Proposed
 - **Date**: 2026-11-19
-- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-live-preview-tasks.md` (decisions D1 to D4 and choices P1 to P19), branch `chantier/cutscene-live-preview`. Builds on ADR-0135, ADR-0138 and ADR-0139. The number 0146 follows ADR-0145 of the branch `chantier/camera-behaviours`, which is not merged.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-live-preview-tasks.md` (decisions D1 to D4 and choices P1 to P19), branch `chantier/cutscene-live-preview`. Builds on ADR-0135, ADR-0138 and ADR-0139. The number 0146 followed ADR-0145 of the camera chantier, which was not merged when this record was written; that record became ADR-0148 on 2026-11-20, when origin/main was merged.
 
 ## Context
 

@@ -1,8 +1,9 @@
-# ADR-0144: Cameras become simple, their behaviours become components
+# ADR-0147: Cameras become simple, their behaviours become components
 
 - **Status**: Accepted
 - **Date**: 2026-11-19
 - **Source**: this chantier: `ai-agent/tasks/simple-cameras-and-behaviours-tasks.md`, decisions D1, D3, D4, D7 and D8 and open points O2, O3 and O8, approved by the author on 2026-11-19
+- Renumbered from ADR-0144 on 2026-11-20 when origin/main was merged (its ADR-0144 is another decision)
 
 ## Context
 

@@ -73,7 +73,7 @@ public struct ViewportCameraState
         camera.Pitch = Pitch;
     }
 
-    /// <summary>The state of an orbit component (ADR-0145).</summary>
+    /// <summary>The state of an orbit component (ADR-0148).</summary>
     public static ViewportCameraState From(OrbitCameraComponent orbit)
     {
         ArgumentNullException.ThrowIfNull(orbit);

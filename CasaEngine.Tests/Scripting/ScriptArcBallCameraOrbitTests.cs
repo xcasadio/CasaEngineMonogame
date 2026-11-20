@@ -8,7 +8,7 @@ using Xunit;
 namespace CasaEngine.Tests.Scripting;
 
 /// <summary>
-/// The viewport navigation drives an orbit component as it drives an arc ball camera (ADR-0145): the same input gives
+/// The viewport navigation drives an orbit component as it drives an arc ball camera (ADR-0148): the same input gives
 /// the same state and the same view, and <see cref="ScriptArcBallCamera"/> picks the orbit of its entity when there is one.
 /// </summary>
 public sealed class ScriptArcBallCameraOrbitTests

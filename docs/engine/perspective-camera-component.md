@@ -1,6 +1,6 @@
 # PerspectiveCameraComponent
 
-A perspective camera posed by the transform of its component (ADR-0144). A world declares it with no code: where the component is, the camera is; how the component is turned, the camera looks, roll included.
+A perspective camera posed by the transform of its component (ADR-0147). A world declares it with no code: where the component is, the camera is; how the component is turned, the camera looks, roll included.
 
 It is the first slice of the chantier "simple cameras, behaviours as components" (`ai-agent/tasks/simple-cameras-and-behaviours-tasks.md`). The other cameras (`ArcBallCameraComponent`, `CameraLookAtComponent`, `CameraTargeted2dComponent`, `Camera2dComponent`) are unchanged.
 
@@ -55,7 +55,7 @@ It is the first slice of the chantier "simple cameras, behaviours as components"
 
 ## What comes next
 
-- Slice 2 (done, ADR-0145) moved the orbit and the 2d follow into components that write the transform of this camera: see [camera-behaviour-components.md](camera-behaviour-components.md).
+- Slice 2 (done, ADR-0148) moved the orbit and the 2d follow into components that write the transform of this camera: see [camera-behaviour-components.md](camera-behaviour-components.md).
 - Slice 3 removes `ArcBallCameraComponent`, `CameraLookAtComponent` and `CameraTargeted2dComponent`, and decides how the data that names them is read. `PerspectiveCameraComponent` keeps its name and its keys.
 
 ## Tests

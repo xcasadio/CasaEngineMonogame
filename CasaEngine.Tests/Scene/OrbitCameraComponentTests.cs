@@ -9,7 +9,7 @@ using Xunit;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The orbit behaviour component (ADR-0145): a posed perspective camera it drives shows what an
+/// The orbit behaviour component (ADR-0148): a posed perspective camera it drives shows what an
 /// <see cref="ArcBallCameraComponent"/> of the same values shows.
 /// </summary>
 public sealed class OrbitCameraComponentTests

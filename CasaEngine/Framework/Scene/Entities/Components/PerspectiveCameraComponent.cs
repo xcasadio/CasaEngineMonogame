@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 /// <summary>
-/// A perspective camera posed by the transform of its component (ADR-0144): its view is the inverse of
+/// A perspective camera posed by the transform of its component (ADR-0147): its view is the inverse of
 /// <see cref="SceneComponent.WorldMatrixNoScale"/>, parents included. It looks down its local -Z axis with +Y up.
 /// <see cref="PictureOffset"/> shifts the picture without moving the point of view.
 /// </summary>

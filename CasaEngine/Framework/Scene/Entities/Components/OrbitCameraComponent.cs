@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 /// <summary>
-/// Makes the camera of its entity orbit a target (ADR-0145): from a target, a distance, a yaw and a pitch it writes the
+/// Makes the camera of its entity orbit a target (ADR-0148): from a target, a distance, a yaw and a pitch it writes the
 /// local transform of the camera component, at <c>Target - Direction * Distance</c>, looking at the target, without roll.
 /// The conventions are those of <see cref="ArcBallCameraComponent"/>, a negative distance included: the camera then
 /// stands beyond the target along <see cref="Direction"/> and still looks at the target.

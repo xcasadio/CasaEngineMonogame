@@ -13,7 +13,7 @@ namespace CasaEngine.Tests.Editor;
 /// <summary>
 /// The pose of the 3d viewport camera of the editor, built by <see cref="EditorViewportCameraController.CreateCameraEntity"/>,
 /// the method the viewport panel calls. The expected views and positions were recorded on 2026-11-19 with the
-/// <c>ArcBallCameraComponent</c> the viewport used before ADR-0145, through the same construction and the same
+/// <c>ArcBallCameraComponent</c> the viewport used before ADR-0148, through the same construction and the same
 /// re-initialization as a change of world: the camera driven by an orbit component must show the same thing.
 /// </summary>
 public sealed class EditorViewportCameraPoseTests

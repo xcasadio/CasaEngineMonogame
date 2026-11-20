@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Input;
 namespace CasaEngine.Framework.Scripting;
 
 /// <summary>
-/// Camera script for an <see cref="OrbitCameraComponent"/> (ADR-0145), or for an <see cref="ArcBallCameraComponent"/>
+/// Camera script for an <see cref="OrbitCameraComponent"/> (ADR-0148), or for an <see cref="ArcBallCameraComponent"/>
 /// when its entity has no orbit component, with the controls of Unreal's perspective viewport,
 /// shared with the editor viewport through <see cref="ViewportCameraNavigation"/> (ADR-0089): left drag moves
 /// forward/back and turns, right drag looks around, middle drag or left + right drag pans, the wheel moves toward the

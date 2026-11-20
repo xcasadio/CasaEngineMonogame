@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 /// <summary>
-/// Makes the camera of its entity follow an entity in the XY plane (ADR-0145). The camera stays still while the target
+/// Makes the camera of its entity follow an entity in the XY plane (ADR-0148). The camera stays still while the target
 /// is inside a dead zone centred on the camera; when the target passes an edge of the zone, the camera advances by the
 /// excess on that axis. The x, y position of the camera is then brought back inside <see cref="Limits"/>. Its z is
 /// never changed.

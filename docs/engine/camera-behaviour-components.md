@@ -1,6 +1,6 @@
 # Camera behaviour components
 
-What moves a camera is a component placed on the entity of the camera (ADR-0145). The camera itself stays simple: a [`PerspectiveCameraComponent`](perspective-camera-component.md), posed by its transform. A behaviour component writes that transform.
+What moves a camera is a component placed on the entity of the camera (ADR-0148). The camera itself stays simple: a [`PerspectiveCameraComponent`](perspective-camera-component.md), posed by its transform. A behaviour component writes that transform.
 
 ## OrbitCameraComponent
 

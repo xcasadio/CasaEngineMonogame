@@ -7,7 +7,7 @@ namespace CasaEngine.Demos;
 /// <summary>
 /// Frames a demo camera: places it at a position, looking at a target.
 /// <para/>
-/// A camera posed by an <see cref="OrbitCameraComponent"/> (the default demo camera, ADR-0145) is framed through the
+/// A camera posed by an <see cref="OrbitCameraComponent"/> (the default demo camera, ADR-0148) is framed through the
 /// orbit, which owns the pose: a pose written directly on the camera would be overwritten at the first mouse gesture.
 /// Any other camera is framed directly.
 /// </summary>

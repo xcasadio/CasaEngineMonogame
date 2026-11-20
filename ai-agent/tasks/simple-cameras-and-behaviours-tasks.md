@@ -148,7 +148,7 @@ Un vérificateur neuf a cherché à réfuter sept affirmations sur `9125b438..ed
 - Fichiers : `docs/decisions/<numéro>-<titre>.md`, `docs/decisions/README.md`.
 - Validation : l'index liste l'ADR ; le numéro est le suivant de la série du dépôt à ce moment.
 - Commit : `docs(decisions): record the simple cameras and their behaviour components`
-- Validation (2026-11-19) : ADR-0144, numéro suivant de la série (dernière : 0143), listée dans l'index.
+- Validation (2026-11-19) : ADR-0144, numéro suivant de la série (dernière : 0143), listée dans l'index. (Devenue ADR-0147 le 2026-11-20, à l'intégration d'`origin/main`.)
 
 ### ✅ T1.2 — Caméra perspective posée par sa transformation
 
@@ -284,9 +284,9 @@ Relevé par trois lectures séparées (runtime, éditeur, démos et tests), puis
 ### ✅ T2.1 — ADR
 
 - Objectif : enregistrer D11, D12, D13, la forme du composant d'orbite, la spécification du suivi (O9) et la réponse à O10.
-- Fichiers : `docs/decisions/0145-<titre>.md`, `docs/decisions/README.md`.
+- Fichiers : `docs/decisions/0145-<titre>.md` (devenue ADR-0148 le 2026-11-20, fichier `0148-<titre>.md`), `docs/decisions/README.md`.
 - Commit : `docs(decisions): record the camera behaviour components`
-- Validation (2026-11-19) : ADR-0145, listée dans l'index. O10 tranché par la lecture : un composant que `EntityPolicyResolver` ne liste pas laisse le constructeur intact, et celui-ci retombe sur `DynamicDefault` (`EntityPolicyResolver.cs:71-86`), la politique que demandait `CameraLookAtComponent`. `EntityPolicyResolver.cs` ne change donc pas.
+- Validation (2026-11-19) : ADR-0148 (numérotée ADR-0145 jusqu'au 2026-11-20), listée dans l'index. O10 tranché par la lecture : un composant que `EntityPolicyResolver` ne liste pas laisse le constructeur intact, et celui-ci retombe sur `DynamicDefault` (`EntityPolicyResolver.cs:71-86`), la politique que demandait `CameraLookAtComponent`. `EntityPolicyResolver.cs` ne change donc pas.
 
 ### ✅ T2.2 — Composant d'orbite
 

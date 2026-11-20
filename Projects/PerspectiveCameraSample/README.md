@@ -1,6 +1,6 @@
 # PerspectiveCameraSample
 
-A world whose camera is a `PerspectiveCameraComponent` (ADR-0144): a perspective camera posed by the transform of its component, with a picture offset that scrolls the picture without moving the point of view.
+A world whose camera is a `PerspectiveCameraComponent` (ADR-0147): a perspective camera posed by the transform of its component, with a picture offset that scrolls the picture without moving the point of view.
 
 ## Objective
 

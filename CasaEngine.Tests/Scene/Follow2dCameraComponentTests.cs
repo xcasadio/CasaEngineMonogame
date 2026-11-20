@@ -10,7 +10,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The 2d follow behaviour component (ADR-0145): dead zone, limits, missing target, data.
+/// The 2d follow behaviour component (ADR-0148): dead zone, limits, missing target, data.
 /// </summary>
 public sealed class Follow2dCameraComponentTests
 {

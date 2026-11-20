@@ -50,7 +50,7 @@ public abstract class Demo
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity();
-        //  The default demo camera: a posed camera, the orbit that poses it, and the script that drives the orbit (ADR-0145).
+        //  The default demo camera: a posed camera, the orbit that poses it, and the script that drives the orbit (ADR-0148).
         var camera = new PerspectiveCameraComponent();
         entity.RootComponent = camera;
         entity.AddComponent(new OrbitCameraComponent());

@@ -32,7 +32,7 @@ internal readonly struct EditorViewportCameraState
 /// Perspective camera of the editor viewport. The gestures are those of Unreal's perspective viewport, computed by
 /// the shared <see cref="ViewportCameraNavigation"/> (ADR-0089). This controller owns the pivot, distance, yaw and
 /// pitch (focus, play-mode capture and restore) and writes them to the <see cref="OrbitCameraComponent"/> of the
-/// camera entity, which poses the <see cref="PerspectiveCameraComponent"/> (ADR-0145); the
+/// camera entity, which poses the <see cref="PerspectiveCameraComponent"/> (ADR-0148); the
 /// field of view stays on the component.
 /// </summary>
 internal sealed class EditorViewportCameraController
