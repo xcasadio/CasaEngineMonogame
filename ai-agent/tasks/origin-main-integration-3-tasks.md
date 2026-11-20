@@ -133,7 +133,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
 
 ## Phase 2 — Éditeur lancé
 
-### ⏳ T2.1 — Lancements de contrôle sur la tête réunie
+### ✅ T2.1 — Lancements de contrôle sur la tête réunie
 
 - Objectif : voir que l'éditeur réuni démarre et que l'aperçu vivant donne les mêmes valeurs qu'avant la fusion.
 - Étapes, sur `Projects/SpriteCutsceneSample`, éditeur recompilé sur la tête réunie :
@@ -142,6 +142,7 @@ Relevé dans le worktree `D:\development\repo\CasaEngineMonogame-cutscene` aprè
   3. Regarder la capture de 1 et le journal des deux lancements (aucune erreur).
 - Validation : codes de sortie 0, valeurs égales, `git status --short` propre après suppression du fichier que chaque lancement crée. Ce que ces lancements ne couvrent pas (le pilotage à distance venu d'`origin/main`, les caméras dans le viewport 3D) n'est couvert que par les tests : le dire dans la note.
 - Commit : `docs(plan): record the launched-editor runs of the integrated head`
+- Note de validation (2026-11-20) : éditeur compilé sur la tête réunie, deux lancements automatisés sur `Projects/SpriteCutsceneSample`, sans entrée clavier ni souris, codes de sortie 0. `Cutscenes/live.cutscene`, saut à 1 s : monde d'aperçu `LiveWorld`, état `Playing`, transport `Paused`, `FallingBox` à y=45,147, animation d'`AnimatedOrb` à 0,3 s, 9 particules pour `Sparks` : les valeurs d'avant la fusion. `Cutscenes/loop.cutscene`, saut à 2 s : les lignes de l'aperçu sont celles de la référence du plan de l'aperçu vivant, sauf la ligne d'état, qui porte le nouveau texte. Capture du premier lancement regardée : boîte en chute avec son volume de collision, sol, orbe animé, anneau bleu de `Marker`, particules, timeline de 3 s. Aucune ligne d'erreur ni d'avertissement dans les deux journaux. Le seul fichier créé par les lancements (`Projects/SpriteCutsceneSample/.casaeditor/viewport.editor.json`) a été supprimé ; `git status --short` propre. Non couvert par ces lancements : le pilotage à distance venu d'`origin/main` et les caméras dans le viewport 3D, qui ne sont couverts que par les tests.
 
 ---
 
