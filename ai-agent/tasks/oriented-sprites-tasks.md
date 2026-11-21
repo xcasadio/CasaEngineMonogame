@@ -227,7 +227,7 @@ Tests seulement.
 
 ## Phase 2 — Sample et documentation
 
-### 🧪 T2.1 — Sample
+### ✅ T2.1 — Sample
 
 - Objectif : montrer la fonctionnalité dans le Launcher.
 - Fichiers : `Projects/OrientedSpriteSample/` (fichier de projet, `AssetInfos.json`, un monde, `Images/`, `Models/`, `README.md`) ; le script de clavier existant `PictureOffsetKeys` de `Projects/CasaEngine.PerspectiveCameraSample/` est réutilisé si sa DLL peut être copiée dans le dossier du nouveau sample par une seconde ligne de son `PostBuild`, sinon une DLL de jeu minimale est ajoutée à `CasaEngine.MonoGame.sln` ; `.gitignore` pour les binaires copiés ; un générateur d'images et un test de données dans `CasaEngine.Tests/`, sur le modèle de `PerspectiveCameraSampleImages` et `PerspectiveCameraSampleDataTests`.
@@ -242,6 +242,7 @@ Tests seulement.
   - **Vu à l'écran**, par le script de capture du dépôt hôte, sans entrée clavier : à décalage nul, les deux images sont droites dans le cadre, la boîte et le sprite tourné se voient par la découpe, devant l'image lointaine. Une copie du sample hors dépôt, avec un décalage de l'image de (0,2 ; −0,15) écrit dans le monde : tout a glissé ensemble de (+128, −72) pixels. Aucune erreur au journal.
   - **Non vu** : l'effet des flèches (le script de capture n'envoie aucune entrée). Recette de l'auteur.
   - Les deux solutions à 0 erreur ; 8533 tests, 0 échec (8520 + 13).
+- **Recette de l'auteur : OK (2026-11-21)**, sur captures du Launcher : le sample sans décalage et avec un décalage de (0,2 ; −0,15). Les flèches du sample n'ont pas été essayées : aucune entrée n'est envoyée aux fenêtres.
 
 ### ✅ T2.2 — Documentation
 
@@ -250,7 +251,7 @@ Tests seulement.
 - Commit : `docs(sprite): describe the sprite drawn with its world transform`
 - **Fait (2026-11-21).** Nouveau `docs/engine/oriented-sprites.md` (ce que suit un sprite, l'attache à une caméra par la hiérarchie, la formule d'échelle au pixel, la visibilité, les limites, le sample et les tests). `perspective-camera-component.md` et le README de `PerspectiveCameraSample` ne disent plus que les sprites restent parallèles à XY. `docs/README.md` et `ai-agent/README.md` à jour. Documentation seule.
 
-### 🧪 T2.3 — Vérification indépendante et recette
+### ✅ T2.3 — Vérification indépendante et recette
 
 - Un `verifier` neuf reçoit les affirmations de la « Validation globale » et de l'« Acceptation », le diff de la branche et les notes des tâches ; il relance builds et tests et cherche à réfuter. Un point P0 à P2 est corrigé puis revérifié.
 - Captures avant et après des samples à sprites, comparées octet pour octet et, si elles diffèrent, pixel par pixel avec une seconde passe sur le même moteur pour mesurer la variation d'un lancement à l'autre.
@@ -263,8 +264,9 @@ Tests seulement.
   - P3 : **un sprite peut recevoir une rotation de la physique**, cas absent du recensement T0.1. Un corps dynamique écrit chaque image l'orientation de son parent (`PhysicsBaseComponent.cs:162-170`) ; dans `Projects/SpriteCutsceneSample/LiveWorld.world`, l'entité `FallingBox` a un sprite statique pour racine et un corps dynamique pour enfant. Avant, cette rotation était ignorée au dessin ; maintenant le sprite la suit et, s'il bascule, peut être vu de dos. Non simulé : l'effet n'est pas mesuré. L'ADR-0151 et la doc ne le disent pas.
   - P3 : le calcul de la boîte est fait deux fois pour une racine `StaticModelComponent` ou `TransformComponent`, qui comptent déjà leurs descendants ; coût non mesuré.
   - P4 : un `ChildActorComponent` sans acteur, posé en enfant, tire la boîte jusqu'à l'origine (composant utilisé nulle part) ; la mise au point d'un sprite en miroir est placée autrement qu'avant (drapeaux activés nulle part).
-- **Reste 🧪 : la recette de l'auteur** (`Projects/OrientedSpriteSample`, flèches comprises ; les démos et samples à sprites de son choix). Ni l'éditeur ni `CasaEngine.Demos` n'ont été lancés.
+- **Restait 🧪 : la recette de l'auteur** (`Projects/OrientedSpriteSample`, flèches comprises ; les démos et samples à sprites de son choix). Ni l'éditeur ni `CasaEngine.Demos` n'ont été lancés.
 - **Précisions de l'auteur demandées le 2026-11-21 (« Oui, précise »)**, documentation seule : l'ADR-0151 et `docs/engine/oriented-sprites.md` disent qu'un sprite porté par un corps dynamique suit sa rotation (dans un espace de simulation plan, le corps ne tourne qu'autour de z et le sprite tourne dans son plan ; ailleurs il peut basculer et être vu de dos ; un zéro dans `angular_factor` verrouille l'axe) ; l'ADR-0152 et la doc disent que l'exclusion de la physique porte sur les descendants, pas sur le composant de départ, et qu'une racine qui compte déjà ses descendants les voit comptés deux fois. Faits relus dans `PhysicsBaseComponent.cs:158-170`, `SimulationSpacePolicy.cs:129-142` et `BepuPhysicsEngine.cs:237`. L'effet sur l'entité concernée du dépôt n'est toujours pas mesuré.
+- **Recette de l'auteur : OK (2026-11-21)**, sur sept captures du Launcher prises sur `d7b952ad` : `OrientedSpriteSample` avec et sans décalage, `SpriteCutsceneSample` sur son monde de départ, et `LiveWorld.world` à 2, 4 et 7 s depuis une copie de travail dont le monde de départ est changé. La boîte de `LiveWorld.world` tombe et se pose, son cadre de mise au point droit ; son image est un disque, une rotation dans son plan ne s'y verrait pas : l'effet de la physique sur ce sprite reste non mesuré. Non vérifié : les flèches du sample, l'éditeur, `CasaEngine.Demos`.
 
 ---
 
