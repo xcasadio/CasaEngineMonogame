@@ -131,7 +131,7 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
 
 ## Phase 0 — Avant le changement
 
-### ⏳ T0.1 — Recenser les sprites créés par code sous un parent
+### ✅ T0.1 — Recenser les sprites créés par code sous un parent
 
 - Objectif : savoir si un sprite du dépôt changerait d'aspect.
 - Sources : `CasaEngine/`, `CasaEngine.Demos/`, `Projects/**/*.cs`, `CasaEngine.Editor/`, `CasaEngine.EditorServices/`.
@@ -140,6 +140,7 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
   2. Pour chacun : le sprite a-t-il une rotation, ou un parent (composant ou entité) qui a une rotation ou une échelle différente de 1 ?
 - Validation : la note de la tâche liste chaque cas trouvé, ou dit qu'il n'y en a aucun. Un cas trouvé : ⚠️ Blocked, O1.
 - Commit : `docs(plan): record the survey of the sprites placed under a parent`
+- **Fait (2026-11-21).** Plan approuvé par l'auteur le 2026-11-21 (« Approuvé, lance »), en mode AUTO. Recherche de `new StaticSpriteComponent`, `AddChildComponent` et `AddChild` dans le code hors tests : **un seul sprite statique créé par code sous un parent**, dans `CasaEngine.Demos/Demos/TopDownElevationDemo.cs:105-117`. Il a une échelle locale de 0,15, pas de rotation, et ses deux parents (un `RenderProjectionComponent`, sous un `CollisionComponent` racine) n'ont qu'une position : c'est le cas équivalent de la conception, pas un arrêt. Aucun sprite statique n'est placé sous un parent tourné ou mis à l'échelle. `Projects/CasaEngine.RPGDemo/Weapons/MeleeWeapon.cs:17` met une entité sous une autre, mais son sprite est un sprite animé, hors périmètre. O1 est sans objet.
 
 ### ⏳ T0.2 — Figer les sommets des sprites d'aujourd'hui
 
