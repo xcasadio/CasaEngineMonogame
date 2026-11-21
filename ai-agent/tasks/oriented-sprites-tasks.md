@@ -264,6 +264,7 @@ Tests seulement.
   - P3 : le calcul de la boîte est fait deux fois pour une racine `StaticModelComponent` ou `TransformComponent`, qui comptent déjà leurs descendants ; coût non mesuré.
   - P4 : un `ChildActorComponent` sans acteur, posé en enfant, tire la boîte jusqu'à l'origine (composant utilisé nulle part) ; la mise au point d'un sprite en miroir est placée autrement qu'avant (drapeaux activés nulle part).
 - **Reste 🧪 : la recette de l'auteur** (`Projects/OrientedSpriteSample`, flèches comprises ; les démos et samples à sprites de son choix). Ni l'éditeur ni `CasaEngine.Demos` n'ont été lancés.
+- **Précisions de l'auteur demandées le 2026-11-21 (« Oui, précise »)**, documentation seule : l'ADR-0151 et `docs/engine/oriented-sprites.md` disent qu'un sprite porté par un corps dynamique suit sa rotation (dans un espace de simulation plan, le corps ne tourne qu'autour de z et le sprite tourne dans son plan ; ailleurs il peut basculer et être vu de dos ; un zéro dans `angular_factor` verrouille l'axe) ; l'ADR-0152 et la doc disent que l'exclusion de la physique porte sur les descendants, pas sur le composant de départ, et qu'une racine qui compte déjà ses descendants les voit comptés deux fois. Faits relus dans `PhysicsBaseComponent.cs:158-170`, `SimulationSpacePolicy.cs:129-142` et `BepuPhysicsEngine.cs:237`. L'effet sur l'entité concernée du dépôt n'est toujours pas mesuré.
 
 ---
 

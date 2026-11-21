@@ -51,11 +51,12 @@ The scale is data: the engine offers no help for it, and it does not follow a fi
 
 ## Visibility
 
-The world draws an entity when its bounds meet the frustum. The bounds of an entity count its child components, physics components excepted, and the bounds of a camera stand on the camera (ADR-0152): a picture attached to a camera is drawn wherever the camera stands.
+The world draws an entity when its bounds meet the frustum. The bounds of an entity count its child components, and the bounds of a camera stand on the camera (ADR-0152): a picture attached to a camera is drawn wherever the camera stands. A child that is a physics component, and what hangs under it, do not count; what hangs under a root that is itself a physics component does.
 
 ## Limits
 
 - **A sprite seen from behind is not drawn**: the renderer culls back faces.
+- **A sprite carried by a dynamic body follows the rotation of that body**, since the body writes the orientation of its parent. In a planar simulation space the body only turns about z, and the sprite turns in its own plane; elsewhere a body that tips over turns its sprite in 3d, which can end up seen from behind. A zero in `angular_factor` locks the matching axis of the body.
 - **Blended sprites are sorted by the z of the world.** Under a turned camera, two blended sprites attached to the camera can be sorted the wrong way round. Opaque sprites and cut-outs do not depend on the sort.
 - `AnimatedSpriteComponent` and `VideoSpriteComponent` are not oriented: they still ignore the orientation of their component.
 - The sort key of a `DepthSortable2DComponent` is still computed from the summed position of the sprite.

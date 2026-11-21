@@ -18,7 +18,8 @@ In other engines the visibility is tested per drawn object, with its own bounds;
 
 ## Decision
 
-- **The bounds of an entity count its child components.** `Entity.GetBoundingBox` extends the box of the root component and of each entity component by the boxes of their descendants, at any depth, **skipping every physics component and what hangs under it**: the rule of `TransformComponent`, applied to every entity.
+- **The bounds of an entity count its child components.** `Entity.GetBoundingBox` extends the box of the root component and of each entity component by the boxes of their descendants, at any depth, **skipping every descendant that is a physics component and what hangs under it**: the rule of `TransformComponent`, applied to every entity.
+- **The exclusion is about descendants, not about the component the walk starts from.** When the root component, or an entity component, is itself a physics component, what hangs under it is counted. This is what a visual placed under a logical root needs: the render pose of the entity then counts for its visibility.
 - **The index follows a child that moves.** The world consults the same descendants, with the same exclusion, to know whether an entity must be indexed again.
 - **The bounds of a camera stand on the camera**: its box from -1 to 1 is transformed by the world matrix of the camera.
 - **No "always visible" attribute.**
@@ -26,7 +27,8 @@ In other engines the visibility is tested per drawn object, with its own bounds;
 ## Consequences
 
 - An entity with no camera and no descendant outside physics keeps exactly its box. An entity whose root is a `TransformComponent` too: it already counted its descendants.
-- Any other entity with a child component outside physics has a box that is larger or equal: it is visible more often, never less. The editor framing and the neighbourhood queries, which read the same box, see the larger box.
+- Any other entity with a child component outside physics has a box that is larger or equal: it is visible more often, never less. The editor framing and the neighbourhood queries, which read the same box, see the larger box. This includes an entity whose root is a physics component with a child outside physics.
+- A root that already counts its descendants (`TransformComponent`, `StaticModelComponent` with its sub-meshes) has them counted a second time, for the same result; the cost of that second pass was not measured.
 - **The box of every camera entity moves** from the origin of the world to the camera.
 - **Limit kept**: an entity draws its root component, which goes down into its children, and among its other components only the primitive ones. A camera must be the root component of its entity for its children to be drawn.
 - **Not treated**: a child entity is drawn by its parent and is not in the index; its bounds still do not count for the visibility of its parent. The visibility stays tested per entity, not per drawn object.
