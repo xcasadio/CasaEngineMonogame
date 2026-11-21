@@ -6,6 +6,8 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 **Soumis à l'auteur : aucun code avant son approbation.**
 
+Relu une fois par un relecteur neuf (`22217208`) : REVISE, trois points, tous repris dans cette version (époque 2) : la preuve d'équivalence lisait des sommets que le rendu ne transforme pas (la transformation est dans la matrice de chaque entrée, appliquée par le shader) ; aucune tolérance n'était fixée alors que l'équivalence n'est pas exacte au bit près ; un sprite enfant d'une caméra n'aurait été dessiné que si l'origine du monde était dans le champ, la boîte englobante d'une entité ignorant ses enfants. Sur ce dernier point l'auteur a demandé comment font les moteurs modernes : la boîte compte les enfants, sans attribut « toujours visible » (D7).
+
 ## Objectif
 
 Un sprite du monde est dessiné avec la transformation de monde complète de son composant : position, orientation et échelle, parents compris. Un sprite tourné se voit tourné ; un sprite enfant d'une caméra suit cette caméra et lui fait face, sans composant dédié.
@@ -30,12 +32,22 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
 - Le dessin passe par `frame.View` et `frame.Projection` de l'image en cours (`:196-218`, `:258`). Le décalage de l'image d'une caméra perspective est dans sa projection (`PerspectiveCameraComponent.cs:92-123`) : il s'applique donc aux sprites.
 - Profondeur : test et écriture, `LessEqual` (`:144-149`). Le shader rejette un texel dont l'alpha, après produit par la couleur, vaut au plus 0,01 (`CasaEngine/Content/Shaders/SpriteBatch.fx:59-63`) : un texel transparent n'écrit pas la profondeur.
 - Tri sans clé : z de monde décroissant, puis ordre de dessin, puis ordre de soumission (`:574-597`). Le z est lu dans la translation de la matrice de monde.
+- `FillVertices` ne fait que recopier les quatre coins du quad unitaire (±0,5 ; ±0,5 ; 0) (`:161-164`, `:556-569`) : la transformation de monde n'est appliquée que par le shader, avec la matrice de l'entrée (`:322`, `SpriteBatch.fx:46`). Les tests existants lisent la file du rendu par réflexion (`CasaEngine.Tests/Scene/SpriteComponentDrawOrderTests.cs:326-401`, `Harness` ; `CasaEngine.Tests/Rendering/ScrollingLayers/ScrollingLayerComponentSubmissionTests.cs:58` lit `WorldMatrix`).
 - Faces : `CullCounterClockwise`, sauf pour une entrée marquée `NoCull`, que seul le chemin des quads libres pose (`:250`, `:293-296`, `:868`, `:1164`). Un sprite vu de dos n'est pas dessiné.
 
 ### Les données
 
 - 20 sprites (`StaticSpriteComponent`, `AnimatedSpriteComponent`, `VideoSpriteComponent`) dans 12 fichiers de `Projects/` et de `CasaEngine.Demos/Content/`. **Aucun n'a de rotation.** Aucun n'est l'enfant d'un autre composant ; quatre ont pour enfant un `CollisionComponent`. Relevé par `jq` sur chaque fichier.
 - Un composant enfant se déclare dans `children_component` de son parent (`SceneComponent.cs:416-444`) ; `SceneComponent.Draw` descend dans les enfants (`:388-394`). `WorldMatrixWithScale` compose le parent composant, puis le composant racine de l'entité parente.
+
+### La visibilité
+
+- `World.Draw` ne dessine que les entités que l'index spatial rend pour le frustum de l'image (`CasaEngine/Framework/Scene/World/World.cs:955-970`). Une entité enfant n'est pas dans l'index : elle est dessinée par son parent (`Entity.cs:544-563`).
+- La boîte d'une entité est celle de son composant racine, étendue par celles de ses composants d'entité (`Entity.cs:396-409`). **Elle ne compte ni les composants enfants ni les entités enfants.**
+- `CameraComponent.GetBoundingBox` rend une boîte fixe de −1 à 1, à l'origine du monde, sans la transformer (`CameraComponent.cs:122-125`). Une caméra posée loin de l'origine a donc sa boîte ailleurs qu'elle-même.
+- Conséquence : un sprite enfant d'une caméra n'est dessiné que si le frustum contient l'origine du monde.
+- L'index est remis à jour pour une entité quand son composant racine ou un de ses composants d'entité est marqué (`World.cs:670-673`, `:705-720`) ; les composants enfants ne sont pas consultés. `SceneComponent.Update` marque un composant dont la matrice de monde a changé, puis met à jour ses enfants (`SceneComponent.cs:371-386`).
+- `Entity.Draw` dessine le composant racine (qui descend dans ses enfants) et, parmi les autres composants, seulement les `PrimitiveComponent` (`Entity.cs:551-559`) : une caméra qui n'est pas le composant racine de son entité ne dessine pas ses enfants.
 
 ### Ce que le moteur n'a pas
 
@@ -57,11 +69,14 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
 | D4 | Le dimensionnement d'un sprite pour qu'un pixel de son image fasse un pixel du cadre est **calculé par les données** : aucune aide dans le moteur dans ce plan. |
 | D5 | Périmètre : `StaticSpriteComponent`. `AnimatedSpriteComponent` et `VideoSpriteComponent` ne changent pas (O3). |
 | D6 | Mode AUTO pour l'exécution, après approbation du plan. Ni push ni fusion dans `main` sans demande. |
+| D7 | **La boîte englobante d'une entité compte ses enfants** (composants enfants et entités enfants), et celle d'une caméra suit sa position. Pas d'attribut « toujours visible ». |
 
 ## Conception
 
 - **Dessin.** `StaticSpriteComponent.Submit` passe au rendu le quad local du sprite (position nulle, rotation nulle, échelle 1, z nul) et `WorldMatrixWithScale` comme transformation de monde. Le rendu applique déjà cette transformation après la mise à l'échelle de la source et le placement de l'origine.
-- **Équivalence pour l'existant.** Pour un sprite sans rotation et sans parent, ou sous des parents sans rotation ni échelle, la matrice obtenue est celle d'aujourd'hui : même échelle, même translation, même z. C'est le cas de tous les sprites des données du dépôt.
+- **Équivalence pour l'existant.** Pour un sprite sans rotation et sans parent, ou sous des parents sans rotation ni échelle, les quatre coins du quad transformés par la matrice de l'entrée sont ceux d'aujourd'hui **à l'arrondi près en x et y, et exactement en z**. La matrice elle-même n'est pas identique au bit près : l'ordre des opérations change (aujourd'hui `(x − ox·sx) + (w ÷ 2)·sx`, demain `((0 − ox) + w ÷ 2)·sx + x`), et son terme d'échelle en z vaut l'échelle z du composant au lieu de 1, sans effet sur un quad de z local nul. Le z de la translation reste exactement `Position.Z` : le tri ne change pas. C'est le cas de tous les sprites des données du dépôt.
+- **Règle de comparaison**, la même dans T0.2, dans les arrêts et dans la vérification : sur x et y, un écart d'au plus `1e-4 × max(1, |valeur attendue|)` ; sur z, l'égalité exacte.
+- **Visibilité (D7).** `Entity.GetBoundingBox` étend la boîte par celles des composants enfants, à toute profondeur, et par celles des entités enfants. `World` consulte aussi les composants enfants et les entités enfants pour savoir si une entité doit être réindexée. `CameraComponent.GetBoundingBox` rend sa boîte unité transformée par la matrice de monde de la caméra. Une entité sans enfant garde exactement sa boîte ; une entité avec enfants a une boîte plus grande ou égale : elle est visible plus souvent, jamais moins. Limite gardée et écrite : une caméra doit être le composant racine de son entité pour que ses enfants soient dessinés.
 - **Ce qui change, voulu.** Un sprite tourné se voit tourné. Un sprite sous un parent tourné ou mis à l'échelle suit ce parent comme sa boîte englobante le fait déjà. T0.1 recense les sprites créés par code qui seraient dans ce cas ; s'il y en a, la tâche s'arrête et la liste va à l'auteur (O1).
 - **Rendu.** Une surcharge publique de `DrawSprite` est ajoutée : celle d'aujourd'hui avec transformation de monde, plus le mode de mélange, la clé de tri optionnelle, l'ordre de dessin, le rectangle de découpe et le dessin de mise au point. Additive : aucune signature existante ne change.
 - **Tri.** Inchangé : z de monde, lu dans la translation de la matrice. La clé d'un `DepthSortable2DComponent` reste calculée sur `Position`.
@@ -91,11 +106,11 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
 | | |
 |---|---|
 | Résultat | `StaticSpriteComponent` est dessiné avec sa transformation de monde complète ; un sample le montre sous une caméra inclinée |
-| Périmètre | `StaticSpriteComponent.Submit`, une surcharge de `SpriteRendererComponent.DrawSprite`, un sample, un ADR, la doc |
+| Périmètre | `StaticSpriteComponent.Submit`, une surcharge de `SpriteRendererComponent.DrawSprite`, la boîte englobante d'une entité et d'une caméra (D7), un sample, deux ADR, la doc |
 | Hors périmètre | `AnimatedSpriteComponent`, `VideoSpriteComponent`, le shader, le tri, les faces arrière, une aide au dimensionnement |
-| Acceptation | Pour tout sprite sans rotation et sans parent tourné ni mis à l'échelle, les sommets soumis au rendu sont ceux d'avant, prouvé par un test écrit **avant** le changement et non modifié ensuite ; un sprite tourné ou enfant d'une caméra tournée a les sommets que donne sa matrice de monde ; les deux solutions à 0 erreur ; `CasaEngine.Tests` vert |
+| Acceptation | Pour tout sprite sans rotation et sans parent tourné ni mis à l'échelle, les coins du quad transformés par la matrice de l'entrée du rendu sont ceux d'avant, selon la règle de comparaison de la conception, prouvé par un test écrit **avant** le changement et non modifié ensuite ; un sprite tourné ou enfant d'une caméra tournée a les coins que donne sa matrice de monde ; un sprite enfant d'une caméra posée de façon que l'origine du monde soit hors de son champ est rendu par la requête de visibilité du monde ; une entité sans enfant garde sa boîte ; les deux solutions à 0 erreur ; `CasaEngine.Tests` vert |
 | Retour arrière | Annuler les commits de la branche |
-| Arrêts | Un sommet qui diffère pour un sprite sans rotation ; un sprite du dépôt, créé par code, sous un parent tourné ou mis à l'échelle (O1) ; un test existant qui casse |
+| Arrêts | Un coin qui diffère, au-delà de la règle de comparaison, pour un sprite sans rotation ; une entité sans enfant dont la boîte change ; un sprite du dépôt, créé par code, sous un parent tourné ou mis à l'échelle (O1) ; un test existant qui casse |
 | Risque | **Élevé : changement de rendu de tous les sprites du monde.** Relecture indépendante du plan avant approbation ; vérification indépendante du résultat avant de dire le chantier fait |
 | Budget | Un commit par tâche ; au plus cinq passes de correction après vérification |
 
@@ -128,20 +143,33 @@ Tests seulement.
 - Objectif : une preuve d'équivalence écrite sur le code d'avant.
 - Fichiers : `CasaEngine.Tests/Scene/StaticSpriteWorldTransformTests.cs` (nouveau).
 - Étapes :
-  1. Écrire un montage sans carte graphique qui soumet un `StaticSpriteComponent` et lit les sommets que le rendu calcule (`SpriteRendererComponent.FillVertices`, interne, visible des tests), d'après les tests existants de `CasaEngine.Tests/Scene/SpriteComponentDrawOrderTests.cs`. Si ce montage n'existe pas pour `StaticSpriteComponent`, le dire dans la note et s'appuyer sur ce que ces tests font.
-  2. Test d'équivalence : pour une grille de positions (z compris), d'échelles, d'origines de sprite et de rectangles source, sans rotation et sans parent, puis sous un parent composant et sous une entité parente sans rotation ni échelle, les quatre sommets valent ce que donne la formule d'aujourd'hui, écrite dans le test : centre (x − ox·sx + w·sx ÷ 2, y + oy·sy − h·sy ÷ 2, z), demi-tailles (w·sx ÷ 2, h·sy ÷ 2).
+  1. Reprendre le montage sans carte graphique de `SpriteComponentDrawOrderTests` (`Harness`, lecture de la file `_spriteDatas` par réflexion), en le réutilisant ou en le recopiant. **Grandeur comparée** : pour chaque entrée de la file, les quatre coins locaux (±0,5 ; ±0,5 ; 0) transformés par `WorldMatrix` de l'entrée. `FillVertices` n'est pas la source : il ne transforme rien.
+  2. Test d'équivalence : pour une grille de positions (z compris), d'échelles, d'origines de sprite et de rectangles source, sans rotation et sans parent, puis sous un parent composant et sous une entité parente sans rotation ni échelle, les quatre coins valent ce que donne la formule d'aujourd'hui, écrite dans le test dans l'ordre du code : centre ((x − ox·sx) + (w ÷ 2)·sx, (y + oy·sy) − (h ÷ 2)·sy, z), demi-tailles (w·sx ÷ 2, h·sy ÷ 2). Comparaison selon la règle de la conception : tolérance relative de 1e-4 sur x et y, égalité exacte sur z. La grille contient des positions non entières avec une origine non nulle et une échelle différente de 1, et une échelle négative.
   3. Chaque mode de soumission est couvert : opaque, mélangé, avec ordre de dessin, avec clé de tri.
-- Validation : tests verts sur le code d'aujourd'hui ; la note donne le compte de cas.
+  4. Contrôle que le test mord : une mutation volontaire et provisoire de `Submit` (l'échelle passée à 1) le fait échouer ; la mutation est retirée avant le commit et la note le dit.
+- Validation : tests verts sur le code d'aujourd'hui ; la note donne le compte de cas et le résultat de la mutation.
 - Commit : `test(sprite): record the vertices of the unrotated static sprite`
 
 ---
 
 ## Phase 1 — Le sprite orientable
 
+### ⏳ T1.0 — La boîte d'une entité compte ses enfants
+
+- Objectif : qu'un composant enfant ou une entité enfant compte pour la visibilité de son entité (D7).
+- Fichiers : `CasaEngine/Framework/Scene/Entities/Entity.cs` (`GetBoundingBox`, `ClearBoundingBoxDirty`), `CasaEngine/Framework/Scene/World/World.cs` (`IsBoundingBoxDirty`), `CasaEngine/Framework/Scene/Entities/Components/CameraComponent.cs` (`GetBoundingBox`), `CasaEngine.Tests/Scene/EntityBoundsWithChildrenTests.cs` (nouveau).
+- Étapes :
+  1. Tests d'abord, sur le code d'avant : une entité sans composant enfant ni entité enfant a pour boîte celle d'aujourd'hui (grille de composants racines et de composants d'entité) ; ces tests restent verts sans modification après l'étape 2.
+  2. `Entity.GetBoundingBox` étend la boîte par celle de chaque composant enfant, à toute profondeur, du composant racine et des composants d'entité, puis par celle de chaque entité enfant. `ClearBoundingBoxDirty` descend de même dans les entités enfants. `World.IsBoundingBoxDirty` consulte les composants enfants et les entités enfants. Aucune allocation : boucles `for` sur les listes existantes.
+  3. `CameraComponent.GetBoundingBox` rend la boîte de −1 à 1 transformée par `WorldMatrixNoScale`.
+  4. Tests ajoutés : la boîte d'une entité contient celle d'un composant enfant éloigné, et celle d'une entité enfant éloignée ; un composant enfant qui bouge seul fait réindexer son entité ; par la requête de visibilité du monde (`World.Draw`, ou l'index et un frustum), une caméra racine posée de façon que l'origine du monde soit hors de son champ, avec un composant enfant devant elle, est rendue ; la même caméra sans enfant, regardant ailleurs que vers elle-même, a sa boîte à sa position.
+- Validation : builds ; tests verts ; aucun test existant modifié. Si un test existant casse parce qu'une entité à enfants devient visible, arrêt et note.
+- Commit : `fix(scene): count the children of an entity in its bounds and place the bounds of a camera on the camera`
+
 ### ⏳ T1.1 — ADR
 
-- Objectif : enregistrer la décision.
-- Fichiers : `docs/decisions/0151-a-sprite-is-drawn-with-the-world-transform-of-its-component.md` (nouveau), `docs/decisions/README.md`. Numéro à confirmer sur l'index au moment de l'écrire.
+- Objectif : enregistrer les deux décisions.
+- Fichiers : `docs/decisions/0151-a-sprite-is-drawn-with-the-world-transform-of-its-component.md` et `docs/decisions/0152-the-bounds-of-an-entity-include-its-children.md` (nouveaux), `docs/decisions/README.md`. Numéros à confirmer sur l'index au moment de les écrire. Le second ADR (D7) dit ce que comptait la boîte avant, ce qu'elle compte maintenant, que la boîte d'une caméra suit la caméra, et la limite de la caméra non racine.
 - Étapes : avec le skill `adr`, en anglais : le contexte (rotation ignorée, boîte englobante qui la suit déjà, surcharge du rendu existante) ; la décision (D1, D2, D4, D5) ; les conséquences et les limites (faces arrière, tri des sprites mélangés, sprite animé et sprite vidéo inchangés, dimensionnement par les données) ; ce qui change pour un sprite sous un parent tourné ou mis à l'échelle.
 - Validation : relecture ; aucun nom de projet extérieur.
 - Commit : `docs(adr): record that a sprite is drawn with the world transform of its component`
@@ -162,7 +190,7 @@ Tests seulement.
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/StaticSpriteComponent.cs`, `CasaEngine.Tests/Scene/StaticSpriteWorldTransformTests.cs`.
 - Étapes :
   1. `Submit` appelle les surcharges de T1.2 avec `WorldMatrixWithScale`, dans chacun de ses quatre cas (clé de tri ou non, mélange ou non, ordre de dessin ou non). La clé de tri reste calculée sur `Position`.
-  2. Tests ajoutés : un sprite tourné autour de z, de x et de y a les sommets de sa matrice de monde ; un sprite enfant composant d'une `PerspectiveCameraComponent` inclinée avec du roulis, en (0, 0, −d), a ses quatre sommets dans le plan z = −d du repère de la caméra et ses bords parallèles aux axes x et y de la caméra ; à l'échelle `2 · d · tan(champ ÷ 2) ÷ hauteur du viewport`, une image de la hauteur du viewport couvre exactement la hauteur du cadre (projection des sommets par la vue et la projection de la caméra) ; avec un décalage de l'image, les sommets projetés se déplacent du décalage en pixels ; un sprite sous une entité parente tournée suit la rotation.
+  2. Tests ajoutés, sur la grandeur de T0.2 (coins transformés par la matrice de l'entrée) : un sprite tourné autour de z, de x et de y a les coins de sa matrice de monde ; un sprite enfant composant d'une `PerspectiveCameraComponent` inclinée avec du roulis, en (0, 0, −d), a ses quatre coins dans le plan z = −d du repère de la caméra et ses bords parallèles aux axes x et y de la caméra ; à l'échelle `2 · d · tan(champ ÷ 2) ÷ hauteur du viewport`, une image de la hauteur du viewport couvre exactement la hauteur du cadre (projection des coins par la vue et la projection de la caméra) ; avec un décalage de l'image, les coins projetés se déplacent du décalage en pixels ; un sprite sous une entité parente tournée suit la rotation ; un sprite enfant d'une caméra racine posée de façon que l'origine du monde soit hors de son champ arrive dans la file du rendu en passant par `World.Draw`.
   3. Test : `Submit` n'alloue pas (mesure par `GC.GetAllocatedBytesForCurrentThread`, comme `OrbitCameraComponentTests`).
 - Validation : le test de T0.2 vert **sans modification** ; builds ; tests verts ; aucun test existant modifié.
 - Commit : `feat(sprite): draw the static sprite with the world transform of its component`
@@ -171,7 +199,7 @@ Tests seulement.
 
 - Objectif : voir le résultat sur une carte graphique, sans fenêtre.
 - Fichiers : un test GPU dans `CasaEngine.Tests/Rendering/` (nouveau), sur le montage des tests GPU existants (`GpuDeviceHost`).
-- Étapes : rendre dans une cible une caméra perspective inclinée avec du roulis et deux sprites enfants à deux distances, l'un avec une découpe transparente, plus un objet opaque entre les deux ; lire les pixels : le sprite proche couvre l'objet, l'objet couvre le sprite lointain, le sprite lointain se voit par la découpe du sprite proche ; un décalage de l'image déplace le tout du même nombre de pixels.
+- Étapes : en passant par le dessin du monde si le montage le permet (sinon la note le dit, la visibilité étant déjà prouvée en T1.0 et T1.3), rendre dans une cible une caméra perspective inclinée avec du roulis et deux sprites enfants à deux distances, l'un avec une découpe transparente, plus un objet opaque entre les deux ; lire les pixels : le sprite proche couvre l'objet, l'objet couvre le sprite lointain, le sprite lointain se voit par la découpe du sprite proche ; un décalage de l'image déplace le tout du même nombre de pixels.
 - Validation : test vert. Si le montage GPU ne permet pas un objet opaque dans la même image, la note le dit et le test se limite aux deux sprites et à la découpe.
 - Commit : `test(sprite): render sprites that follow a tilted camera and read the pixels back`
 
@@ -184,7 +212,7 @@ Tests seulement.
 - Objectif : montrer la fonctionnalité dans le Launcher.
 - Fichiers : `Projects/OrientedSpriteSample/` (fichier de projet, `AssetInfos.json`, un monde, `Images/`, `Models/`, `README.md`) ; le script de clavier existant `PictureOffsetKeys` de `Projects/CasaEngine.PerspectiveCameraSample/` est réutilisé si sa DLL peut être copiée dans le dossier du nouveau sample par une seconde ligne de son `PostBuild`, sinon une DLL de jeu minimale est ajoutée à `CasaEngine.MonoGame.sln` ; `.gitignore` pour les binaires copiés ; un générateur d'images et un test de données dans `CasaEngine.Tests/`, sur le modèle de `PerspectiveCameraSampleImages` et `PerspectiveCameraSampleDataTests`.
 - Étapes :
-  1. Le monde : une caméra perspective inclinée avec du roulis ; deux sprites enfants de la caméra, plus larges et plus hauts que le cadre, l'un lointain, l'autre proche avec une découpe ; une boîte posée dans le monde entre les deux distances ; un sprite tourné posé dans le monde, sans lien avec la caméra, pour montrer le cas général.
+  1. Le monde : une caméra perspective inclinée avec du roulis, composant racine de son entité, **posée de façon que l'origine du monde soit hors de son champ** ; deux sprites enfants de la caméra, plus larges et plus hauts que le cadre, l'un lointain, l'autre proche avec une découpe ; une boîte posée dans le monde entre les deux distances ; un sprite tourné posé dans le monde, sans lien avec la caméra, pour montrer le cas général.
   2. Les flèches décalent l'image de la caméra.
   3. README : objectif, contrôles, comment lancer, comment l'échelle des sprites a été calculée.
   4. Test de données : les images committées sont celles du générateur ; les échelles enregistrées sont celles de la formule pour le champ de vision et la hauteur du monde ; chaque référence se résout dans le catalogue du sample.
@@ -223,3 +251,5 @@ Tests seulement.
 - Le shader des sprites, le tri par profondeur de vue, les sprites à deux faces.
 - Un mode « toujours face à la caméra » (billboard) pour les sprites.
 - Tout changement de `SceneComponent.Position`, `Orientation` ou `Scale`.
+- Un attribut « toujours visible », et une visibilité testée objet par objet plutôt que par entité (D7 corrige la boîte, pas le modèle).
+- Faire dessiner les enfants d'un composant de scène qui n'est ni racine ni `PrimitiveComponent`.
