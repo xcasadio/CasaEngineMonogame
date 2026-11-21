@@ -214,13 +214,14 @@ Tests seulement.
   - Mise au point : sous une échelle négative, les formes de mise au point d'un sprite prennent la valeur absolue de l'échelle (T1.2) ; le dessin du sprite, lui, garde le signe.
   - Les deux solutions à 0 erreur ; 8518 tests, 0 échec (8508 + 10) ; aucun test existant modifié.
 
-### ⏳ T1.4 — Preuve à l'image
+### ✅ T1.4 — Preuve à l'image
 
 - Objectif : voir le résultat sur une carte graphique, sans fenêtre.
 - Fichiers : un test GPU dans `CasaEngine.Tests/Rendering/` (nouveau), sur le montage des tests GPU existants (`GpuDeviceHost`).
 - Étapes : en passant par le dessin du monde si le montage le permet (sinon la note le dit, la visibilité étant déjà prouvée en T1.0 et T1.3), rendre dans une cible une caméra perspective inclinée avec du roulis et deux sprites enfants à deux distances, l'un avec une découpe transparente, plus un objet opaque entre les deux ; lire les pixels : le sprite proche couvre l'objet, l'objet couvre le sprite lointain, le sprite lointain se voit par la découpe du sprite proche ; un décalage de l'image déplace le tout du même nombre de pixels.
 - Validation : test vert. Si le montage GPU ne permet pas un objet opaque dans la même image, la note le dit et le test se limite aux deux sprites et à la découpe.
 - Commit : `test(sprite): render sprites that follow a tilted camera and read the pixels back`
+- **Fait (2026-11-21).** `OrientedSpriteGpuTests`, deux tests exécutés sur la carte graphique (non ignorés), sur le montage GPU existant (`WorldVideoHarness`, `GpuDeviceHost`). Une caméra à lacet, tangage et roulis, posée en (5000, 800, 3000), dont le champ ne contient pas l'origine du monde ; deux images enfants de la caméra, deux fois plus grandes que le cadre, à 200 et à 100 unités, la proche avec une découpe transparente au centre ; entre les deux, à 150 unités, un sprite du monde qui n'est pas enfant de la caméra, posé par sa propre transformation et tourné comme elle. **Le dessin passe par `World.Draw`** : les deux entités sont dans l'index, la requête de visibilité les rend, trois entrées arrivent dans la file. Pixels relus dans une cible de 64 × 64 : l'image proche hors de sa découpe et devant l'objet, l'image lointaine par la découpe, l'objet par la découpe devant l'image lointaine. Avec un décalage de l'image de (0,25 ; 0), images et objet se déplacent ensemble de 16 pixels et l'image proche couvre encore le bord gauche. L'« objet opaque » est un sprite, pas un maillage : le montage ne rend que les sprites.
 
 ---
 
