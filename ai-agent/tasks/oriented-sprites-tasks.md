@@ -227,7 +227,7 @@ Tests seulement.
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample
+### 🧪 T2.1 — Sample
 
 - Objectif : montrer la fonctionnalité dans le Launcher.
 - Fichiers : `Projects/OrientedSpriteSample/` (fichier de projet, `AssetInfos.json`, un monde, `Images/`, `Models/`, `README.md`) ; le script de clavier existant `PictureOffsetKeys` de `Projects/CasaEngine.PerspectiveCameraSample/` est réutilisé si sa DLL peut être copiée dans le dossier du nouveau sample par une seconde ligne de son `PostBuild`, sinon une DLL de jeu minimale est ajoutée à `CasaEngine.MonoGame.sln` ; `.gitignore` pour les binaires copiés ; un générateur d'images et un test de données dans `CasaEngine.Tests/`, sur le modèle de `PerspectiveCameraSampleImages` et `PerspectiveCameraSampleDataTests`.
@@ -238,6 +238,10 @@ Tests seulement.
   4. Test de données : les images committées sont celles du générateur ; les échelles enregistrées sont celles de la formule pour le champ de vision et la hauteur du monde ; chaque référence se résout dans le catalogue du sample.
 - Validation : builds ; tests ; le sample lancé par le script de capture du dépôt hôte, une capture par décalage (au moins deux), jointes au rapport. 🧪 jusqu'à la recette de l'auteur.
 - Commit : `feat(samples): add a sample of sprites that follow a tilted camera`
+- **Fait (2026-11-21), 🧪 jusqu'à la recette.** Construit par un `executor`, relu par la session principale. `Projects/OrientedSpriteSample/` : une caméra racine de son entité, champ de 45 degrés, posée en (800, 300, 650) avec lacet −120°, tangage −20° et roulis 25°, l'origine du monde à 142,7° de son axe de visée ; deux sprites enfants de la caméra, de 960 × 720 pour un cadre de 640 × 480, en (0, 0, −600) à l'échelle 1,035534 et en (0, 0, −240) à l'échelle 0,4142136, le proche avec une découpe ; une boîte de 60 unités à 400 unités sur l'axe de visée ; un sprite tourné posé dans le monde, vu de trois quarts. Le script `PictureOffsetKeys` est réutilisé : le `PostBuild` de `Projects/CasaEngine.PerspectiveCameraSample` copie aussi sa DLL dans le nouveau dossier, ignorée par git. Images produites par un générateur ; 13 tests de données (`OrientedSpriteSampleDataTests`). Un identifiant du catalogue a été remplacé après coup par la session principale.
+  - **Vu à l'écran**, par le script de capture du dépôt hôte, sans entrée clavier : à décalage nul, les deux images sont droites dans le cadre, la boîte et le sprite tourné se voient par la découpe, devant l'image lointaine. Une copie du sample hors dépôt, avec un décalage de l'image de (0,2 ; −0,15) écrit dans le monde : tout a glissé ensemble de (+128, −72) pixels. Aucune erreur au journal.
+  - **Non vu** : l'effet des flèches (le script de capture n'envoie aucune entrée). Recette de l'auteur.
+  - Les deux solutions à 0 erreur ; 8533 tests, 0 échec (8520 + 13).
 
 ### ⏳ T2.2 — Documentation
 

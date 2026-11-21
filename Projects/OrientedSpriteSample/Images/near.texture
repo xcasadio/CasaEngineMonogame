@@ -1,0 +1,22 @@
+{
+  "id": "497c05c9-71a3-4147-be62-ce5cc37bef4b",
+  "name": "near-sheet",
+  "texture_asset_id": "a67f2e8e-1ee4-4d1c-b3d7-d6feaf9a3b38",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "asset_infos": [
+    {
+      "id": "5072b3e1-f5c9-4bf5-851e-712a90bff9a5",
+      "name": "OrientedWorld",
+      "file_name": "OrientedWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "a90789e2-da4c-4502-94ca-8cd137083b23",
+      "name": "far-image",
+      "file_name": "Images\\far.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "7b71ac77-d54b-4624-941b-f68102a50264",
+      "name": "far-sheet",
+      "file_name": "Images\\far.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "d9cfa836-8900-463f-ae1d-1853a170c053",
+      "name": "far-picture",
+      "file_name": "Images\\far.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "a67f2e8e-1ee4-4d1c-b3d7-d6feaf9a3b38",
+      "name": "near-image",
+      "file_name": "Images\\near.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "497c05c9-71a3-4147-be62-ce5cc37bef4b",
+      "name": "near-sheet",
+      "file_name": "Images\\near.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "5278fb07-cfe9-4aaf-bf49-037563fcb533",
+      "name": "near-picture",
+      "file_name": "Images\\near.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "4fe2a234-93b0-481b-8183-93bc2cb51bdc",
+      "name": "turned-image",
+      "file_name": "Images\\turned.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "7e97ea07-6033-48ba-8200-d5a04634045b",
+      "name": "turned-sheet",
+      "file_name": "Images\\turned.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "99cd9d09-79b3-46ef-8c9c-fc497ad59526",
+      "name": "turned-picture",
+      "file_name": "Images\\turned.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "0c65d8df-0686-425c-9955-76c72b691bc7",
+      "name": "box-image",
+      "file_name": "Images\\box.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "819a2943-fe7d-4b16-80a3-7405d444cd8d",
+      "name": "box-texture",
+      "file_name": "Images\\box.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "5dc8b5d8-f725-483b-ae47-f7050a7969b5",
+      "name": "box-material",
+      "file_name": "Models\\box.material",
+      "asset_type": "material"
+    },
+    {
+      "id": "324a21d7-522e-4881-9580-2725cd1f8519",
+      "name": "box-model",
+      "file_name": "Models\\box.staticModel",
+      "asset_type": "staticmodel"
+    }
+  ]
+}

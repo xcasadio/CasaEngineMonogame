@@ -1,0 +1,17 @@
+{
+  "id": "99cd9d09-79b3-46ef-8c9c-fc497ad59526",
+  "name": "turned-picture",
+  "sprite_sheet_asset_id": "7e97ea07-6033-48ba-8200-d5a04634045b",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+  },
+  "hotspot": {
+    "x": 32,
+    "y": 32
+  },
+  "collisions": [],
+  "sockets": []
+}

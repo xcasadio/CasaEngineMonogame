@@ -10,6 +10,6 @@
 		<ProjectReference Include="..\..\CasaEngine\CasaEngine.csproj" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.dll $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.dll&#xD;&#xA;copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.pdb $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.pdb" />
+		<Exec Command="copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.dll $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.dll&#xD;&#xA;copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.pdb $(ProjectDir)..\PerspectiveCameraSample\CasaEngine.PerspectiveCameraSample.pdb&#xD;&#xA;copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.dll $(ProjectDir)..\OrientedSpriteSample\CasaEngine.PerspectiveCameraSample.dll&#xD;&#xA;copy /y $(OutDir)CasaEngine.PerspectiveCameraSample.pdb $(ProjectDir)..\OrientedSpriteSample\CasaEngine.PerspectiveCameraSample.pdb" />
 	</Target>
 </Project>

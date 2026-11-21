@@ -1,0 +1,220 @@
+{
+  "id": "5072b3e1-f5c9-4bf5-851e-712a90bff9a5",
+  "name": "OrientedWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "57b54326-cd81-4659-8c17-70b7c67a883c",
+        "name": "camera",
+        "root_component": {
+          "id": "c709a5bf-616d-47ea-b075-2e7142a6801a",
+          "name": "PerspectiveCameraComponent",
+          "type": "PerspectiveCameraComponent",
+          "coordinates": {
+            "position": {
+              "x": 800.0,
+              "y": 300.0,
+              "z": 650.0
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": -0.2693605,
+              "y": -0.81386,
+              "z": -0.0402433,
+              "w": 0.5132809
+            }
+          },
+          "children_component": [
+            {
+              "id": "029e30ea-5d75-4ec9-af95-d61cbef74b49",
+              "name": "FarPicture",
+              "type": "StaticSpriteComponent",
+              "coordinates": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -600.0
+                },
+                "scale": {
+                  "x": 1.035534,
+                  "y": 1.035534,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0,
+                  "w": 1
+                }
+              },
+              "children_component": [],
+              "spriteDataName": "far-picture",
+              "blend_mode": "Opaque",
+              "draw_order": 0
+            },
+            {
+              "id": "6fc877f4-e697-4ac4-9e53-3e6c816748ff",
+              "name": "NearPicture",
+              "type": "StaticSpriteComponent",
+              "coordinates": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -240.0
+                },
+                "scale": {
+                  "x": 0.4142136,
+                  "y": 0.4142136,
+                  "z": 1
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0,
+                  "w": 1
+                }
+              },
+              "children_component": [],
+              "spriteDataName": "near-picture",
+              "blend_mode": "Opaque",
+              "draw_order": 0
+            }
+          ],
+          "view_distance": 999,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 640,
+            "h": 480,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "fieldOfView": 0.7853982,
+          "picture_offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "components": [],
+        "script_class_name": "CasaEngine.PerspectiveCameraSample.PictureOffsetKeys",
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "8c6e2861-49df-4e70-a102-4dba00d50be3",
+        "name": "box",
+        "root_component": {
+          "id": "73812479-dade-4af1-994b-afad5a04e855",
+          "name": "StaticModelComponent",
+          "type": "StaticModelComponent",
+          "coordinates": {
+            "position": {
+              "x": 1138.8822,
+              "y": 118.3598,
+              "z": 782.1577
+            },
+            "scale": {
+              "x": 60,
+              "y": 60,
+              "z": 60
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "static_model_asset_id": "324a21d7-522e-4881-9580-2725cd1f8519",
+          "cast_shadows": false,
+          "receive_shadows": false,
+          "material_slot_overrides": [
+            {
+              "slot_name": "Mesh",
+              "slot_index": 0,
+              "material_asset_id": "5dc8b5d8-f725-483b-ae47-f7050a7969b5"
+            }
+          ]
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "0a766806-cf81-4739-902c-bc0f5acaa4c8",
+        "name": "turned-sprite",
+        "root_component": {
+          "id": "4f28a16e-5876-41b6-8f1f-c79e2e8bf95f",
+          "name": "StaticSpriteComponent",
+          "type": "StaticSpriteComponent",
+          "coordinates": {
+            "position": {
+              "x": 1051.0294,
+              "y": 244.1665,
+              "z": 876.9182
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": -0.3950169,
+              "y": -0.8698176,
+              "z": 0.2150658,
+              "w": 0.2027947
+            }
+          },
+          "children_component": [],
+          "spriteDataName": "turned-picture",
+          "blend_mode": "Opaque",
+          "draw_order": 0
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 20,
+      "g": 20,
+      "b": 28,
+      "a": 255
+    }
+  }
+}

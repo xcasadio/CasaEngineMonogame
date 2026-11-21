@@ -1,0 +1,22 @@
+{
+  "id": "7b71ac77-d54b-4624-941b-f68102a50264",
+  "name": "far-sheet",
+  "texture_asset_id": "a90789e2-da4c-4502-94ca-8cd137083b23",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

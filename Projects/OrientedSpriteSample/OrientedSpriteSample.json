@@ -1,0 +1,15 @@
+{
+  "WindowTitle": "Oriented Sprite Sample",
+  "ProjectName": "OrientedSpriteSample",
+  "FirstScreenName": "",
+  "AllowUserResizing": true,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": true,
+  "FirstWorldLoaded": "OrientedWorld.world",
+  "GameplayDllName": "CasaEngine.PerspectiveCameraSample.dll",
+  "ExternalToolsDirectory": "ExternalTools",
+  "DebugIsFullScreen": false,
+  "DebugHeight": 480,
+  "DebugWidth": 640,
+  "VSyncEnabled": true
+}

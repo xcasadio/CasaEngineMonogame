@@ -73,3 +73,7 @@ log.txt
 # PerspectiveCameraSample gameplay binaries (copied by CasaEngine.PerspectiveCameraSample PostBuild) #
 Projects/PerspectiveCameraSample/*.dll
 Projects/PerspectiveCameraSample/*.pdb
+
+# OrientedSpriteSample reuses the PerspectiveCameraSample gameplay binaries (copied by the same PostBuild) #
+Projects/OrientedSpriteSample/*.dll
+Projects/OrientedSpriteSample/*.pdb

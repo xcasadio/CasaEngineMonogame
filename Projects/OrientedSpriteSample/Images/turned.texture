@@ -1,0 +1,22 @@
+{
+  "id": "7e97ea07-6033-48ba-8200-d5a04634045b",
+  "name": "turned-sheet",
+  "texture_asset_id": "4fe2a234-93b0-481b-8183-93bc2cb51bdc",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

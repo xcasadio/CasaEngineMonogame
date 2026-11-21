@@ -1,0 +1,17 @@
+{
+  "id": "5dc8b5d8-f725-483b-ae47-f7050a7969b5",
+  "name": "box-material",
+  "definition_id": "unlit-texture",
+  "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+  "is_transparent": false,
+  "queue": "Opaque",
+  "cast_shadows": false,
+  "receive_shadows": false,
+  "blend_state": "Opaque",
+  "depth_stencil_state": "Default",
+  "rasterizer_state": "CullCounterClockwise",
+  "sampler_state": "AnisotropicClamp",
+  "properties": {
+    "base_color_texture": "819a2943-fe7d-4b16-80a3-7405d444cd8d"
+  }
+}

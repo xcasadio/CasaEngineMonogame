@@ -1,0 +1,17 @@
+{
+  "id": "d9cfa836-8900-463f-ae1d-1853a170c053",
+  "name": "far-picture",
+  "sprite_sheet_asset_id": "7b71ac77-d54b-4624-941b-f68102a50264",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 960,
+    "h": 720
+  },
+  "hotspot": {
+    "x": 480,
+    "y": 360
+  },
+  "collisions": [],
+  "sockets": []
+}

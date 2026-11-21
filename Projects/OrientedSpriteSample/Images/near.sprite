@@ -1,0 +1,17 @@
+{
+  "id": "5278fb07-cfe9-4aaf-bf49-037563fcb533",
+  "name": "near-picture",
+  "sprite_sheet_asset_id": "497c05c9-71a3-4147-be62-ce5cc37bef4b",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 960,
+    "h": 720
+  },
+  "hotspot": {
+    "x": 480,
+    "y": 360
+  },
+  "collisions": [],
+  "sockets": []
+}
