@@ -250,12 +250,20 @@ Tests seulement.
 - Commit : `docs(sprite): describe the sprite drawn with its world transform`
 - **Fait (2026-11-21).** Nouveau `docs/engine/oriented-sprites.md` (ce que suit un sprite, l'attache à une caméra par la hiérarchie, la formule d'échelle au pixel, la visibilité, les limites, le sample et les tests). `perspective-camera-component.md` et le README de `PerspectiveCameraSample` ne disent plus que les sprites restent parallèles à XY. `docs/README.md` et `ai-agent/README.md` à jour. Documentation seule.
 
-### ⏳ T2.3 — Vérification indépendante et recette
+### 🧪 T2.3 — Vérification indépendante et recette
 
 - Un `verifier` neuf reçoit les affirmations de la « Validation globale » et de l'« Acceptation », le diff de la branche et les notes des tâches ; il relance builds et tests et cherche à réfuter. Un point P0 à P2 est corrigé puis revérifié.
 - Captures avant et après des samples à sprites, comparées octet pour octet et, si elles diffèrent, pixel par pixel avec une seconde passe sur le même moteur pour mesurer la variation d'un lancement à l'autre.
 - Recette de l'auteur (🧪 jusque-là).
 - Commit : `docs(plan): record the verification of the oriented sprites`
+- **Vérification indépendante (2026-11-21, `8b8caa53`) : CONFIRMED**, aucun point P0 à P2. Les neuf affirmations vérifiées : rien ne change pour un sprite existant (théorie, formule et règle de comparaison intactes depuis `7f0f77be` ; formule recoupée avec l'ancien code ; 20 sprites existants sans rotation ni parent composant) ; le sprite orienté ; la visibilité ; chemins chauds sans allocation (sondes à 0 octet sur 1000 appels) ; API additive ; deux tests exécutés sur la carte graphique, par `World.Draw` ; sample cohérent, recalculé à part ; builds à 0 erreur, 8533 tests verts, cinq fichiers de test tous ajoutés ; ADR et doc.
+- **Captures avant et après** (2026-11-21), par le script de capture du dépôt hôte, sur `main` `51ea3857` puis sur cette branche : `SampleProject`, `PerspectiveCameraSample`, `SpriteDrawOrderSample`, `PixelUiSample`, `BufferedResolutionSample`, `RPGDemo` identiques octet pour octet à 3 s et à 8 s ; `TimedScreenSample` et `SpriteCutsceneSample` identiques à 8 s et différents à 3 s, pendant une animation (la recette précédente avait mesuré le même écart entre deux lancements d'un même moteur).
+- **Remarques reportées sans changement du candidat** (P3 et P4), à trancher par l'auteur :
+  - P3 : **l'exclusion de la physique ne vaut pas pour un composant racine physique.** `ExpandByDrawableDescendants` saute les enfants physiques, pas le composant d'où il part : sous une racine `CollisionComponent`, ce qui pend dessous est compté. La boîte grandit, donc l'entité est visible plus souvent, jamais moins ; c'est ce qu'il faut pour un visuel posé sous une racine logique. L'ADR-0152 et la doc disent « tout composant physique et ce qui pend dessous » : la formulation est à préciser.
+  - P3 : **un sprite peut recevoir une rotation de la physique**, cas absent du recensement T0.1. Un corps dynamique écrit chaque image l'orientation de son parent (`PhysicsBaseComponent.cs:162-170`) ; dans `Projects/SpriteCutsceneSample/LiveWorld.world`, l'entité `FallingBox` a un sprite statique pour racine et un corps dynamique pour enfant. Avant, cette rotation était ignorée au dessin ; maintenant le sprite la suit et, s'il bascule, peut être vu de dos. Non simulé : l'effet n'est pas mesuré. L'ADR-0151 et la doc ne le disent pas.
+  - P3 : le calcul de la boîte est fait deux fois pour une racine `StaticModelComponent` ou `TransformComponent`, qui comptent déjà leurs descendants ; coût non mesuré.
+  - P4 : un `ChildActorComponent` sans acteur, posé en enfant, tire la boîte jusqu'à l'origine (composant utilisé nulle part) ; la mise au point d'un sprite en miroir est placée autrement qu'avant (drapeaux activés nulle part).
+- **Reste 🧪 : la recette de l'auteur** (`Projects/OrientedSpriteSample`, flèches comprises ; les démos et samples à sprites de son choix). Ni l'éditeur ni `CasaEngine.Demos` n'ont été lancés.
 
 ---
 
