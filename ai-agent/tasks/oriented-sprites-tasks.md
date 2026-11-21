@@ -142,7 +142,7 @@ Relevé par trois lectures séparées (rendu des sprites ; composants de couche 
 - Commit : `docs(plan): record the survey of the sprites placed under a parent`
 - **Fait (2026-11-21).** Plan approuvé par l'auteur le 2026-11-21 (« Approuvé, lance »), en mode AUTO. Recherche de `new StaticSpriteComponent`, `AddChildComponent` et `AddChild` dans le code hors tests : **un seul sprite statique créé par code sous un parent**, dans `CasaEngine.Demos/Demos/TopDownElevationDemo.cs:105-117`. Il a une échelle locale de 0,15, pas de rotation, et ses deux parents (un `RenderProjectionComponent`, sous un `CollisionComponent` racine) n'ont qu'une position : c'est le cas équivalent de la conception, pas un arrêt. Aucun sprite statique n'est placé sous un parent tourné ou mis à l'échelle. `Projects/CasaEngine.RPGDemo/Weapons/MeleeWeapon.cs:17` met une entité sous une autre, mais son sprite est un sprite animé, hors périmètre. O1 est sans objet.
 
-### ⏳ T0.2 — Figer les sommets des sprites d'aujourd'hui
+### ✅ T0.2 — Figer les sommets des sprites d'aujourd'hui
 
 Tests seulement.
 
@@ -155,6 +155,7 @@ Tests seulement.
   4. Contrôle que le test mord : une mutation volontaire et provisoire de `Submit` (l'échelle passée à 1) le fait échouer ; la mutation est retirée avant le commit et la note le dit.
 - Validation : tests verts sur le code d'aujourd'hui ; la note donne le compte de cas et le résultat de la mutation.
 - Commit : `test(sprite): record the vertices of the unrotated static sprite`
+- **Fait (2026-11-21).** `StaticSpriteWorldTransformTests`, sur le montage recopié de `SpriteComponentDrawOrderTests`. Grandeur comparée : les quatre coins locaux transformés par `WorldMatrix` de l'entrée de la file. 14 lignes de théorie : trois placements (racine, composant enfant d'une racine inerte, entité enfant), quatre modes pour chacun (opaque, mélangé, avec ordre de dessin, les deux), plus la clé de tri en opaque et en mélangé pour le sprite racine. Grille par ligne : 3 sprites (rectangle source et origine) × 5 positions × 5 échelles, × 2 positions de parent pour les sprites enfants, soit 75 cas pour une racine et 150 pour un enfant ; 1650 cas en tout, dont des positions non entières avec origine non nulle et échelle différente de 1, et des échelles négatives. Règle de comparaison de la conception. Vert sur le code d'aujourd'hui. **Mutation** : l'échelle de `Submit` passée à 1, les 14 lignes échouent ; mutation retirée, fichier rétabli à l'identique.
 
 ---
 
