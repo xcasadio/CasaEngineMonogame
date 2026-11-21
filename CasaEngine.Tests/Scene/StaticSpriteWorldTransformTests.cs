@@ -176,6 +176,245 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
         Assert.True(MathF.Abs(expected - actual) <= tolerance, $"{context}: expected {expected:R}, actual {actual:R}");
     }
 
+    // ---- The oriented sprite (ADR-0151) ----
+
+    //  Where the corners of a sprite are in the space of its component, before any transform: the quad sized by the
+    //  source rectangle and placed by the origin.
+    private static Vector3[] ComponentSpaceCorners(Rectangle source, Point origin)
+    {
+        var corners = new Vector3[LocalCorners.Length];
+        for (int index = 0; index < LocalCorners.Length; index++)
+        {
+            corners[index] = new Vector3(
+                LocalCorners[index].X * source.Width - origin.X + source.Width / 2f,
+                LocalCorners[index].Y * source.Height + origin.Y - source.Height / 2f,
+                0f);
+        }
+
+        return corners;
+    }
+
+    private static Vector3[] QueuedCorners(Harness harness)
+    {
+        Matrix world = harness.SingleWorldMatrix();
+        var corners = new Vector3[LocalCorners.Length];
+        for (int index = 0; index < LocalCorners.Length; index++)
+        {
+            corners[index] = Vector3.Transform(LocalCorners[index], world);
+        }
+
+        return corners;
+    }
+
+    private static void AssertPoint(Vector3 expected, Vector3 actual, string context)
+    {
+        AssertClose(expected.X, actual.X, context + " x");
+        AssertClose(expected.Y, actual.Y, context + " y");
+        AssertClose(expected.Z, actual.Z, context + " z");
+    }
+
+    [Theory]
+    [InlineData(0f, 0f, 1f)]
+    [InlineData(1f, 0f, 0f)]
+    [InlineData(0f, 1f, 0f)]
+    [InlineData(0.3f, -0.5f, 0.8f)]
+    public void ATurnedSprite_QueuesTheCornersOfItsOrientation(float axisX, float axisY, float axisZ)
+    {
+        _source = new Rectangle(8, 4, 48, 32);
+        _origin = new Point(10, 6);
+        var position = new Vector3(40f, -15f, 7f);
+        var scale = new Vector3(2f, 3f, 1f);
+        Quaternion orientation = Quaternion.CreateFromAxisAngle(Vector3.Normalize(new Vector3(axisX, axisY, axisZ)), 0.7f);
+        var harness = new Harness();
+        StaticSpriteComponent sprite = harness.Place(Placement.Root, Mode.Blended, position, scale, Vector3.Zero, orientation);
+
+        sprite.Submit(Rectangle.Empty);
+
+        Vector3[] local = ComponentSpaceCorners(_source, _origin);
+        Vector3[] queued = QueuedCorners(harness);
+        for (int index = 0; index < local.Length; index++)
+        {
+            //  Scale, then turn, then place: written here without the matrices of the engine.
+            Vector3 expected = Vector3.Transform(local[index] * scale, orientation) + position;
+            AssertPoint(expected, queued[index], $"corner {index}");
+        }
+    }
+
+    [Fact]
+    public void ASpriteUnderATurnedParentEntity_FollowsTheTurn()
+    {
+        _source = new Rectangle(0, 0, 16, 16);
+        _origin = new Point(8, 8);
+        var harness = new Harness();
+        Quaternion quarterTurn = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathHelper.PiOver2);
+        StaticSpriteComponent sprite = harness.Place(Placement.ChildEntity, Mode.Opaque, new Vector3(10f, 0f, 0f), Vector3.One,
+            new Vector3(100f, 0f, 0f), parentOrientation: quarterTurn);
+
+        sprite.Submit(Rectangle.Empty);
+
+        //  The parent stands at (100, 0, 0) and is turned a quarter turn about z: the child, 10 units along the x of the
+        //  parent, stands at (100, 10, 0), and its own x axis points along the world y.
+        Vector3[] queued = QueuedCorners(harness);
+        Vector3 centre = (queued[0] + queued[1] + queued[2] + queued[3]) / 4f;
+        AssertPoint(new Vector3(100f, 10f, 0f), centre, "centre");
+        AssertPoint(new Vector3(0f, 16f, 0f), queued[1] - queued[0], "top edge");
+    }
+
+    private const float PlateDistance = 200f;
+
+    private static (Harness Harness, PerspectiveCameraComponent Camera, StaticSpriteComponent Plate) PlaceUnderATiltedCamera(
+        Rectangle source, Point origin, float scale, Vector3 cameraPosition)
+    {
+        _source = source;
+        _origin = origin;
+        var harness = new Harness();
+        var camera = new PerspectiveCameraComponent
+        {
+            LocalPosition = cameraPosition,
+            //  Yaw, pitch and roll: no axis of the camera is an axis of the world.
+            LocalOrientation = Quaternion.CreateFromYawPitchRoll(0.5f, -0.4f, 0.3f),
+        };
+        var spriteEntity = new Entity();
+        spriteEntity.Load(SpriteNode(Mode.Blended));
+        var plate = (StaticSpriteComponent)spriteEntity.RootComponent!;
+        spriteEntity.RootComponent = null;
+        plate.LocalPosition = new Vector3(0f, 0f, -PlateDistance);
+        plate.LocalScale = new Vector3(scale, scale, 1f);
+        camera.AddChildComponent(plate);
+        var cameraEntity = new Entity { Name = "camera", RootComponent = camera };
+        harness.Initialise(cameraEntity);
+        camera.FarPlane = 1000f;
+        camera.NearPlane = 1f;
+        camera.OnScreenResized(1280, 720);
+        return (harness, camera, plate);
+    }
+
+    [Fact]
+    public void ASpriteChildOfATiltedCamera_LiesInAPlaneOfTheCamera_AndFacesIt()
+    {
+        var (harness, camera, plate) = PlaceUnderATiltedCamera(new Rectangle(0, 0, 64, 48), new Point(32, 24), 1.5f, new Vector3(500f, 80f, 300f));
+
+        plate.Submit(Rectangle.Empty);
+
+        Vector3[] queued = QueuedCorners(harness);
+        var inView = new Vector3[queued.Length];
+        for (int index = 0; index < queued.Length; index++)
+        {
+            inView[index] = Vector3.Transform(queued[index], camera.ViewMatrix);
+            AssertClose(-PlateDistance, inView[index].Z, $"corner {index} depth");
+        }
+
+        //  The edges of the quad run along the x and the y of the camera: the picture is upright in the frame.
+        AssertPoint(new Vector3(64f * 1.5f, 0f, 0f), inView[1] - inView[0], "top edge");
+        AssertPoint(new Vector3(0f, 48f * 1.5f, 0f), inView[0] - inView[3], "left edge");
+        //  Seen from the camera the quad winds as the unit quad does: it is not a back face.
+        Vector3 normal = Vector3.Cross(inView[1] - inView[0], inView[3] - inView[0]);
+        Vector3 unitNormal = Vector3.Cross(LocalCorners[1] - LocalCorners[0], LocalCorners[3] - LocalCorners[0]);
+        Assert.True(MathF.Sign(normal.Z) == MathF.Sign(unitNormal.Z), $"normal {normal}, unit quad normal {unitNormal}");
+    }
+
+    //  The scale that gives one pixel of the picture per pixel of the frame, at a distance of the camera.
+    private static float PixelScale(PerspectiveCameraComponent camera, float distance, float viewportHeight)
+    {
+        return 2f * distance * MathF.Tan(camera.FieldOfView * 0.5f) / viewportHeight;
+    }
+
+    private static Vector2[] ProjectToPixels(PerspectiveCameraComponent camera, Vector3[] corners)
+    {
+        var pixels = new Vector2[corners.Length];
+        Matrix viewProjection = camera.ViewMatrix * camera.ProjectionMatrix;
+        for (int index = 0; index < corners.Length; index++)
+        {
+            Vector4 clip = Vector4.Transform(new Vector4(corners[index], 1f), viewProjection);
+            pixels[index] = new Vector2((clip.X / clip.W + 1f) * 0.5f * 1280f, (1f - clip.Y / clip.W) * 0.5f * 720f);
+        }
+
+        return pixels;
+    }
+
+    [Fact]
+    public void AtThePixelScale_APictureOfTheHeightOfTheViewport_CoversTheHeightOfTheFrame()
+    {
+        //  A picture of 640 x 720 with its origin at its centre, under a camera of 1280 x 720.
+        var probe = new PerspectiveCameraComponent();
+        float scale = PixelScale(probe, PlateDistance, 720f);
+        var (harness, camera, plate) = PlaceUnderATiltedCamera(new Rectangle(0, 0, 640, 720), new Point(320, 360), scale, new Vector3(500f, 80f, 300f));
+
+        plate.Submit(Rectangle.Empty);
+
+        Vector2[] pixels = ProjectToPixels(camera, QueuedCorners(harness));
+        //  Top left, top right, bottom right, bottom left: one pixel of the picture per pixel of the frame.
+        Assert.Equal(320f, pixels[0].X, 0.05f);
+        Assert.Equal(0f, pixels[0].Y, 0.05f);
+        Assert.Equal(960f, pixels[1].X, 0.05f);
+        Assert.Equal(0f, pixels[1].Y, 0.05f);
+        Assert.Equal(960f, pixels[2].X, 0.05f);
+        Assert.Equal(720f, pixels[2].Y, 0.05f);
+        Assert.Equal(320f, pixels[3].X, 0.05f);
+        Assert.Equal(720f, pixels[3].Y, 0.05f);
+    }
+
+    [Fact]
+    public void ThePictureOffsetOfTheCamera_ShiftsTheSpriteByTheOffsetInPixels()
+    {
+        var probe = new PerspectiveCameraComponent();
+        float scale = PixelScale(probe, PlateDistance, 720f);
+        var (harness, camera, plate) = PlaceUnderATiltedCamera(new Rectangle(0, 0, 640, 720), new Point(320, 360), scale, new Vector3(500f, 80f, 300f));
+        plate.Submit(Rectangle.Empty);
+        Vector3[] corners = QueuedCorners(harness);
+        Vector2[] before = ProjectToPixels(camera, corners);
+
+        //  A quarter of the width to the right, a tenth of the height up.
+        camera.PictureOffset = new Vector2(0.25f, -0.1f);
+
+        Vector2[] after = ProjectToPixels(camera, corners);
+        for (int index = 0; index < before.Length; index++)
+        {
+            Assert.Equal(before[index].X + 320f, after[index].X, 0.05f);
+            Assert.Equal(before[index].Y - 72f, after[index].Y, 0.05f);
+        }
+    }
+
+    [Fact]
+    public void ASpriteChildOfACameraFarFromTheOrigin_IsReturnedForTheFrustumOfThatCamera_AndIsQueued()
+    {
+        //  The camera stands far from the origin of the world and looks away from it.
+        var (harness, camera, plate) = PlaceUnderATiltedCamera(new Rectangle(0, 0, 64, 48), new Point(32, 24), 1f, new Vector3(5000f, 800f, 3000f));
+        Entity cameraEntity = camera.Owner;
+        Assert.Equal(ContainmentType.Disjoint, new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix).Contains(Vector3.Zero));
+        harness.World.SpatialServices.WorldIndex.Add(cameraEntity, cameraEntity.GetBoundingBox());
+
+        var visible = new List<Entity>();
+        harness.World.SpatialServices.WorldIndex.Query(new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix), visible);
+
+        Assert.Contains(cameraEntity, visible);
+        plate.Submit(Rectangle.Empty);
+        Assert.Single(harness.Queue);
+    }
+
+    [Fact]
+    public void Submit_AllocatesNothing()
+    {
+        var (harness, _, plate) = PlaceUnderATiltedCamera(new Rectangle(0, 0, 64, 48), new Point(32, 24), 1f, new Vector3(500f, 80f, 300f));
+        //  Warm up: the queue grows to its size, then is emptied as a flush does.
+        for (int index = 0; index < 256; index++)
+        {
+            plate.Submit(Rectangle.Empty);
+        }
+
+        harness.Queue.Clear();
+
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (int index = 0; index < 200; index++)
+        {
+            plate.Submit(Rectangle.Empty);
+        }
+
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.Equal(0, allocated);
+    }
+
     // ---- The renderer: a sprite submitted with a world transform and its settings ----
 
     private static readonly Matrix SomeWorld =
@@ -300,6 +539,10 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
             manager.RegisterAssetLoader(typeof(Texture), new SheetLoader());
             manager.RegisterAssetLoader(typeof(Texture2D), new ImageLoader());
             SetBackingField(game, nameof(CasaEngineGame.AssetContentManager), manager);
+            //  An editor policy: the screen size then comes from two fields, so a camera can join the world with no device.
+            game.ExecutionPolicy = GameplayExecutionPolicies.EditorPreview;
+            typeof(CasaEngineGame).GetField("_screenSizeWidth", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(game, 1280);
+            typeof(CasaEngineGame).GetField("_screenSizeHeight", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(game, 720);
 
             _renderer = new SpriteRendererComponent(game);
             _world = new World();
@@ -353,13 +596,18 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
         /// Builds the sprite at its place: root of its entity, child component of an inert root, or root of an entity
         /// that is the child of another entity. The parents carry a position only.
         /// </summary>
-        public StaticSpriteComponent Place(Placement placement, Mode mode, Vector3 position, Vector3 scale, Vector3 parentPosition)
+        public StaticSpriteComponent Place(Placement placement, Mode mode, Vector3 position, Vector3 scale, Vector3 parentPosition,
+            Quaternion? orientation = null, Quaternion? parentOrientation = null)
         {
             var spriteEntity = new Entity();
             spriteEntity.Load(SpriteNode(mode));
             var sprite = (StaticSpriteComponent)spriteEntity.RootComponent!;
             sprite.LocalPosition = position;
             sprite.LocalScale = scale;
+            if (orientation.HasValue)
+            {
+                sprite.LocalOrientation = orientation.Value;
+            }
             if (mode is Mode.OpaqueWithSortKey or Mode.BlendedWithSortKey)
             {
                 spriteEntity.AddComponent(new DepthSortable2DComponent());
@@ -383,7 +631,13 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
 
                 default:
                 {
-                    var parent = new Entity { Name = "Parent", RootComponent = new TransformComponent { LocalPosition = parentPosition } };
+                    var parentRoot = new TransformComponent { LocalPosition = parentPosition };
+                    if (parentOrientation.HasValue)
+                    {
+                        parentRoot.LocalOrientation = parentOrientation.Value;
+                    }
+
+                    var parent = new Entity { Name = "Parent", RootComponent = parentRoot };
                     parent.AddChild(spriteEntity);
                     Initialise(parent);
                     return sprite;

@@ -314,53 +314,21 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     }
 
     /// <summary>
-    /// Queues the sprite on the renderer. A sprite sorted by a <see cref="DepthSortable2DComponent"/> goes through its
-    /// sort key; any other goes through its z-order, with or without a blend mode.
+    /// Queues the sprite on the renderer, placed by the world transform of this component: position, orientation and
+    /// scale, parents included (ADR-0151). A sprite sorted by a <see cref="DepthSortable2DComponent"/> goes through its
+    /// sort key; any other goes through the z of its transform, then its draw order.
     /// </summary>
     internal void Submit(Rectangle scissorRectangle)
     {
-        var position = new Vector2(Position.X, Position.Y);
-        var scale = new Vector2(Scale.X, Scale.Y);
+        Matrix worldTransform = WorldMatrixWithScale;
         if (_depthSortable2DComponent != null)
         {
             var sortKey = _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame);
-            if (BlendMode == SpriteBlendMode.Opaque)
-            {
-                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, in sortKey,
-                    SpriteEffects.None, scissorRectangle);
-            }
-            else
-            {
-                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, in sortKey,
-                    drawDebug: true, SpriteEffects.None, scissorRectangle, BlendMode);
-            }
-
+            _spriteRendererComponent.DrawSprite(_sprite, in worldTransform, Color, in sortKey, BlendMode, scissorRectangle, drawDebug: true);
             return;
         }
 
-        if (DrawOrder != 0)
-        {
-            if (BlendMode == SpriteBlendMode.Opaque)
-            {
-                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z,
-                    drawDebug: true, SpriteEffects.None, scissorRectangle, DrawOrder);
-            }
-            else
-            {
-                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, BlendMode, scissorRectangle, DrawOrder);
-            }
-
-            return;
-        }
-
-        if (BlendMode == SpriteBlendMode.Opaque)
-        {
-            _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z,
-                drawDebug: true, SpriteEffects.None, scissorRectangle);
-            return;
-        }
-
-        _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, BlendMode, scissorRectangle);
+        _spriteRendererComponent.DrawSprite(_sprite, in worldTransform, Color, BlendMode, DrawOrder, scissorRectangle, drawDebug: true);
     }
 
     public override void OnEnabledValueChange()

@@ -197,7 +197,7 @@ Tests seulement.
 - Commit : `feat(sprite): let a sprite be submitted with a world transform and its settings`
 - **Fait (2026-11-21).** Deux surcharges publiques de `SpriteRendererComponent.DrawSprite`, placées par une transformation de monde seule : `(Sprite, in Matrix, Color, SpriteBlendMode, int drawOrder, Rectangle, bool drawDebug)` et sa jumelle avec `in RenderSortKey2D`. Elles appellent la méthode privée existante avec une position nulle, une rotation nulle, une échelle de 1 et un z nul. Dessin de mise au point : sous une transformation de monde, la taille des formes est celle que donnent les axes x et y de la transformation (longueur des axes, donc sans le signe d'une échelle négative), et les formes de collision sont à la translation de la transformation ; les appelants existants de la surcharge à transformation de monde passent `drawDebug: false`, rien ne change pour eux. Aucune signature existante modifiée. Tests : la matrice gardée par le rendu égale `échelle de la source × placement de l'origine × transformation de monde` ; couleur, mélange, ordre de dessin, découpe et clé de tri arrivent dans l'entrée. Les deux solutions à 0 erreur ; les 16 tests de `StaticSpriteWorldTransformTests` verts.
 
-### ⏳ T1.3 — `StaticSpriteComponent` dessine avec sa transformation de monde
+### ✅ T1.3 — `StaticSpriteComponent` dessine avec sa transformation de monde
 
 - Objectif : le changement lui-même.
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/StaticSpriteComponent.cs`, `CasaEngine.Tests/Scene/StaticSpriteWorldTransformTests.cs`.
@@ -207,6 +207,12 @@ Tests seulement.
   3. Test : `Submit` n'alloue pas (mesure par `GC.GetAllocatedBytesForCurrentThread`, comme `OrbitCameraComponentTests`).
 - Validation : le test de T0.2 vert **sans modification** ; builds ; tests verts ; aucun test existant modifié.
 - Commit : `feat(sprite): draw the static sprite with the world transform of its component`
+- **Fait (2026-11-21).** `StaticSpriteComponent.Submit` passe `WorldMatrixWithScale` aux surcharges de T1.2 ; ses six branches deviennent deux (avec clé de tri, sans). La clé de tri reste calculée sur `Position`.
+  - **Le test d'équivalence de T0.2 est vert après le changement** : sa théorie, sa formule et sa règle de comparaison ne sont pas modifiées. Le montage du fichier a reçu de quoi poser une caméra (politique d'éditeur et taille d'écran du jeu de test) et des orientations optionnelles ; ces ajouts ne touchent pas les cas d'équivalence.
+  - Tests ajoutés (10) : un sprite tourné autour de z, de x, de y et d'un axe quelconque a les coins de son orientation, l'attendu étant écrit sans les matrices du moteur (échelle, rotation, position) ; un sprite sous une entité parente tournée d'un quart de tour suit la rotation ; un sprite enfant d'une caméra à lacet, tangage et roulis est dans le plan z = −200 du repère de la caméra, ses bords le long des axes x et y de la caméra, et il n'est pas vu de dos ; à l'échelle `2 · d · tan(champ ÷ 2) ÷ 720`, une image de 640 × 720 couvre les pixels (320 à 960, 0 à 720) d'un cadre de 1280 × 720, à 0,05 pixel près ; un décalage de l'image de (0,25 ; −0,1) déplace les coins projetés de (+320, −72) pixels ; un sprite enfant d'une caméra posée en (5000, 800, 3000), dont le champ ne contient pas l'origine du monde, est rendu par l'index pour le frustum de cette caméra, puis mis en file ; `Submit` n'alloue rien sur 200 appels.
+  - **Écart au texte du plan** : le dernier test passe par l'index spatial et par `Submit`, pas par `World.Draw` : `StaticSpriteComponent.Draw` lit le rectangle de découpe du périphérique graphique, absent de ce montage. `World.Draw` est exercé avec un périphérique en T1.4.
+  - Mise au point : sous une échelle négative, les formes de mise au point d'un sprite prennent la valeur absolue de l'échelle (T1.2) ; le dessin du sprite, lui, garde le signe.
+  - Les deux solutions à 0 erreur ; 8518 tests, 0 échec (8508 + 10) ; aucun test existant modifié.
 
 ### ⏳ T1.4 — Preuve à l'image
 
