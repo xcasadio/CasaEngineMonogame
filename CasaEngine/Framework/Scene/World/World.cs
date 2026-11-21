@@ -702,16 +702,20 @@ public sealed class World : ObjectBase
         }
     }
 
+    //  The components whose bounds make the bounds of the entity (Entity.GetBoundingBox): the root, the entity
+    //  components, and their descendants outside physics (ADR-0152).
     private bool IsBoundingBoxDirty(Entity actor)
     {
-        if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
+        SceneComponent root = actor.RootComponent;
+        if (root != null && (root.IsBoundingBoxDirty || root.HasBoundingBoxDirtyDescendant()))
         {
             return true;
         }
 
         foreach (var component in actor.Components)
         {
-            if (component is SceneComponent { IsBoundingBoxDirty: true })
+            if (component is SceneComponent sceneComponent
+                && (sceneComponent.IsBoundingBoxDirty || sceneComponent.HasBoundingBoxDirtyDescendant()))
             {
                 return true;
             }

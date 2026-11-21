@@ -245,6 +245,52 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         IsBoundingBoxDirty = true;
     }
 
+    /// <summary>
+    /// Extends <paramref name="boundingBox"/> by the bounds of the descendants of this component that draw, at any depth
+    /// (ADR-0152). A physics component and what hangs under it are skipped, as in <see cref="TransformComponent"/>.
+    /// </summary>
+    internal void ExpandByDrawableDescendants(ref BoundingBox boundingBox)
+    {
+        for (int i = 0; i < Children.Count; i++)
+        {
+            SceneComponent child = Children[i];
+            if (child is PhysicsBaseComponent)
+            {
+                continue;
+            }
+
+            if (child is IComponentDrawable drawable)
+            {
+                boundingBox.ExpandBy(drawable.GetBoundingBox());
+            }
+
+            child.ExpandByDrawableDescendants(ref boundingBox);
+        }
+    }
+
+    /// <summary>
+    /// True when a descendant of this component that can change the bounds of its entity is marked (ADR-0152): any
+    /// descendant, physics components and what hangs under them excepted.
+    /// </summary>
+    internal bool HasBoundingBoxDirtyDescendant()
+    {
+        for (int i = 0; i < Children.Count; i++)
+        {
+            SceneComponent child = Children[i];
+            if (child is PhysicsBaseComponent)
+            {
+                continue;
+            }
+
+            if (child.IsBoundingBoxDirty || child.HasBoundingBoxDirtyDescendant())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void ClearBoundingBoxDirtyRecursive()
     {
         IsBoundingBoxDirty = false;

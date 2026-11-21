@@ -119,9 +119,10 @@ public abstract class CameraComponent : SceneComponent
         _needToComputeProjectionMatrix = true;
     }
 
+    /// <summary>A small box on the camera itself (ADR-0152): it follows the world transform of the camera.</summary>
     public override BoundingBox GetBoundingBox()
     {
-        return new BoundingBox(-Vector3.One, Vector3.One);
+        return new BoundingBox(-Vector3.One, Vector3.One).Transform(WorldMatrixNoScale);
     }
 
     public override void Load(JObject element)

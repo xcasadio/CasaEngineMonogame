@@ -393,15 +393,25 @@ public class Entity : ObjectBase
         return null;
     }
 
+    /// <summary>
+    /// The bounds the world tests to decide whether it draws this entity: its root component and its entity components,
+    /// extended by their descendants that draw (ADR-0152). Physics components and what hangs under them are left out:
+    /// they live in the physical world, not in render space.
+    /// </summary>
     public BoundingBox GetBoundingBox()
     {
         var boundingBox = RootComponent?.BoundingBox ?? new BoundingBox();
-
-        foreach (var component in Components)
+        if (RootComponent != null)
         {
-            if (component is SceneComponent sceneComponent)
+            RootComponent.ExpandByDrawableDescendants(ref boundingBox);
+        }
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i] is SceneComponent sceneComponent)
             {
                 boundingBox.ExpandBy(sceneComponent.BoundingBox);
+                sceneComponent.ExpandByDrawableDescendants(ref boundingBox);
             }
         }
 

@@ -161,7 +161,7 @@ Tests seulement.
 
 ## Phase 1 — Le sprite orientable
 
-### ⏳ T1.0 — La boîte d'une entité compte ses composants enfants qui se dessinent
+### ✅ T1.0 — La boîte d'une entité compte ses composants enfants qui se dessinent
 
 - Objectif : qu'un composant enfant qui se dessine compte pour la visibilité de son entité, et que la boîte d'une caméra soit à la caméra (D7).
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Entity.cs` (`GetBoundingBox`), `CasaEngine/Framework/Scene/World/World.cs` (`IsBoundingBoxDirty`), `CasaEngine/Framework/Scene/Entities/Components/CameraComponent.cs` (`GetBoundingBox`), `CasaEngine/Framework/Scene/Entities/Components/TransformComponent.cs` seulement si la règle y est déplacée vers un endroit partagé sans en changer le résultat, `CasaEngine.Tests/Scene/EntityBoundsWithChildrenTests.cs` (nouveau).
@@ -172,6 +172,10 @@ Tests seulement.
   4. Tests ajoutés : la boîte d'une entité contient celle d'un composant enfant éloigné qui se dessine ; **un composant physique enfant éloigné ne change pas la boîte** ; un composant enfant qui se dessine et qui bouge seul fait réindexer son entité ; par la requête de visibilité du monde (`World.Draw`, ou l'index et un frustum), une caméra racine posée de façon que l'origine du monde soit hors de son champ, avec un sprite enfant devant elle, est rendue ; la boîte d'une caméra sans enfant est à sa position (c'est le seul test sur la boîte d'une caméra).
 - Validation : builds ; tests verts ; aucun test existant modifié, en particulier `TransformComponentTests.GetBoundingBox_AfterUpdate_FollowsTheRenderPositionAndExcludesPhysics` et `WorldIndex_ReturnsTheEntityAroundItsRenderPose_NotItsLogicalPose`. Si un test existant casse, arrêt et note.
 - Commit : `fix(scene): count the children of an entity in its bounds and place the bounds of a camera on the camera`
+- **Fait (2026-11-21).** `Entity.GetBoundingBox` étend la boîte du composant racine et de chaque composant d'entité par celles de leurs descendants `IComponentDrawable`, sous-arbres `PhysicsBaseComponent` sautés (`SceneComponent.ExpandByDrawableDescendants`, interne). `World.IsBoundingBoxDirty` consulte les mêmes descendants (`SceneComponent.HasBoundingBoxDirtyDescendant`). `CameraComponent.GetBoundingBox` rend sa boîte transformée par `WorldMatrixNoScale`. `TransformComponent` n'est pas touché.
+  - **Fait établi pendant la tâche, qui précise le plan** : `SceneComponent` implémente lui-même `IComponentDrawable` (`SceneComponent.cs:16`). « Les descendants qui se dessinent » sont donc **tous les descendants hors physique**, pour `TransformComponent` aujourd'hui comme pour cette règle. La règle codée est celle du plan ; sa portée est plus large que le mot ne le laisse entendre : toute entité qui a un composant enfant hors physique a une boîte plus grande ou égale. L'invariant vérifié est donc « une entité sans caméra et sans descendant hors physique garde sa boîte ».
+  - Tests, `EntityBoundsWithChildrenTests` : 13 invariants (trois types de racine, avec et sans composant d'entité, avec et sans enfant physique éloigné) et celui de la racine inerte, verts avant et après ; puis la boîte contient un enfant éloigné (sous la racine, sous un composant d'entité), un enfant physique éloigné et ce qui pend dessous ne la changent pas, la boîte d'une caméra est à la caméra, et par l'index du monde : l'enfant d'une caméra racine posée en (500, 0, 300) est rendu autour de (500, 0, 250), suit la caméra quand elle bouge, et un enfant qui bouge seul fait réindexer son entité. Avant la correction, les cinq tests du nouveau comportement échouaient ; une mutation (l'extension par les descendants de la racine retirée) en fait échouer trois.
+  - Les deux solutions à 0 erreur ; 8506 tests, 0 échec (8487 + 19) ; aucun test existant modifié, dont les deux de `TransformComponentTests` nommés.
 
 ### ⏳ T1.1 — ADR
 
