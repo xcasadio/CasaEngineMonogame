@@ -9,7 +9,8 @@ namespace CasaEngine.Tests.Scene;
 /// <summary>
 /// The worlds of the repository that hold a 2d camera (ADR-0150). The view and the projection of each camera were
 /// recorded before the camera was posed by its transform: every world had a zero target, a zoom of 1 and no pixel snap,
-/// so every camera stood at (0, 0, 500) looking at the origin. The worlds must keep giving that view.
+/// so every camera stood at (0, 0, 500) looking at the origin. The worlds must keep giving that view. <c>LiveWorld.world</c>
+/// joined the list when the branch met it: it was migrated on the same reading of its values, without a run on the old code.
 /// </summary>
 public sealed class Camera2dWorldDataTests
 {
@@ -22,6 +23,7 @@ public sealed class Camera2dWorldDataTests
         "Projects/PixelUiSample/TitleWorld.world",
         "Projects/RPGDemo/DefaultWorld.world",
         "Projects/SpriteCutsceneSample/EndWorld.world",
+        "Projects/SpriteCutsceneSample/LiveWorld.world",
         "Projects/SpriteCutsceneSample/SpriteWorld.world",
         "Projects/SpriteDrawOrderSample/DrawOrderWorld.world",
         "Projects/TimedScreenSample/FirstWorld.world",
