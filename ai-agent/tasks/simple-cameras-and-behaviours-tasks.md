@@ -513,7 +513,7 @@ Tests seulement, aucun code du moteur.
   - projection : 1,35799503 ; 0 ; 0 ; 0 / 0 ; 2,41421342 ; 0 ; 0 / 0 ; 0 ; −1,001001 ; −1 / 0 ; 0 ; −1,001001 ; 0
   - Les deux solutions à 0 erreur ; `CasaEngine.Tests` : 8122 tests, 0 échec (8118 + 2 lignes de données + 2 jumeaux).
 
-### 🧪 T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
+### ✅ T3.3 — Migrer les deux `camera.entity` et leurs utilisateurs
 
 1. Éditer les deux fichiers selon la « forme migrée » de la conception. `git diff` montre exactement les quatre changements listés, les mêmes dans les deux fichiers, et rien d'autre.
 2. `EditorWorldDemo.InitializeCamera` : cadrer par `DemoCameraFraming.Frame(camera, (0, 14, 30), Vector3.Zero)`, mêmes arguments qu'aujourd'hui, et garder la pose du script.
@@ -558,7 +558,7 @@ Travail répétitif à jugement borné : confié à un `executor`, relu par la s
 - Validation : relecture ; liens vérifiés.
 - **Fait (2026-11-19).** `perspective-camera-component.md` (la caméra 3D du moteur ; section de migration d'un fichier à la main, les deux formes côte à côte), `camera-behaviour-components.md`, `editor-2d-viewport.md`, `docs/README.md`, `ai-agent/README.md`. `viewport-camera-controls.md` ne nommait aucune classe retirée : inchangé. Documentation seule.
 
-### 🧪 T3.8 — Vérification indépendante et recette
+### ✅ T3.8 — Vérification indépendante et recette
 
 - Un `verifier` neuf reçoit les affirmations de la « Validation globale », le diff de la branche et les notes des tâches ; il relance builds et tests et cherche à réfuter. Un point P0 à P2 est corrigé puis revérifié.
 - Recette de l'auteur (🧪 jusque-là) : « World made in the editor » dans `CasaEngine.Demos`, `Projects/SampleProject`, et un enregistrement d'entité à caméra dans l'éditeur.
@@ -636,7 +636,7 @@ Un seul commit : le dépôt ne compile pas entre les deux.
 - Validation : relecture ; liens vérifiés.
 - **Fait (2026-11-19).** `rendering-2d-3d-spaces.md` (extrait de code sur `CentreOn`, migration d'un monde), `screen-effects.md` (centre et profondeur du quad), `camera-behaviour-components.md` (le suivi pilote aussi la caméra 2D), `docs/README.md`, `ai-agent/README.md`. `data-driven-screens.md` et `editor-2d-viewport.md` ne décrivaient pas la cible de la caméra 2D (leurs `target` sont ceux des actions d'écran et de l'état de vue de l'éditeur) : inchangés. Documentation seule.
 
-### 🧪 T4.6 — Vérification indépendante et recette
+### ✅ T4.6 — Vérification indépendante et recette
 
 - Un `verifier` neuf, comme en T3.8, sur la « Validation globale » de la tranche 4.
 - Recette de l'auteur (🧪 jusque-là) : la vue 2D de l'éditeur (déplacement, zoom, enregistrement d'un monde, rechargement), `TileMapDemo` et `Layers2dDemo`, `RPGDemo`, un sample à sprites.
@@ -648,6 +648,7 @@ Un seul commit : le dépôt ne compile pas entre les deux.
   - P3, hors de ce dépôt : un projet extérieur qui écrit des mondes à caméra 2D doit écrire la nouvelle forme avant de passer sur ce moteur (O12).
 - Voulu par l'ADR-0150 et sans donnée concernée dans le dépôt : une caméra 2D tournée, parentée, ou déposée dans l'éditeur depuis un `.entity` se place désormais par sa transformation.
 - **Reste 🧪 : la recette de l'auteur** (vue 2D de l'éditeur, `TileMapDemo` et `Layers2dDemo`, `RPGDemo`, un sample à sprites). Ni l'éditeur ni les démos n'ont été lancés ; seul `SpriteDrawOrderSample` l'a été, par le script de capture.
+- **Recette de l'auteur (2026-11-21, « Recette OK »), sur captures.** L'auteur, à distance, a validé sur treize captures prises par le script de capture du Launcher : onze samples lancés 8 s sur le moteur d'avant les tranches 3 et 4 (`851bfa93`) puis sur `chantier/camera-2d-pose`. Cinq samples identiques octet pour octet aux deux instants ; deux identiques à 8 s et différents à 3 s, pendant une animation ; trois samples vidéo différents ; pour ces cinq-là, deux lancements du même moteur diffèrent autant. `SampleProject` (caméra 3D migrée) : 58 pixels sur 786 432 diffèrent d'un niveau, écart stable d'un lancement à l'autre. Non couvert par ces captures, et dit à l'auteur : l'éditeur (vues 2D et 3D, enregistrement d'un monde) et `CasaEngine.Demos` n'ont pas été lancés ; `RPGDemo` s'arrête sur son menu.
 
 ---
 
