@@ -186,7 +186,7 @@ Tests seulement.
 - Commit : `docs(adr): record that a sprite is drawn with the world transform of its component`
 - **Fait (2026-11-21).** ADR-0151 (le sprite dessiné avec la transformation de monde de son composant) et ADR-0152 (la boîte d'une entité compte ses composants enfants, celle d'une caméra suit la caméra), écrits et indexés ; les numéros 0151 et 0152 étaient libres. L'ADR-0152 dit que « les descendants qui se dessinent » sont tous les descendants hors physique. Documentation seule.
 
-### ⏳ T1.2 — Surcharge du rendu
+### ✅ T1.2 — Surcharge du rendu
 
 - Objectif : pouvoir soumettre un sprite avec une transformation de monde et tous ses réglages.
 - Fichiers : `CasaEngine/Framework/Application/Components/SpriteRendererComponent.cs`, `CasaEngine.Tests/` (tests de la surcharge).
@@ -195,6 +195,7 @@ Tests seulement.
   2. Tests : la matrice gardée par le rendu égale `échelle de la source × placement de l'origine × transformation de monde` ; le mode de mélange, l'ordre de dessin et la clé de tri arrivent dans l'entrée.
 - Validation : builds ; tests verts ; aucun appel existant modifié.
 - Commit : `feat(sprite): let a sprite be submitted with a world transform and its settings`
+- **Fait (2026-11-21).** Deux surcharges publiques de `SpriteRendererComponent.DrawSprite`, placées par une transformation de monde seule : `(Sprite, in Matrix, Color, SpriteBlendMode, int drawOrder, Rectangle, bool drawDebug)` et sa jumelle avec `in RenderSortKey2D`. Elles appellent la méthode privée existante avec une position nulle, une rotation nulle, une échelle de 1 et un z nul. Dessin de mise au point : sous une transformation de monde, la taille des formes est celle que donnent les axes x et y de la transformation (longueur des axes, donc sans le signe d'une échelle négative), et les formes de collision sont à la translation de la transformation ; les appelants existants de la surcharge à transformation de monde passent `drawDebug: false`, rien ne change pour eux. Aucune signature existante modifiée. Tests : la matrice gardée par le rendu égale `échelle de la source × placement de l'origine × transformation de monde` ; couleur, mélange, ordre de dessin, découpe et clé de tri arrivent dans l'entrée. Les deux solutions à 0 erreur ; les 16 tests de `StaticSpriteWorldTransformTests` verts.
 
 ### ⏳ T1.3 — `StaticSpriteComponent` dessine avec sa transformation de monde
 

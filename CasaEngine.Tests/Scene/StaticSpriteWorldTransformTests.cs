@@ -5,6 +5,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -175,6 +176,71 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
         Assert.True(MathF.Abs(expected - actual) <= tolerance, $"{context}: expected {expected:R}, actual {actual:R}");
     }
 
+    // ---- The renderer: a sprite submitted with a world transform and its settings ----
+
+    private static readonly Matrix SomeWorld =
+        Matrix.CreateScale(2f, 3f, 1f)
+        * Matrix.CreateFromYawPitchRoll(0.6f, -0.3f, 0.25f)
+        * Matrix.CreateTranslation(40f, -15f, 7f);
+
+    //  What the renderer builds before it applies the world transform: the quad sized by the source rectangle and placed
+    //  by the origin of the sprite.
+    private static Matrix LocalQuad(Rectangle source, Point origin)
+    {
+        return Matrix.CreateScale(source.Width, source.Height, 1f)
+            * Matrix.CreateTranslation(-origin.X + source.Width / 2f, origin.Y - source.Height / 2f, 0f);
+    }
+
+    [Fact]
+    public void TheRenderer_PlacesTheQuadByTheWorldTransform_AndKeepsTheSettings()
+    {
+        _source = new Rectangle(8, 4, 48, 32);
+        _origin = new Point(24, 16);
+        var harness = new Harness();
+        Sprite sprite = harness.SpriteOf(harness.Place(Placement.Root, Mode.Opaque, Vector3.Zero, Vector3.One, Vector3.Zero));
+        var scissor = new Rectangle(1, 2, 30, 40);
+
+        harness.Renderer.DrawSprite(sprite, in SomeWorld, Color.Coral, SpriteBlendMode.Additive, drawOrder: 5, scissor, drawDebug: false);
+
+        object entry = harness.SingleEntry();
+        AssertMatrix(LocalQuad(_source, _origin) * SomeWorld, Harness.Read<Matrix>(entry, "WorldMatrix"));
+        Assert.Equal(Color.Coral, Harness.Read<Color>(entry, "Color"));
+        Assert.Equal(SpriteBlendMode.Additive, Harness.Read<SpriteBlendMode>(entry, "BlendMode"));
+        Assert.Equal(5, Harness.Read<int>(entry, "DrawOrder"));
+        Assert.Equal(scissor, Harness.Read<Rectangle>(entry, "ScissorRectangle"));
+        Assert.False(Harness.Read<bool>(entry, "HasSortKey"));
+        Assert.False(Harness.Read<bool>(entry, "IgnoresDepth"));
+        Assert.False(Harness.Read<bool>(entry, "NoCull"));
+    }
+
+    [Fact]
+    public void TheRenderer_WithASortKey_KeepsTheKey()
+    {
+        _source = new Rectangle(0, 0, 16, 16);
+        _origin = Point.Zero;
+        var harness = new Harness();
+        Sprite sprite = harness.SpriteOf(harness.Place(Placement.Root, Mode.Opaque, Vector3.Zero, Vector3.One, Vector3.Zero));
+        var key = new RenderSortKey2D(3, 2, 1, 0, 42, 0, 7);
+
+        harness.Renderer.DrawSprite(sprite, in SomeWorld, Color.White, in key, SpriteBlendMode.AlphaBlend, Rectangle.Empty, drawDebug: false);
+
+        object entry = harness.SingleEntry();
+        AssertMatrix(LocalQuad(_source, _origin) * SomeWorld, Harness.Read<Matrix>(entry, "WorldMatrix"));
+        Assert.True(Harness.Read<bool>(entry, "HasSortKey"));
+        Assert.Equal(key, Harness.Read<RenderSortKey2D>(entry, "SortKey"));
+        Assert.Equal(SpriteBlendMode.AlphaBlend, Harness.Read<SpriteBlendMode>(entry, "BlendMode"));
+    }
+
+    private static void AssertMatrix(Matrix expected, Matrix actual)
+    {
+        float[] expectedTerms = Matrix.ToFloatArray(expected);
+        float[] actualTerms = Matrix.ToFloatArray(actual);
+        for (int index = 0; index < expectedTerms.Length; index++)
+        {
+            AssertClose(expectedTerms[index], actualTerms[index], $"term {index}");
+        }
+    }
+
     // ---- Harness ----
 
     private static JObject SpriteNode(Mode mode)
@@ -241,6 +307,28 @@ public sealed class StaticSpriteWorldTransformTests : IDisposable
         }
 
         public World World => _world;
+
+        public SpriteRendererComponent Renderer => _renderer;
+
+        public Sprite SpriteOf(StaticSpriteComponent component)
+        {
+            var field = typeof(StaticSpriteComponent).GetField("_sprite", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            return (Sprite)field!.GetValue(component)!;
+        }
+
+        public object SingleEntry()
+        {
+            Assert.Single(Queue);
+            return Queue[0]!;
+        }
+
+        public static T Read<T>(object entry, string name)
+        {
+            var field = entry.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            return (T)field!.GetValue(entry)!;
+        }
 
         public System.Collections.IList Queue
         {

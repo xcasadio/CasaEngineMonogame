@@ -1105,6 +1105,59 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             hasWorldTransform: true, in worldTransform);
     }
 
+    /// <summary>
+    /// Queues a sprite placed by a world transform alone (ADR-0151): its quad, sized by its source rectangle and placed by
+    /// its origin, is transformed by <paramref name="worldTransform"/>, rotation included. No sort key: the entry is
+    /// ordered by the z of the transform, then by <paramref name="drawOrder"/> (ADR-0131).
+    /// </summary>
+    public void DrawSprite(Sprite sprite, in Matrix worldTransform, Color color, SpriteBlendMode blendMode, int drawOrder,
+        Rectangle scissorRectangle, bool drawDebug)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, Vector2.Zero, 0f, Vector2.One,
+            color, 0f, SpriteEffects.None, scissorRectangle, drawDebug, hasSortKey: false, RenderSortKey2D.Default,
+            hasWorldTransform: true, in worldTransform, blendMode: blendMode, drawOrder: drawOrder);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
+        {
+            DrawCollisions(sprite, in worldTransform);
+        }
+    }
+
+    /// <summary>
+    /// The overload placed by a world transform alone (ADR-0151), ordered by <paramref name="sortKey"/>.
+    /// </summary>
+    public void DrawSprite(Sprite sprite, in Matrix worldTransform, Color color, in RenderSortKey2D sortKey, SpriteBlendMode blendMode,
+        Rectangle scissorRectangle, bool drawDebug)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, Vector2.Zero, 0f, Vector2.One,
+            color, 0f, SpriteEffects.None, scissorRectangle, drawDebug, hasSortKey: true, in sortKey,
+            hasWorldTransform: true, in worldTransform, blendMode: blendMode);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
+        {
+            DrawCollisions(sprite, in worldTransform);
+        }
+    }
+
+    //  The debug shapes are flat: they take the place and the size the transform gives, not its rotation.
+    private void DrawCollisions(Sprite sprite, in Matrix worldTransform)
+    {
+        var position = new Vector2(worldTransform.M41, worldTransform.M42);
+        Vector2 scale = GetAxisScale(in worldTransform);
+        foreach (var collision2d in sprite.SpriteData.CollisionShapes)
+        {
+            DrawCollision(collision2d, position, worldTransform.M43, sprite.SpriteData.Origin, scale);
+        }
+    }
+
+    //  The lengths of the x and y axes of a transform: its scale, without its sign.
+    private static Vector2 GetAxisScale(in Matrix transform)
+    {
+        return new Vector2(
+            MathF.Sqrt(transform.M11 * transform.M11 + transform.M12 * transform.M12 + transform.M13 * transform.M13),
+            MathF.Sqrt(transform.M21 * transform.M21 + transform.M22 * transform.M22 + transform.M23 * transform.M23));
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
@@ -1169,7 +1222,9 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         if (drawDebug)
         {
-            DrawDebug(spriteDisplayData.WorldMatrix.Translation, scale, origin.ToVector2(), texture2d, sourceInTexture);
+            //  Under a world transform the size of the debug shapes is the one the transform gives (ADR-0151).
+            Vector2 debugScale = hasWorldTransform ? scale * GetAxisScale(in worldTransform) : scale;
+            DrawDebug(spriteDisplayData.WorldMatrix.Translation, debugScale, origin.ToVector2(), texture2d, sourceInTexture);
         }
     }
 
