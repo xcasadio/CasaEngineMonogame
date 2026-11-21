@@ -164,5 +164,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0148](0148-camera-behaviours-are-components-that-pose-a-simple-camera.md) | Camera behaviours are components that pose a simple camera (numbered ADR-0145 until 2026-11-20) | Accepted | 2026-11-19 |
 | [ADR-0149](0149-the-old-camera-classes-are-removed-and-their-data-is-migrated-once.md) | The old camera classes are removed and their data is migrated once | Accepted | 2026-11-19 |
 | [ADR-0150](0150-the-2d-camera-is-posed-by-its-transform.md) | The 2d camera is posed by its transform | Accepted | 2026-11-19 |
+| [ADR-0151](0151-a-sprite-is-drawn-with-the-world-transform-of-its-component.md) | A sprite is drawn with the world transform of its component | Accepted | 2026-11-21 |
+| [ADR-0152](0152-the-bounds-of-an-entity-include-its-children.md) | The bounds of an entity include its child components, and the bounds of a camera stand on the camera | Accepted | 2026-11-21 |
 
 Renumbering of 2026-11-20: the two local camera records were numbered ADR-0144 and ADR-0145 until origin/main, which had published other decisions under those numbers, was merged. A camera record still written on an unmerged branch follows the same shift of three (0146 becomes 0149, 0147 becomes 0150).

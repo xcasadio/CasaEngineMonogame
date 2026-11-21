@@ -177,13 +177,14 @@ Tests seulement.
   - Tests, `EntityBoundsWithChildrenTests` : 13 invariants (trois types de racine, avec et sans composant d'entité, avec et sans enfant physique éloigné) et celui de la racine inerte, verts avant et après ; puis la boîte contient un enfant éloigné (sous la racine, sous un composant d'entité), un enfant physique éloigné et ce qui pend dessous ne la changent pas, la boîte d'une caméra est à la caméra, et par l'index du monde : l'enfant d'une caméra racine posée en (500, 0, 300) est rendu autour de (500, 0, 250), suit la caméra quand elle bouge, et un enfant qui bouge seul fait réindexer son entité. Avant la correction, les cinq tests du nouveau comportement échouaient ; une mutation (l'extension par les descendants de la racine retirée) en fait échouer trois.
   - Les deux solutions à 0 erreur ; 8506 tests, 0 échec (8487 + 19) ; aucun test existant modifié, dont les deux de `TransformComponentTests` nommés.
 
-### ⏳ T1.1 — ADR
+### ✅ T1.1 — ADR
 
 - Objectif : enregistrer les deux décisions.
 - Fichiers : `docs/decisions/0151-a-sprite-is-drawn-with-the-world-transform-of-its-component.md` et `docs/decisions/0152-the-bounds-of-an-entity-include-its-children.md` (nouveaux), `docs/decisions/README.md`. Numéros à confirmer sur l'index au moment de les écrire. Le second ADR (D7) dit ce que comptait la boîte avant, ce qu'elle compte maintenant (les descendants qui se dessinent, composants physiques exclus, comme `TransformComponent`), que la boîte d'une caméra suit la caméra, la limite de la caméra non racine, et que les entités enfants ne sont pas traitées.
 - Étapes : avec le skill `adr`, en anglais : le contexte (rotation ignorée, boîte englobante qui la suit déjà, surcharge du rendu existante) ; la décision (D1, D2, D4, D5) ; les conséquences et les limites (faces arrière, tri des sprites mélangés, sprite animé et sprite vidéo inchangés, dimensionnement par les données) ; ce qui change pour un sprite sous un parent tourné ou mis à l'échelle.
 - Validation : relecture ; aucun nom de projet extérieur.
 - Commit : `docs(adr): record that a sprite is drawn with the world transform of its component`
+- **Fait (2026-11-21).** ADR-0151 (le sprite dessiné avec la transformation de monde de son composant) et ADR-0152 (la boîte d'une entité compte ses composants enfants, celle d'une caméra suit la caméra), écrits et indexés ; les numéros 0151 et 0152 étaient libres. L'ADR-0152 dit que « les descendants qui se dessinent » sont tous les descendants hors physique. Documentation seule.
 
 ### ⏳ T1.2 — Surcharge du rendu
 
