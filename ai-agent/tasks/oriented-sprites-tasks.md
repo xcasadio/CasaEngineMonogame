@@ -243,11 +243,12 @@ Tests seulement.
   - **Non vu** : l'effet des flèches (le script de capture n'envoie aucune entrée). Recette de l'auteur.
   - Les deux solutions à 0 erreur ; 8533 tests, 0 échec (8520 + 13).
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Fichiers : `docs/engine/` (un document court sur le sprite orienté : ce qu'il suit, comment l'attacher à une caméra, la formule d'échelle, les limites), `docs/engine/perspective-camera-component.md` et `Projects/PerspectiveCameraSample/README.md` là où ils disent que les sprites restent parallèles à XY, `docs/README.md`, `ai-agent/README.md`.
 - Validation : relecture ; liens vérifiés.
 - Commit : `docs(sprite): describe the sprite drawn with its world transform`
+- **Fait (2026-11-21).** Nouveau `docs/engine/oriented-sprites.md` (ce que suit un sprite, l'attache à une caméra par la hiérarchie, la formule d'échelle au pixel, la visibilité, les limites, le sample et les tests). `perspective-camera-component.md` et le README de `PerspectiveCameraSample` ne disent plus que les sprites restent parallèles à XY. `docs/README.md` et `ai-agent/README.md` à jour. Documentation seule.
 
 ### ⏳ T2.3 — Vérification indépendante et recette
 

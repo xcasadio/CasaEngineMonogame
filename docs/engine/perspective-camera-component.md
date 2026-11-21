@@ -44,7 +44,7 @@ It is the 3d camera of the engine: the arc ball, look-at and targeted 2d cameras
 
 ## Limits
 
-- Sprites stay in a plane parallel to XY. A fixed picture faces the camera only when the camera looks along Z.
+- A static sprite is drawn with its world transform (ADR-0151): a sprite of the world faces the camera only if its own orientation makes it. To keep a picture facing the camera whatever its orientation, make the sprite a child component of the camera: see [oriented-sprites.md](oriented-sprites.md).
 - No cutscene action drives the offset.
 - The inspector does not show the offset: its generic section edits no `Vector2`. The offset is set in the file or by code.
 - The offset shifts the whole picture: it is not a per-layer parallax.
